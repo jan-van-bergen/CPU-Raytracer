@@ -9,7 +9,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	
 	if (p2 > radius_squared) return;
 	
-	t -= sqrt(radius_squared - p2);
+	t -= sqrtf(radius_squared - p2);
 	if (t < EPSILON || t > ray_hit.distance) return;
 
 	ray_hit.hit = true;
@@ -25,6 +25,6 @@ bool Sphere::intersect(const Ray & ray) const {
 	
 	if (p2 > radius_squared) return false;
 	
-	t -= sqrt(radius_squared - p2);
+	t -= sqrtf(radius_squared - p2);
 	return t > EPSILON;
 }
