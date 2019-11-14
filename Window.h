@@ -1,7 +1,8 @@
 #pragma once
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
-#include <glm/glm.hpp>
+
+#include "Vector3.h"
 
 struct Window {
 private:
@@ -29,10 +30,10 @@ public:
 		frame_buffer[x + width * y] = colour;
 	}
 
-	inline void plot(int x, int y, const glm::vec3 & colour) const {
-		int r = colour.r * 255.0f;
-		int g = colour.g * 255.0f;
-		int b = colour.b * 255.0f;
+	inline void plot(int x, int y, const Vector3 & colour) const {
+		int r = colour.x * 255.0f;
+		int g = colour.y * 255.0f;
+		int b = colour.z * 255.0f;
 		frame_buffer[x + width * y] = (r << 16) | (g << 8) | b;
 	}
 

@@ -17,7 +17,7 @@ struct Vector2 {
 
 	inline static Vector2 normalize(const Vector2 & vector) {
 		float inv_length = 1.0f / vector.length();
-		return vector * inv_length;
+		return Vector2(vector.x * inv_length, vector.y * inv_length);
 	}
 
 	inline static float dot(const Vector2 & left, const Vector2 & right) {
@@ -34,3 +34,8 @@ inline Vector2 operator+(const Vector2 & vector, float scalar) {                
 inline Vector2 operator-(const Vector2 & vector, float scalar) {                                  return Vector2(vector.x - scalar,     vector.y - scalar); }
 inline Vector2 operator*(const Vector2 & vector, float scalar) {                                  return Vector2(vector.x * scalar,     vector.y * scalar); }
 inline Vector2 operator/(const Vector2 & vector, float scalar) { float inv_scalar = 1.0 / scalar; return Vector2(vector.x * inv_scalar, vector.y * inv_scalar);  }
+
+inline Vector2 operator+(float scalar, const Vector2 & vector) {                                  return Vector2(vector.x + scalar,     vector.y + scalar); }
+inline Vector2 operator-(float scalar, const Vector2 & vector) {                                  return Vector2(vector.x - scalar,     vector.y - scalar); }
+inline Vector2 operator*(float scalar, const Vector2 & vector) {                                  return Vector2(vector.x * scalar,     vector.y * scalar); }
+inline Vector2 operator/(float scalar, const Vector2 & vector) { float inv_scalar = 1.0 / scalar; return Vector2(vector.x * inv_scalar, vector.y * inv_scalar);  }
