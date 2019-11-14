@@ -15,8 +15,11 @@ void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum 
 	__debugbreak();
 }
 
+#define SCREEN_WIDTH  512
+#define SCREEN_HEIGHT 512
+
 int main(int argument_count, char ** arguments) {
-	Window window(512, 512, "Raytracer");
+	Window window(SCREEN_WIDTH, SCREEN_HEIGHT, "Raytracer");
 
 #if _DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
@@ -31,12 +34,13 @@ int main(int argument_count, char ** arguments) {
 	last = SDL_GetPerformanceCounter();
 
 	Scene scene;
-	scene.init();
+	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	while (!window.is_closed) {
 		window.clear();
 
-
+		scene.camera.update(delta_time, SDL_GetKeyboardState(0));
+		scene.trace(window);
 
 		window.update();
 

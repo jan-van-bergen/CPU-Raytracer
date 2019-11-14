@@ -21,7 +21,6 @@ public:
 	Window(int width, int height, const char * title);
 	~Window();
 
-	// Clears the framebuffer
 	void clear();
 
 	void update();

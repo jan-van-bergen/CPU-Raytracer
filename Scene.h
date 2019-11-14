@@ -2,6 +2,8 @@
 #include "Primitives.h"
 #include "Camera.h"
 
+#include "Window.h"
+
 struct Scene {
 	Sphere * spheres      = nullptr;
 	int      sphere_count = 0;
@@ -11,5 +13,7 @@ struct Scene {
 
 	Camera camera;
 
-	void init();
+	Scene();
+
+	void trace(Window & window) const;
 };

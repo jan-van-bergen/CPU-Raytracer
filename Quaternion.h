@@ -32,18 +32,21 @@ struct Quaternion {
 
 inline Quaternion operator*(const Quaternion & left, Quaternion & right) {
 	return Quaternion(
-		left.x * right.w + left.w * right.x + left.y * q.z - left.z * right.y,
-		left.y * right.w + left.w * right.y + left.z * q.x - left.x * right.z,
-		left.z * right.w + left.w * right.z + left.x * q.y - left.y * right.x,
-		left.w * right.w - left.x * right.x - left.y * q.y - left.z * right.z
+		left.x * right.w + left.w * right.x + left.y * right.z - left.z * right.y,
+		left.y * right.w + left.w * right.y + left.z * right.x - left.x * right.z,
+		left.z * right.w + left.w * right.z + left.x * right.y - left.y * right.x,
+		left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z
 	);
 }
 
-inline Quaternion operator*(const Quaternion & quaternion, const Vector3 & vector) {
-	return Quaternion(
-		 quaternion.w * vector.x + quaternion.y * vector.z - quaternion.z * vector.y,
-		 quaternion.w * vector.y + quaternion.z * vector.x - quaternion.x * vector.z,
-		 quaternion.w * vector.z + quaternion.x * vector.y - quaternion.y * vector.x,
-		-quaternion.x * vector.x - quaternion.y * vector.y - quaternion.z * vector.z
-	);
+inline Vector3 operator*(const Quaternion & quaternion, const Vector3 & vector) {
+	Vector3 q(quaternion.x, quaternion.y, quaternion.z);
+
+	// Extract the scalar part of the quaternion
+	float s = quaternion.w;
+
+	// Do the math
+	return 2.0f * Vector3::dot(q, vector) * q +
+		(s * s - Vector3::dot(q, q)) * vector +
+		2.0f * s * Vector3::cross(q, vector);
 }

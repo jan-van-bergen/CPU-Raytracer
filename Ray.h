@@ -9,6 +9,6 @@ struct Ray {
 };
 
 struct RayHit {
-	bool  hit = false;
-	float distance;
+	bool  hit      = false;
+	float distance = INFINITY;
 };

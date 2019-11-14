@@ -31,6 +31,16 @@ struct Vector3 {
 			left.x * right.y - left.y * right.x
 		);
 	}
+
+	inline Vector3 operator+=(const Vector3 & vector) { x += vector.x; y += vector.y; z += vector.z; return *this; }
+	inline Vector3 operator-=(const Vector3 & vector) { x -= vector.x; y -= vector.y; z -= vector.z; return *this; }
+	inline Vector3 operator*=(const Vector3 & vector) { x *= vector.x; y *= vector.y; z *= vector.z; return *this; }
+	inline Vector3 operator/=(const Vector3 & vector) { x /= vector.x; y /= vector.y; z /= vector.z; return *this; }
+
+	inline Vector3 operator+=(float scalar) {                                  x += scalar;     y += scalar;     z += scalar;     return *this; }
+	inline Vector3 operator-=(float scalar) {                                  x -= scalar;     y -= scalar;     z -= scalar;     return *this; }
+	inline Vector3 operator*=(float scalar) {                                  x *= scalar;     y *= scalar;     z *= scalar;     return *this; }
+	inline Vector3 operator/=(float scalar) { float inv_scalar = 1.0 / scalar; x *= inv_scalar; y *= inv_scalar; z *= inv_scalar; return *this; }
 };
 
 inline Vector3 operator+(const Vector3 & left, const Vector3 & right) { return Vector3(left.x + right.x, left.y + right.y, left.z + right.z); }
