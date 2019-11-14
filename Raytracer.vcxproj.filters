@@ -20,7 +20,10 @@
     </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Window.cpp" />
-    <ClCompile Include="Primitives.cpp">
+    <ClCompile Include="Plane.cpp">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
       <Filter>Raytracing\Primitives</Filter>
     </ClCompile>
   </ItemGroup>
@@ -48,7 +51,10 @@
     </ClInclude>
     <ClInclude Include="Util.h" />
     <ClInclude Include="Window.h" />
-    <ClInclude Include="Primitives.h">
+    <ClInclude Include="Plane.h">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
   </ItemGroup>

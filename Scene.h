@@ -1,5 +1,7 @@
 #pragma once
-#include "Primitives.h"
+#include "Sphere.h"
+#include "Plane.h"
+
 #include "Camera.h"
 
 #include "Window.h"
