@@ -7,11 +7,11 @@
     <Filter Include="Raytracing">
       <UniqueIdentifier>{788f2913-d3bc-4727-b65d-e6bd7adcce93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Raytracing\Primitives">
+      <UniqueIdentifier>{590c32e0-5c21-4243-8f94-cc47432e64c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Primitives.cpp">
-      <Filter>Raytracing</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
@@ -20,6 +20,9 @@
     </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Window.cpp" />
+    <ClCompile Include="Primitives.cpp">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -37,9 +40,6 @@
     <ClInclude Include="Camera.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="Primitives.h">
-      <Filter>Raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="Ray.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
@@ -48,5 +48,8 @@
     </ClInclude>
     <ClInclude Include="Util.h" />
     <ClInclude Include="Window.h" />
+    <ClInclude Include="Primitives.h">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

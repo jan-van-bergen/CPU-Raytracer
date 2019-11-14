@@ -37,7 +37,7 @@ void Scene::trace(Window & window) const {
 			}
 
 			if (closest_hit.distance < INFINITY) {
-				window.plot(i, j, Vector3(1.0f - closest_hit.distance * 0.1f));
+				window.plot(i, j, 0xff0000);
 			}
 		}
 	}
