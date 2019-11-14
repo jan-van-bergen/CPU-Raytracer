@@ -16,6 +16,6 @@ struct Plane {
 		v_axis = Vector3::cross(u_axis, normal);
 	}
 
-	RayHit trace(const Ray & ray, float max_t) const;
+	void trace(const Ray & ray, RayHit & ray_hit) const;
 	bool intersect(const Ray & ray) const;
 };

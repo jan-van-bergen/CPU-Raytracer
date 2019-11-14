@@ -1,15 +1,11 @@
 #include "Plane.h"
 
-RayHit Plane::trace(const Ray & ray, float max_t) const {
-	RayHit hit;
-
+void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	float t = -(Vector3::dot(normal, ray.origin) + distance) / (Vector3::dot(normal, ray.direction));
-    if (t < EPSILON || t > max_t) return hit;
-
-	hit.hit = true;
-	hit.distance = t;
-
-    return hit;
+    if (t < EPSILON || t > ray_hit.distance) return;
+	
+	ray_hit.hit = true;
+	ray_hit.distance = t;
 }
 
 bool Plane::intersect(const Ray & ray) const {

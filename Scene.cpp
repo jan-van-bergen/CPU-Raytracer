@@ -20,20 +20,12 @@ void Scene::trace(Window & window) const {
 
 			// Trace spheres
 			for (int k = 0; k < sphere_count; k++) {
-				RayHit hit = spheres[k].trace(ray, closest_hit.distance);
-
-				if (hit.hit) {
-					closest_hit = hit;
-				}
+				spheres[k].trace(ray, closest_hit);
 			}
 
 			// Trace planes
 			for (int k = 0; k < plane_count; k++) {
-				RayHit hit = planes[k].trace(ray, closest_hit.distance);
-
-				if (hit.hit) {
-					closest_hit = hit;
-				}
+				planes[k].trace(ray, closest_hit);
 			}
 
 			if (closest_hit.hit) {

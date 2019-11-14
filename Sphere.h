@@ -10,6 +10,6 @@ struct Sphere {
 		radius_squared(radius * radius) 
 	{ }
 
-	RayHit trace(const Ray & ray, float max_t) const;
+	void trace(const Ray & ray, RayHit & ray_hit) const;
 	bool intersect(const Ray & ray) const;
 };
