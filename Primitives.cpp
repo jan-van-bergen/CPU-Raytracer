@@ -40,6 +40,8 @@ RayHit Plane::trace(const Ray & ray, float max_t) const {
     if (t < EPSILON || t > max_t) return hit;
 
 	hit.hit = true;
+	hit.distance = t;
+
     return hit;
 }
 

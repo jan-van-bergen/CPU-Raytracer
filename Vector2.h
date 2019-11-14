@@ -5,6 +5,7 @@ struct Vector2 {
 	float x, y;
 
 	inline Vector2() : x(0.0f), y(0.0f) { }
+	inline Vector2(float f) : x(f), y(f) {}
 	inline Vector2(float x, float y) : x(x), y(y) { }
 
 	inline float length_squared() const {

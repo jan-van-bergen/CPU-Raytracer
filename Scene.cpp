@@ -6,10 +6,8 @@ Scene::Scene() : camera(110.0f) {
 		Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f)
 	};
 
-	planes = new Plane[plane_count = 3] {
-		Plane(Vector3(0.0f, 0.0f, 0.0f), 1.0f),
-		Plane(Vector3(0.0f, 0.0f, 0.0f), 1.0f),
-		Plane(Vector3(0.0f, 0.0f, 0.0f), 1.0f)
+	planes = new Plane[plane_count = 1] {
+		Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f)
 	};
 }
 
@@ -20,6 +18,7 @@ void Scene::trace(Window & window) const {
 
 			RayHit closest_hit;
 
+			// Trace spheres
 			for (int k = 0; k < sphere_count; k++) {
 				RayHit hit = spheres[k].trace(ray, closest_hit.distance);
 
@@ -28,8 +27,17 @@ void Scene::trace(Window & window) const {
 				}
 			}
 
+			// Trace planes
+			for (int k = 0; k < plane_count; k++) {
+				RayHit hit = planes[k].trace(ray, closest_hit.distance);
+
+				if (hit.distance < closest_hit.distance) {
+					closest_hit = hit;
+				}
+			}
+
 			if (closest_hit.distance < INFINITY) {
-				window.plot(i, j, 0xff0000);
+				window.plot(i, j, Vector3(1.0f - closest_hit.distance * 0.1f));
 			}
 		}
 	}
