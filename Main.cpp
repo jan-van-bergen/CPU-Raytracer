@@ -33,10 +33,6 @@ int main(int argument_count, char ** arguments) {
 
 	while (!window.is_closed) {
 		window.clear();
-		window.plot(100, 100, 0xff0000);
-		window.plot(100, 101, 0xff0000);
-		window.plot(101, 100, 0xff0000);
-		window.plot(101, 101, 0xff0000);
 		window.update();
 
 		now = SDL_GetPerformanceCounter();
