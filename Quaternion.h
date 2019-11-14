@@ -42,11 +42,7 @@ inline Quaternion operator*(const Quaternion & left, Quaternion & right) {
 inline Vector3 operator*(const Quaternion & quaternion, const Vector3 & vector) {
 	Vector3 q(quaternion.x, quaternion.y, quaternion.z);
 
-	// Extract the scalar part of the quaternion
-	float s = quaternion.w;
-
-	// Do the math
 	return 2.0f * Vector3::dot(q, vector) * q +
-		(s * s - Vector3::dot(q, q)) * vector +
-		2.0f * s * Vector3::cross(q, vector);
+		(quaternion.w * quaternion.w - Vector3::dot(q, q)) * vector +
+		2.0f * quaternion.w * Vector3::cross(q, vector);
 }
