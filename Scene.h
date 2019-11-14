@@ -17,5 +17,5 @@ struct Scene {
 
 	Scene();
 
-	void trace(Window & window) const;
+	void trace(const Window & window) const;
 };

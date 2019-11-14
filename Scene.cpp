@@ -11,7 +11,7 @@ Scene::Scene() : camera(110.0f) {
 	};
 }
 
-void Scene::trace(Window & window) const {
+void Scene::trace(const Window & window) const {
 	for (int j = 0; j < window.height; j++) {
 		for (int i = 0; i < window.width; i++) {
 			Ray ray = camera.get_ray(i, j);
