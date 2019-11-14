@@ -22,7 +22,7 @@ void Scene::trace(Window & window) const {
 			for (int k = 0; k < sphere_count; k++) {
 				RayHit hit = spheres[k].trace(ray, closest_hit.distance);
 
-				if (hit.distance < closest_hit.distance) {
+				if (hit.hit) {
 					closest_hit = hit;
 				}
 			}
@@ -31,12 +31,12 @@ void Scene::trace(Window & window) const {
 			for (int k = 0; k < plane_count; k++) {
 				RayHit hit = planes[k].trace(ray, closest_hit.distance);
 
-				if (hit.distance < closest_hit.distance) {
+				if (hit.hit) {
 					closest_hit = hit;
 				}
 			}
 
-			if (closest_hit.distance < INFINITY) {
+			if (closest_hit.hit) {
 				window.plot(i, j, 0xff0000);
 			}
 		}
