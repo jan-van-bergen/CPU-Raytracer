@@ -18,6 +18,10 @@ void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum 
 #define SCREEN_WIDTH  512
 #define SCREEN_HEIGHT 512
 
+#define TOTAL_TIMING_COUNT 100
+float timings[TOTAL_TIMING_COUNT];
+int   current_frame = 0;
+
 int main(int argument_count, char ** arguments) {
 	Window window(SCREEN_WIDTH, SCREEN_HEIGHT, "Raytracer");
 
@@ -48,7 +52,17 @@ int main(int argument_count, char ** arguments) {
 		delta_time = float(now - last) * inv_perf_freq;
 		last = now;
 
-		printf("Delta: %f ms\n", delta_time * 1000.0f);
+		timings[current_frame % TOTAL_TIMING_COUNT] = delta_time;
+
+		float avg = 0.0f;
+		int count = current_frame < TOTAL_TIMING_COUNT ? current_frame : TOTAL_TIMING_COUNT;
+		for (int i = 0; i < count; i++) {
+			avg += timings[i];
+		}
+		avg /= count;
+
+		printf("%d - Delta: %f ms, Average: %f ms\n", current_frame, delta_time * 1000.0f, avg * 1000.0f);
+		current_frame++;
 	}
 
 	return 0;
