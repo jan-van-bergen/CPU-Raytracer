@@ -14,6 +14,7 @@ struct PrimitiveList {
 	int             primitive_count;
 
 	inline PrimitiveList(int count) : primitive_count(count) { 
+		// Allocate as a byte array in order to avoid default constructor issues
 		primitives = reinterpret_cast<PrimitiveType *>(new unsigned char[primitive_count * sizeof(PrimitiveType)]);
 	}
 

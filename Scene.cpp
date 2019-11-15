@@ -5,14 +5,14 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[1] = Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f);
 	spheres[0].material.colour  = Vector3(1.0f, 1.0f, 0.0f);
 	spheres[1].material.colour  = Vector3(0.0f, 1.0f, 1.0f);
-	spheres[0].material.texture = Texture::load(DATA_PATH("floor.png"));
-	spheres[1].material.texture = Texture::load(DATA_PATH("floor.png"));
+	spheres[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
+	spheres[1].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	planes[0] = Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f);
-	planes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
+	planes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	meshes[0] = Mesh(DATA_PATH("Cube.obj"));
-	meshes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
+	meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
