@@ -16,6 +16,7 @@ struct Scene {
 	Camera camera;
 
 	Scene();
+	~Scene();
 
 	void trace(const Window & window) const;
 };

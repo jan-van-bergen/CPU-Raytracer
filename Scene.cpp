@@ -11,6 +11,11 @@ Scene::Scene() : camera(110.0f) {
 	};
 }
 
+Scene::~Scene() {
+	delete[] spheres;
+	delete[] planes;
+}
+
 void Scene::trace(const Window & window) const {
 	for (int j = 0; j < window.height; j++) {
 		for (int i = 0; i < window.width; i++) {
