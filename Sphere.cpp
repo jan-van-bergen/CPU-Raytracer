@@ -12,8 +12,11 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	t -= sqrtf(radius_squared - p2);
 	if (t < EPSILON || t > ray_hit.distance) return;
 
-	ray_hit.hit = true;
+	ray_hit.hit      = true;
 	ray_hit.distance = t;
+
+	ray_hit.point  = ray.origin + t * ray.direction;
+	ray_hit.normal = Vector3::normalize(ray_hit.point - position);
 }
 
 bool Sphere::intersect(const Ray & ray) const {

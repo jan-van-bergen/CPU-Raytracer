@@ -57,5 +57,8 @@
     <ClInclude Include="Sphere.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
+    <ClInclude Include="Math3d.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

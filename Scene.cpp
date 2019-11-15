@@ -34,7 +34,7 @@ void Scene::trace(const Window & window) const {
 			}
 
 			if (closest_hit.hit) {
-				window.plot(i, j, 0xff0000);
+				window.plot(i, j, closest_hit.normal);
 			}
 		}
 	}

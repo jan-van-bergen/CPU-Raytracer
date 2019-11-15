@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 
 #include "Vector3.h"
+#include "Math3d.h"
 
 struct Window {
 private:
@@ -30,9 +31,10 @@ public:
 	}
 
 	inline void plot(int x, int y, const Vector3 & colour) const {
-		int r = colour.x * 255.0f;
-		int g = colour.y * 255.0f;
-		int b = colour.z * 255.0f;
+		int r = int(Math3d::clamp(colour.x * 255.0f, 0.0f, 255.0f));
+		int g = int(Math3d::clamp(colour.y * 255.0f, 0.0f, 255.0f));
+		int b = int(Math3d::clamp(colour.z * 255.0f, 0.0f, 255.0f));
+
 		frame_buffer[x + width * y] = (r << 16) | (g << 8) | b;
 	}
 

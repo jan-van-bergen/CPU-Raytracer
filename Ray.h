@@ -9,6 +9,11 @@ struct Ray {
 };
 
 struct RayHit {
-	bool hit = false;
+	bool  hit      = false;
 	float distance = INFINITY;
+
+	Vector3 point;
+	Vector3 normal;
+
+	Vector3 colour;
 };
