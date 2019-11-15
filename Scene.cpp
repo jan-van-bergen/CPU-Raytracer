@@ -5,6 +5,8 @@ Scene::Scene() : camera(110.0f) {
 		Sphere(Vector3( 2.0f, 0.0f, 10.0f), 1.0f),
 		Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f)
 	};
+	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
 
 	planes = new Plane[plane_count = 1] {
 		Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f)
@@ -73,7 +75,7 @@ void Scene::update(const Window & window) const {
 			// If the Ray hit nothing, leave the pixel black
 			if (!closest_hit.hit) continue;
 			
-			Vector3 colour;
+			Vector3 colour = ambient_lighting;
 
 			// Secondary Ray starts at hit location
 			ray.origin = closest_hit.point;
@@ -113,7 +115,7 @@ void Scene::update(const Window & window) const {
 				}
 			}
 
-			window.plot(x, y, colour);
+			window.plot(x, y, colour * closest_hit.colour);
 		}
 	}
 }

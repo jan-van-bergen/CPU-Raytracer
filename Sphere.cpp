@@ -17,6 +17,8 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	ray_hit.point  = ray.origin + t * ray.direction;
 	ray_hit.normal = Vector3::normalize(ray_hit.point - position);
+
+	ray_hit.colour = material.colour;
 }
 
 bool Sphere::intersect(const Ray & ray, float max_distance) const {
