@@ -105,5 +105,8 @@
     <ClInclude Include="Mesh.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Raytracing</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
