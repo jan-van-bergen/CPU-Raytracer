@@ -1,6 +1,7 @@
 #pragma once
 #include "Sphere.h"
 #include "Plane.h"
+#include "Mesh.h"
 
 #include "PointLight.h"
 #include "SpotLight.h"
@@ -18,6 +19,9 @@ private:
 
 	Plane * planes      = nullptr;
 	int     plane_count = 0;
+
+	Mesh * meshes     = nullptr;
+	int    mesh_count = 0;
 
 	// Lights
 	PointLight * point_lights      = nullptr;

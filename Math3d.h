@@ -10,6 +10,12 @@ namespace Math3d {
 		return value;
 	}
 	
+	// Interpolate between a,b,c given barycentric coordinates u,v
+	template<typename T>
+	inline T barycentric(const T & a, const T & b, const T & c, float u, float v) {
+        return a + (u * (b - a)) + (v * (c - a));
+    }
+
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
 	template<int N> inline float pow2(float value);
 

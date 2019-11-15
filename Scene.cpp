@@ -15,6 +15,11 @@ Scene::Scene() : camera(110.0f) {
 	};
 	planes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 
+	meshes = new Mesh[mesh_count = 1] {
+		Mesh(DATA_PATH("Cube.obj"))
+	};
+	meshes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
+
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
 	};
@@ -47,6 +52,11 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	for (int i = 0; i < plane_count; i++) {
 		planes[i].trace(ray, ray_hit);
 	}
+
+	// Trace meshes
+	for (int i = 0; i < mesh_count; i++) {
+		meshes[i].trace(ray, ray_hit);
+	}
 }
 
 bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
@@ -60,6 +70,13 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	// Intersect planes
 	for (int i = 0; i < plane_count; i++) {
 		if (planes[i].intersect(ray, max_distance)) {
+			return true;
+		}
+	}
+
+	// Intersect meshes
+	for (int i = 0; i < mesh_count; i++) {
+		if (meshes[i].intersect(ray, max_distance)) {
 			return true;
 		}
 	}

@@ -35,6 +35,12 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Assets</Filter>
     </ClCompile>
+    <ClCompile Include="MeshData.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -92,6 +98,12 @@
     </ClInclude>
     <ClInclude Include="RayHit.h">
       <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshData.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
