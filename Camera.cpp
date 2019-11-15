@@ -18,9 +18,8 @@ void Camera::resize(int width, int height) {
 Ray Camera::get_ray(float x, float y) const {
 	Ray ray;
 	ray.origin    = position;
-	ray.direction = top_left_corner + x * u_axis + y * v_axis;
-	ray.direction = Vector3::normalize(rotation * ray.direction);
-	
+	ray.direction = Vector3::normalize(top_left_corner_rotated + x * u_axis_rotated + y * v_axis_rotated);
+
 	return ray;
 }
 
@@ -44,4 +43,8 @@ void Camera::update(float delta, const unsigned char * keys) {
 	if (keys[SDL_SCANCODE_DOWN])  rotation = Quaternion::axis_angle(right                    , +ROTATION_SPEED * delta) * rotation;
 	if (keys[SDL_SCANCODE_LEFT])  rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), -ROTATION_SPEED * delta) * rotation;
 	if (keys[SDL_SCANCODE_RIGHT]) rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), +ROTATION_SPEED * delta) * rotation;
+
+	top_left_corner_rotated = rotation * top_left_corner;
+	u_axis_rotated          = rotation * u_axis;
+	v_axis_rotated          = rotation * v_axis;
 }

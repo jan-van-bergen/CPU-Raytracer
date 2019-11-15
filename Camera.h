@@ -14,9 +14,9 @@ public:
 	float fov;
 
 private:
-	Vector3 top_left_corner;
-	Vector3 u_axis;
-	Vector3 v_axis;
+	Vector3 top_left_corner, top_left_corner_rotated;
+	Vector3 u_axis,          u_axis_rotated;
+	Vector3 v_axis,          v_axis_rotated;
 
 public:
 	inline Camera(float fov) : fov(DEG_TO_RAD(fov)) { }
