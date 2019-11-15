@@ -52,7 +52,7 @@ int main(int argument_count, char ** arguments) {
 		delta_time = float(now - last) * inv_perf_freq;
 		last = now;
 
-		timings[current_frame % TOTAL_TIMING_COUNT] = delta_time;
+		timings[current_frame++ % TOTAL_TIMING_COUNT] = delta_time;
 
 		float avg = 0.0f;
 		int count = current_frame < TOTAL_TIMING_COUNT ? current_frame : TOTAL_TIMING_COUNT;
@@ -62,7 +62,6 @@ int main(int argument_count, char ** arguments) {
 		avg /= count;
 
 		printf("%d - Delta: %f ms, Average: %f ms\n", current_frame, delta_time * 1000.0f, avg * 1000.0f);
-		current_frame++;
 	}
 
 	return 0;
