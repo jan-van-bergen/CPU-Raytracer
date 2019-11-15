@@ -4,9 +4,9 @@
 
 struct Material {
 	Vector3 colour = Vector3(1.0f);	
-	Texture texture;
+	const Texture * texture = nullptr;
 
 	inline Vector3 get_colour(float u, float v) const {
-		return colour * texture.sample(u, v);
+		return colour * texture->sample(u, v);
 	}
 };

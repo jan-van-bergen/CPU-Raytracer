@@ -41,6 +41,9 @@
     <ClCompile Include="include\stb_image\stb_image.c">
       <Filter>Libraries\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
