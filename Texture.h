@@ -25,8 +25,8 @@ public:
 	}
 
 	inline Vector3 sample(float u, float v) const {
-		u = fmodf(fmodf(u, 1.0f) + 1.0f, 1.0f);
-		v = fmodf(fmodf(v, 1.0f) + 1.0f, 1.0f);
+		u = u > 0.0f ? fmodf(u, 1.0f) : fmodf(u, 1.0f) + 1.0f;
+		v = v > 0.0f ? fmodf(v, 1.0f) : fmodf(v, 1.0f) + 1.0f;
 
 		int x = int(u * width_f);
 		int y = int(v * height_f);
