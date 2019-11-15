@@ -13,16 +13,10 @@
 
 struct Scene {
 private:
-	// Primitives
-	Sphere * spheres      = nullptr;
-	int      sphere_count = 0;
-
-	Plane * planes      = nullptr;
-	int     plane_count = 0;
-
-	Mesh * meshes     = nullptr;
-	int    mesh_count = 0;
-
+	PrimitiveList<Sphere> spheres;
+	PrimitiveList<Plane>  planes;
+	PrimitiveList<Mesh>   meshes;
+	
 	// Lights
 	PointLight * point_lights      = nullptr;
 	int          point_light_count = 0;

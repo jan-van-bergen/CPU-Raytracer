@@ -1,23 +1,17 @@
 #include "Scene.h"
 
-Scene::Scene() : camera(110.0f) {
-	spheres = new Sphere[sphere_count = 2] {
-		Sphere(Vector3( 2.0f, 0.0f, 10.0f), 1.0f),
-		Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f)
-	};
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
+	spheres[0] = Sphere(Vector3( 2.0f, 0.0f, 10.0f), 1.0f);
+	spheres[1] = Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f);
 	spheres[0].material.colour  = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 	spheres[1].material.colour  = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 	spheres[1].material.texture = Texture::load(DATA_PATH("floor.png"));
 
-	planes = new Plane[plane_count = 1] {
-		Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f)
-	};
+	planes[0] = Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f);
 	planes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 
-	meshes = new Mesh[mesh_count = 1] {
-		Mesh(DATA_PATH("Cube.obj"))
-	};
+	meshes[0] = Mesh(DATA_PATH("Cube.obj"));
 	meshes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 
 	point_lights = new PointLight[point_light_count = 1] {
@@ -34,52 +28,21 @@ Scene::Scene() : camera(110.0f) {
 }
 
 Scene::~Scene() {
-	delete[] spheres;
-	delete[] planes;
-
 	delete[] point_lights;
 	delete[] spot_lights;
 	delete[] directional_lights;
 }
 
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
-	// Trace spheres
-	for (int i = 0; i < sphere_count; i++) {
-		spheres[i].trace(ray, ray_hit);
-	}
-
-	// Trace planes
-	for (int i = 0; i < plane_count; i++) {
-		planes[i].trace(ray, ray_hit);
-	}
-
-	// Trace meshes
-	for (int i = 0; i < mesh_count; i++) {
-		meshes[i].trace(ray, ray_hit);
-	}
+	spheres.trace(ray, ray_hit);
+	planes.trace(ray, ray_hit);
+	meshes.trace(ray, ray_hit);
 }
 
 bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
-	// Intersect spheres
-	for (int i = 0; i < sphere_count; i++) {
-		if (spheres[i].intersect(ray, max_distance)) {
-			return true;
-		}
-	}
-
-	// Intersect planes
-	for (int i = 0; i < plane_count; i++) {
-		if (planes[i].intersect(ray, max_distance)) {
-			return true;
-		}
-	}
-
-	// Intersect meshes
-	for (int i = 0; i < mesh_count; i++) {
-		if (meshes[i].intersect(ray, max_distance)) {
-			return true;
-		}
-	}
+	if (spheres.intersect(ray, max_distance)) return true;
+	if (planes.intersect (ray, max_distance)) return true;
+	if (meshes.intersect (ray, max_distance)) return true;
 
 	return false;
 }
