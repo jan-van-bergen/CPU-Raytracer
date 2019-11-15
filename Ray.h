@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector3.h"
+#include "Material.h"
 
 #define EPSILON 0.001f
 
@@ -15,5 +16,6 @@ struct RayHit {
 	Vector3 point;
 	Vector3 normal;
 
-	Vector3 colour;
+	const Material * material;
+	float u, v;
 };

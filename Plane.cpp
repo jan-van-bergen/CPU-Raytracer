@@ -10,10 +10,10 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.point  = ray.origin + t * ray.direction;
 	ray_hit.normal = normal;
 
-	// float u = Vector3::dot(ray_hit.point, u_axis);
-	// float v = Vector3::dot(ray_hit.point, v_axis);
+	ray_hit.u = Vector3::dot(ray_hit.point, u_axis);
+	ray_hit.v = Vector3::dot(ray_hit.point, v_axis);
 
-	ray_hit.colour = material.colour;
+	ray_hit.material = &material;
 }
 
 bool Plane::intersect(const Ray & ray, float max_distance) const {

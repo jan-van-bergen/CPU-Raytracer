@@ -5,12 +5,15 @@ Scene::Scene() : camera(110.0f) {
 		Sphere(Vector3( 2.0f, 0.0f, 10.0f), 1.0f),
 		Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f)
 	};
-	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].material.colour  = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[0].material.texture = Texture::load(DATA_PATH("floor.png"));
+	spheres[1].material.colour  = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[1].material.texture = Texture::load(DATA_PATH("floor.png"));
 
 	planes = new Plane[plane_count = 1] {
 		Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f)
 	};
+	planes[0].material.texture = Texture::load(DATA_PATH("floor.png"));
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
@@ -118,7 +121,7 @@ void Scene::update(const Window & window) const {
 				}
 			}
 
-			window.plot(x, y, colour * closest_hit.colour);
+			window.plot(x, y, colour * closest_hit.material->get_colour(closest_hit.u, closest_hit.v));
 		}
 	}
 }

@@ -13,6 +13,15 @@
     <Filter Include="Raytracing\Lights">
       <UniqueIdentifier>{12c50d02-1b55-4fcb-9a37-f6168e71e5d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{0c892418-43c7-4698-a067-a0f026c48d24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{fbc1b35f-6a32-45ae-bfc9-7a1a74429b3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\stb_image">
+      <UniqueIdentifier>{da105be9-221a-4cf4-b1f3-42e6b154ced1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -28,6 +37,9 @@
     </ClCompile>
     <ClCompile Include="Sphere.cpp">
       <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="include\stb_image\stb_image.c">
+      <Filter>Libraries\stb_image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +92,9 @@
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Assets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

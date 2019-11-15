@@ -1,5 +1,7 @@
 #include "Sphere.h"
 
+#include "Util.h"
+
 void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	Vector3 c = position - ray.origin;
 	float t = Vector3::dot(c, ray.direction);
@@ -18,7 +20,10 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.point  = ray.origin + t * ray.direction;
 	ray_hit.normal = Vector3::normalize(ray_hit.point - position);
 
-	ray_hit.colour = material.colour;
+	ray_hit.u = 0.5f + atan2f(-ray_hit.normal.z, -ray_hit.normal.x) * ONE_OVER_TWO_PI;
+	ray_hit.v = 0.5f + asinf (-ray_hit.normal.y)                    * ONE_OVER_PI;
+
+	ray_hit.material = &material;
 }
 
 bool Sphere::intersect(const Ray & ray, float max_distance) const {
