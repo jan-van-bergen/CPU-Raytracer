@@ -5,9 +5,11 @@
 #include "RayHit.h"
 
 struct Sphere : Primitive {
+private:
 	Vector3 position;
 	float   radius_squared;
 
+public:
 	inline Sphere(const Vector3 & position, float radius) : position(position), radius_squared(radius * radius) { }
 
 	void trace(const Ray & ray, RayHit & ray_hit) const;
