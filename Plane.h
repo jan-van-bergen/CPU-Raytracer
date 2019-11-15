@@ -1,7 +1,8 @@
 #pragma once
 #include "Ray.h"
+#include "Primitive.h"
 
-struct Plane {
+struct Plane : Primitive {
 	Vector3 normal;
 	float   distance;
 	

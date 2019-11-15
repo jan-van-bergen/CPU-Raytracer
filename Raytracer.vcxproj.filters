@@ -75,5 +75,11 @@
     <ClInclude Include="Light.h">
       <Filter>Raytracing\Lights</Filter>
     </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
