@@ -29,7 +29,6 @@ void Camera::update(float delta, const unsigned char * keys) {
 	const float ROTATION_SPEED = 2.0f;
 
 	Vector3 right   = rotation * Vector3(1.0f, 0.0f, 0.0f);
-	Vector3 up      = rotation * Vector3(0.0f, 1.0f, 0.0f);
 	Vector3 forward = rotation * Vector3(0.0f, 0.0f, 1.0f);
 
 	if (keys[SDL_SCANCODE_W]) position += forward * MOVEMENT_SPEED * delta;
@@ -37,8 +36,8 @@ void Camera::update(float delta, const unsigned char * keys) {
 	if (keys[SDL_SCANCODE_S]) position -= forward * MOVEMENT_SPEED * delta;
 	if (keys[SDL_SCANCODE_D]) position += right   * MOVEMENT_SPEED * delta;
 
-	if (keys[SDL_SCANCODE_LSHIFT]) position -= up * MOVEMENT_SPEED * delta;
-	if (keys[SDL_SCANCODE_SPACE])  position += up * MOVEMENT_SPEED * delta;
+	if (keys[SDL_SCANCODE_LSHIFT]) position.y -= MOVEMENT_SPEED * delta;
+	if (keys[SDL_SCANCODE_SPACE])  position.y += MOVEMENT_SPEED * delta;
 
 	if (keys[SDL_SCANCODE_UP])    rotation = Quaternion::axis_angle(right                    , -ROTATION_SPEED * delta) * rotation;
 	if (keys[SDL_SCANCODE_DOWN])  rotation = Quaternion::axis_angle(right                    , +ROTATION_SPEED * delta) * rotation;
