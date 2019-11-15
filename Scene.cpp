@@ -14,6 +14,10 @@ Scene::Scene() : camera(110.0f) {
 		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
 	};
 
+	spot_lights = new SpotLight[spot_light_count = 1] {
+		SpotLight(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 0.0f, 12.0f), Vector3(0.0f, 0.0f, -1.0f), 0.5f)
+	};
+
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
 		DirectionalLight(Vector3(0.7f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
 	};
@@ -85,7 +89,16 @@ void Scene::update(const Window & window) const {
 			}
 
 			for (int i = 0; i < spot_light_count; i++) {
-				
+				Vector3 to_light = spot_lights[i].position - closest_hit.point;
+				float distance_to_light_squared = Vector3::length_squared(to_light);
+				float distance_to_light         = sqrtf(distance_to_light_squared);
+
+				to_light /= distance_to_light;
+				ray.direction = to_light;
+
+				if (!intersect_primitives(ray, distance_to_light)) {
+					colour += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+				}
 			}
 
 			for (int i = 0; i < directional_light_count; i++) {			

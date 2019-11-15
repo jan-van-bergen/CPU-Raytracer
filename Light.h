@@ -6,6 +6,7 @@ struct Light {
 
 	inline Light(const Vector3 & colour) : colour(colour) { }
 
+	// Calculate lighting using Blinn-Phong model
 	inline Vector3 calc_lighting(const Vector3 & normal, const Vector3 & to_light, const Vector3 & to_camera) const {
 		static const float specular_power = 128.0f;
 
