@@ -1,5 +1,8 @@
 #include "Texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image/stb_image.h>
+
 static std::unordered_map<const char *, Texture *> cache;
 
 const Texture * Texture::load(const char * file_path) {

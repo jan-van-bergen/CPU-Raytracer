@@ -2,8 +2,6 @@
 #include <cassert>
 #include <unordered_map>
 
-#include <stb_image/stb_image.h>
-
 #include "Vector3.h"
 
 struct Texture {
