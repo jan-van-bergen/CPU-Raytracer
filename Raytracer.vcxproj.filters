@@ -10,6 +10,9 @@
     <Filter Include="Raytracing\Primitives">
       <UniqueIdentifier>{590c32e0-5c21-4243-8f94-cc47432e64c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Raytracing\Lights">
+      <UniqueIdentifier>{12c50d02-1b55-4fcb-9a37-f6168e71e5d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -59,6 +62,18 @@
     </ClInclude>
     <ClInclude Include="Math3d.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Raytracing\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
+      <Filter>Raytracing\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>Raytracing\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Raytracing\Lights</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

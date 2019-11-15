@@ -9,6 +9,14 @@ Scene::Scene() : camera(110.0f) {
 	planes = new Plane[plane_count = 1] {
 		Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f)
 	};
+
+	point_lights = new PointLight[point_light_count = 1] {
+		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
+	};
+
+	directional_lights = new DirectionalLight[directional_light_count = 1] {
+		DirectionalLight(Vector3(0.7f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
+	};
 }
 
 Scene::~Scene() {
@@ -16,26 +24,79 @@ Scene::~Scene() {
 	delete[] planes;
 }
 
-void Scene::trace(const Window & window) const {
-	for (int j = 0; j < window.height; j++) {
-		for (int i = 0; i < window.width; i++) {
-			Ray ray = camera.get_ray(i, j);
+void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
+	// Trace spheres
+	for (int i = 0; i < sphere_count; i++) {
+		spheres[i].trace(ray, ray_hit);
+	}
+
+	// Trace planes
+	for (int i = 0; i < plane_count; i++) {
+		planes[i].trace(ray, ray_hit);
+	}
+}
+
+bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
+	// Intersect spheres
+	for (int i = 0; i < sphere_count; i++) {
+		if (spheres[i].intersect(ray, max_distance)) {
+			return true;
+		}
+	}
+
+	// Intersect planes
+	for (int i = 0; i < plane_count; i++) {
+		if (planes[i].intersect(ray, max_distance)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void Scene::update(const Window & window) const {
+	for (int y = 0; y < window.height; y++) {
+		for (int x = 0; x < window.width; x++) {
+			Ray ray = camera.get_ray(float(x), float(y));
 
 			RayHit closest_hit;
+			trace_primitives(ray, closest_hit);
 
-			// Trace spheres
-			for (int k = 0; k < sphere_count; k++) {
-				spheres[k].trace(ray, closest_hit);
+			// If the Ray hit nothing, leave the pixel black
+			if (!closest_hit.hit) continue;
+			
+			Vector3 colour;
+
+			// Secondary Ray starts at hit location
+			ray.origin = closest_hit.point;
+			Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
+
+			for (int i = 0; i < point_light_count; i++) {
+				Vector3 to_light = point_lights[i].position - closest_hit.point;
+				float distance_to_light_squared = Vector3::length_squared(to_light);
+				float distance_to_light         = sqrtf(distance_to_light_squared);
+
+				to_light /= distance_to_light;
+				ray.direction = to_light;
+
+				if (!intersect_primitives(ray, distance_to_light)) {
+					colour += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+				}
 			}
 
-			// Trace planes
-			for (int k = 0; k < plane_count; k++) {
-				planes[k].trace(ray, closest_hit);
+			for (int i = 0; i < spot_light_count; i++) {
+				
 			}
 
-			if (closest_hit.hit) {
-				window.plot(i, j, closest_hit.normal);
+			for (int i = 0; i < directional_light_count; i++) {			
+				ray.direction = directional_lights[i].direction;
+
+				if (!intersect_primitives(ray, INFINITY)) {
+					colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
+				}
 			}
+
+			window.plot(x, y, colour);
 		}
 	}
 }

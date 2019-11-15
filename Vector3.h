@@ -8,16 +8,16 @@ struct Vector3 {
 	inline Vector3(float f) : x(f), y(f), z(f) {}
 	inline Vector3(float x, float y, float z) : x(x), y(y), z(z) { }
 
-	inline float length_squared() const {
-		return dot(*this, *this);
+	inline static float length_squared(const Vector3 & vector) {
+		return dot(vector, vector);
 	}
 
-	inline float length() const {
-		return sqrtf(length_squared());
+	inline static float length(const Vector3 & vector) {
+		return sqrtf(length_squared(vector));
 	}
 
 	inline static Vector3 normalize(const Vector3 & vector) {
-		float inv_length = 1.0f / vector.length();
+		float inv_length = 1.0f / length(vector);
 		return Vector3(vector.x * inv_length, vector.y * inv_length, vector.z * inv_length);
 	}
 
@@ -43,6 +43,8 @@ struct Vector3 {
 	inline Vector3 operator*=(float scalar) {                                   x *= scalar;     y *= scalar;     z *= scalar;     return *this; }
 	inline Vector3 operator/=(float scalar) { float inv_scalar = 1.0f / scalar; x *= inv_scalar; y *= inv_scalar; z *= inv_scalar; return *this; }
 };
+
+inline Vector3 operator-(const Vector3 & vector) { return Vector3(-vector.x, -vector.y, -vector.z); }
 
 inline Vector3 operator+(const Vector3 & left, const Vector3 & right) { return Vector3(left.x + right.x, left.y + right.y, left.z + right.z); }
 inline Vector3 operator-(const Vector3 & left, const Vector3 & right) { return Vector3(left.x - right.x, left.y - right.y, left.z - right.z); }

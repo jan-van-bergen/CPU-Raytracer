@@ -19,7 +19,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.normal = Vector3::normalize(ray_hit.point - position);
 }
 
-bool Sphere::intersect(const Ray & ray) const {
+bool Sphere::intersect(const Ray & ray, float max_distance) const {
 	Vector3 c = position - ray.origin;
 	float t = Vector3::dot(c, ray.direction);
 
@@ -29,5 +29,5 @@ bool Sphere::intersect(const Ray & ray) const {
 	if (p2 > radius_squared) return false;
 	
 	t -= sqrtf(radius_squared - p2);
-	return t > EPSILON;
+	return t > EPSILON && t < max_distance;
 }

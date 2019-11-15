@@ -14,8 +14,8 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	float v = Vector3::dot(ray_hit.point, v_axis);
 }
 
-bool Plane::intersect(const Ray & ray) const {
+bool Plane::intersect(const Ray & ray, float max_distance) const {
 	float t = -(Vector3::dot(normal, ray.origin) + distance) / (Vector3::dot(normal, ray.direction));
 
-	return t > EPSILON;
+	return t > EPSILON && t < max_distance;
 }
