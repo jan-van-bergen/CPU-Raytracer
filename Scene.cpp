@@ -26,6 +26,10 @@ Scene::Scene() : camera(110.0f) {
 Scene::~Scene() {
 	delete[] spheres;
 	delete[] planes;
+
+	delete[] point_lights;
+	delete[] spot_lights;
+	delete[] directional_lights;
 }
 
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
