@@ -1,6 +1,8 @@
 #pragma once
-#include "Ray.h"
 #include "Primitive.h"
+
+#include "Ray.h"
+#include "RayHit.h"
 
 struct Sphere : Primitive {
 	Vector3 position;

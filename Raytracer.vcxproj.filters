@@ -96,5 +96,8 @@
     <ClInclude Include="Texture.h">
       <Filter>Assets</Filter>
     </ClInclude>
+    <ClInclude Include="RayHit.h">
+      <Filter>Raytracing</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

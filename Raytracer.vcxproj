@@ -197,6 +197,7 @@
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayHit.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="SpotLight.h" />
