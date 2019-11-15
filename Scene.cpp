@@ -21,7 +21,7 @@ Scene::Scene() : camera(110.0f) {
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.7f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
+		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
 	};
 }
 
@@ -81,6 +81,7 @@ void Scene::update(const Window & window) const {
 			ray.origin = closest_hit.point;
 			Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
 
+			// Check Point Lights
 			for (int i = 0; i < point_light_count; i++) {
 				Vector3 to_light = point_lights[i].position - closest_hit.point;
 				float distance_to_light_squared = Vector3::length_squared(to_light);
@@ -94,6 +95,7 @@ void Scene::update(const Window & window) const {
 				}
 			}
 
+			// Check Spot Lights
 			for (int i = 0; i < spot_light_count; i++) {
 				Vector3 to_light = spot_lights[i].position - closest_hit.point;
 				float distance_to_light_squared = Vector3::length_squared(to_light);
@@ -107,6 +109,7 @@ void Scene::update(const Window & window) const {
 				}
 			}
 
+			// Check Directional Lights
 			for (int i = 0; i < directional_light_count; i++) {			
 				ray.direction = directional_lights[i].direction;
 
