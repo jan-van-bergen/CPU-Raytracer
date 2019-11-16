@@ -52,3 +52,6 @@ inline Vector2 operator+(float scalar, const Vector2 & vector) {                
 inline Vector2 operator-(float scalar, const Vector2 & vector) {                                   return Vector2(vector.x - scalar,     vector.y - scalar); }
 inline Vector2 operator*(float scalar, const Vector2 & vector) {                                   return Vector2(vector.x * scalar,     vector.y * scalar); }
 inline Vector2 operator/(float scalar, const Vector2 & vector) { float inv_scalar = 1.0f / scalar; return Vector2(vector.x * inv_scalar, vector.y * inv_scalar);  }
+
+inline bool operator==(const Vector2 & left, const Vector2 & right) { return left.x == right.x && left.y == right.y; }
+inline bool operator!=(const Vector2 & left, const Vector2 & right) { return left.x != right.x || left.y != right.y; }

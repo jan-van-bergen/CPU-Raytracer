@@ -12,8 +12,8 @@ struct Matrix4 {
 		cells[15] = 1.0f;
 	}
 
-	inline       float & operator()(int i, int j)       { return cells[i + j << 2]; }
-	inline const float & operator()(int i, int j) const { return cells[i + j << 2]; }
+	inline       float & operator()(int i, int j)       { return cells[i + (j << 2)]; }
+	inline const float & operator()(int i, int j) const { return cells[i + (j << 2)]; }
 };
 
 inline Matrix4 operator*(const Matrix4 & left, const Matrix4 & right) {
