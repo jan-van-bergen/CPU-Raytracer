@@ -7,7 +7,7 @@ struct StringHash {
 		int c;
 
 		while (c = *string++) {
-			hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+			hash = ((hash << 5) + hash) + c;
 		}
 
 		return hash;

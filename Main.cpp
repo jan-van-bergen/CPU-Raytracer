@@ -30,16 +30,19 @@ int main(int argument_count, char ** arguments) {
 	glDebugMessageCallback(glMessageCallback, NULL);
 #endif
 
+	// Initialize timing stuff
 	Uint64 now  = 0;
 	Uint64 last = 0;
 	float inv_perf_freq = 1.0f / (float)SDL_GetPerformanceFrequency();
 	float delta_time = 0;
 
-	last = SDL_GetPerformanceCounter();
-
+	// Initialize Scene
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+	last = SDL_GetPerformanceCounter();
+
+	// Game loop
 	while (!window.is_closed) {
 		window.clear();
 
@@ -48,10 +51,12 @@ int main(int argument_count, char ** arguments) {
 
 		window.update();
 
+		// Perform frame timing
 		now = SDL_GetPerformanceCounter();
 		delta_time = float(now - last) * inv_perf_freq;
 		last = now;
 
+		// Calculate average of last TOTAL_TIMING_COUNT frames
 		timings[current_frame++ % TOTAL_TIMING_COUNT] = delta_time;
 
 		float avg = 0.0f;
@@ -61,8 +66,9 @@ int main(int argument_count, char ** arguments) {
 		}
 		avg /= count;
 
+		// Report timings
 		printf("%d - Delta: %f ms, Average: %f ms\n", current_frame, delta_time * 1000.0f, avg * 1000.0f);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

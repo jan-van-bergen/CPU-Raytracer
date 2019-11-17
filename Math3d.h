@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 
+// Various math util functions
 namespace Math3d {
 	template<typename T>
 	inline T clamp(T value, T min, T max) {
