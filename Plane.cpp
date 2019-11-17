@@ -11,7 +11,10 @@ void Plane::update() {
 }
 
 void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
+	// Solve plane equation for t
 	float t = -(Vector3::dot(world_normal, ray.origin) + world_distance) / (Vector3::dot(world_normal, ray.direction));
+
+	// Check if we are in the right distance range
     if (t < EPSILON || t > ray_hit.distance) return;
 	
 	ray_hit.hit      = true;
@@ -20,6 +23,7 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.point  = ray.origin + t * ray.direction;
 	ray_hit.normal = world_normal;
 
+	// Obtain u,v by projecting the hit point onto the u and v axes
 	ray_hit.u = Vector3::dot(ray_hit.point, u_axis);
 	ray_hit.v = Vector3::dot(ray_hit.point, v_axis);
 
@@ -27,7 +31,9 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 }
 
 bool Plane::intersect(const Ray & ray, float max_distance) const {
+	// Solve plane equation for t
 	float t = -(Vector3::dot(world_normal, ray.origin) + world_distance) / (Vector3::dot(world_normal, ray.direction));
-
+	
+	// Check if we are in the right distance range
 	return t > EPSILON && t < max_distance;
 }

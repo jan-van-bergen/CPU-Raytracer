@@ -26,6 +26,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.point  = ray.origin + t * ray.direction;
 	ray_hit.normal = Vector3::normalize(ray_hit.point - world_position);
 
+	// Obtain u,v by converting the normal direction to spherical coordinates
 	ray_hit.u = 0.5f + atan2f(-ray_hit.normal.z, -ray_hit.normal.x) * ONE_OVER_TWO_PI;
 	ray_hit.v = 0.5f + asinf (-ray_hit.normal.y)                    * ONE_OVER_PI;
 
