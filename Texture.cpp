@@ -10,15 +10,15 @@ static std::unordered_map<const char *, Texture *> cache;
 const Texture * Texture::load(const char * file_path) {
 	Texture *& texture = cache[file_path];
 
-	if (texture == NULL) {
-		texture = new Texture();
+	if (texture) return texture;
 
-		int channels;
-		texture->data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
+	texture = new Texture();
 
-		texture->width_f  = float(texture->width);
-		texture->height_f = float(texture->height);
-	}
+	int channels;
+	texture->data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
+
+	texture->width_f  = float(texture->width);
+	texture->height_f = float(texture->height);
 
 	return texture;
 }
