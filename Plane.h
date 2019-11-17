@@ -16,6 +16,7 @@ public:
 	inline void init(const Vector3 & plane_normal, float plane_distance) {
 		normal   = plane_normal;
 		distance = plane_distance;
+
 		u_axis = Vector3(normal.y, normal.z, -normal.x);
 		v_axis = Vector3::cross(u_axis, normal);
 	}

@@ -6,7 +6,7 @@
 #include "RayHit.h"
 
 struct Mesh : Primitive {
-	const MeshData * mesh_data;
+	const MeshData * mesh_data = nullptr;
 
 	Vector3 * world_positions = nullptr;
 	Vector3 * world_normals   = nullptr;
