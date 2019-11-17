@@ -44,7 +44,7 @@ int main(int argument_count, char ** arguments) {
 		window.clear();
 
 		scene.camera.update(delta_time, SDL_GetKeyboardState(0));
-		scene.update();
+		scene.update(delta_time);
 		scene.render(window);
 
 		window.update();

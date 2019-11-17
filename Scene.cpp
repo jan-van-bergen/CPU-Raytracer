@@ -49,7 +49,9 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	return false;
 }
 
-void Scene::update() const {
+void Scene::update(float delta) {
+	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+
 	spheres.update();
 	planes.update();
 	meshes.update();

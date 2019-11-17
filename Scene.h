@@ -38,7 +38,7 @@ public:
 	void trace_primitives(const Ray & ray, RayHit & ray_hit) const;
 	bool intersect_primitives(const Ray & ray, float max_distance) const;
 
-	void update() const;
+	void update(float delta);
 
 	void render(const Window & window) const;
 };
