@@ -28,15 +28,15 @@ private:
 	int                directional_light_count = 0;
 
 	Vector3 ambient_lighting = Vector3(0.1f);
+	
+	void trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
+	bool intersect_primitives(const Ray & ray, float max_distance) const;
 
 public:
 	Camera camera;
 
 	Scene();
 	~Scene();
-
-	void trace_primitives(const Ray & ray, RayHit & ray_hit) const;
-	bool intersect_primitives(const Ray & ray, float max_distance) const;
 
 	void update(float delta);
 
