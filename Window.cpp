@@ -65,7 +65,7 @@ void Window::clear() {
 
 void Window::update() {
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	glBindTexture(GL_TEXTURE_2D, frame_buffer_handle);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
 	

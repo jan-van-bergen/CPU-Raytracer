@@ -2,10 +2,19 @@
 
 #include "Math3d.h"
 
+void Mesh::update() {
+	transform.calc_world_matrix();
+
+	for (int i = 0; i < mesh_data->vertex_count; i++) {
+		world_positions[i] = transform.world_matrix.transform_position (mesh_data->positions[i]);
+		world_normals  [i] = transform.world_matrix.transform_direction(mesh_data->normals  [i]);
+	}
+}
+
 void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
-		Vector3 edge0 = mesh_data->positions[i+1] - mesh_data->positions[i];
-		Vector3 edge1 = mesh_data->positions[i+2] - mesh_data->positions[i];
+		Vector3 edge0 = world_positions[i+1] - world_positions[i];
+		Vector3 edge1 = world_positions[i+2] - world_positions[i];
 
 		Vector3 h = Vector3::cross(ray.direction, edge1);
         float a = Vector3::dot(edge0, h);
@@ -15,7 +24,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
         if (a > -EPSILON && a < EPSILON) continue;
 
         float f = 1.0f / a;
-        Vector3 s = ray.origin - mesh_data->positions[i];
+        Vector3 s = ray.origin - world_positions[i];
         float u = f * Vector3::dot(s, h);
 
         if (u < 0.0f || u > 1.0f) continue;
@@ -33,7 +42,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		ray_hit.distance = t;
 
 		ray_hit.point  = ray.origin + ray.direction * t;
-        ray_hit.normal = Vector3::normalize(Math3d::barycentric(mesh_data->normals[i], mesh_data->normals[i+1], mesh_data->normals[i+2], u, v));
+        ray_hit.normal = Vector3::normalize(Math3d::barycentric(world_normals[i], world_normals[i+1], world_normals[i+2], u, v));
 
         Vector2 tex_coords = Math3d::barycentric(mesh_data->tex_coords[i], mesh_data->tex_coords[i+1], mesh_data->tex_coords[i+2], u, v);
 		ray_hit.u = tex_coords.x;
@@ -45,8 +54,8 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 bool Mesh::intersect(const Ray & ray, float max_distance) const {
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
-		Vector3 edge0 = mesh_data->positions[i+1] - mesh_data->positions[i];
-		Vector3 edge1 = mesh_data->positions[i+2] - mesh_data->positions[i];
+		Vector3 edge0 = world_positions[i+1] - world_positions[i];
+		Vector3 edge1 = world_positions[i+2] - world_positions[i];
 
 		Vector3 h = Vector3::cross(ray.direction, edge1);
         float a = Vector3::dot(edge0, h);
@@ -56,7 +65,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
         if (a > -EPSILON && a < EPSILON) continue;
 
         float f = 1.0f / a;
-        Vector3 s = ray.origin - mesh_data->positions[i];
+        Vector3 s = ray.origin - world_positions[i];
         float u = f * Vector3::dot(s, h);
 
         if (u < 0.0f || u > 1.0f) continue;

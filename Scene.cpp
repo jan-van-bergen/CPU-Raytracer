@@ -1,17 +1,19 @@
 #include "Scene.h"
 
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
-	spheres[0] = Sphere(Vector3( 2.0f, 0.0f, 10.0f), 1.0f);
-	spheres[1] = Sphere(Vector3(-2.0f, 0.0f, 10.0f), 1.0f);
+	spheres[0].init(Vector3( 2.0f, 0.0f, 10.0f), 1.0f);
+	spheres[1].init(Vector3(-2.0f, 0.0f, 10.0f), 1.0f);
 	spheres[0].material.colour  = Vector3(1.0f, 1.0f, 0.0f);
 	spheres[1].material.colour  = Vector3(0.0f, 1.0f, 1.0f);
 	spheres[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 	spheres[1].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
-	planes[0] = Plane(Vector3(0.0f, 1.0f, 0.0f), 1.0f);
+	planes[0].init(Vector3(0.0f, 1.0f, 0.0f), 1.0f);
 	planes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
-	meshes[0] = Mesh(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].transform.position.y = 2.0f;
+	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	point_lights = new PointLight[point_light_count = 1] {
@@ -47,7 +49,13 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	return false;
 }
 
-void Scene::update(const Window & window) const {
+void Scene::update() const {
+	spheres.update();
+	planes.update();
+	meshes.update();
+}
+
+void Scene::render(const Window & window) const {
 	for (int y = 0; y < window.height; y++) {
 		for (int x = 0; x < window.width; x++) {
 			Ray ray = camera.get_ray(float(x), float(y));

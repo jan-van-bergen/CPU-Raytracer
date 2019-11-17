@@ -7,6 +7,6 @@ struct Material {
 	const Texture * texture = nullptr;
 
 	inline Vector3 get_colour(float u, float v) const {
-		return colour * texture->sample_bilinear(u, v);
+		return colour * texture->sample(u, v);
 	}
 };

@@ -1,25 +1,38 @@
 #pragma once
+#include <new>
+
 #include "Material.h"
+#include "Transform.h"
 
 #include "Ray.h"
 #include "RayHit.h"
 
 struct Primitive {
 	Material material;
+	Transform transform;
 };
 
 template<typename PrimitiveType>
 struct PrimitiveList {
-	PrimitiveType * primitives;
+	PrimitiveType * primitives = nullptr;
 	int             primitive_count;
 
 	inline PrimitiveList(int count) : primitive_count(count) { 
-		// Allocate as a byte array in order to avoid default constructor issues
-		primitives = reinterpret_cast<PrimitiveType *>(new unsigned char[primitive_count * sizeof(PrimitiveType)]);
+		if (primitive_count > 0) {
+			primitives = new PrimitiveType[primitive_count];
+		}
 	}
 
 	inline ~PrimitiveList() {
-		delete[] primitives;
+		if (primitives) {
+			delete[] primitives;
+		}
+	}
+
+	inline void update() const {
+		for (int i = 0; i < primitive_count; i++) {
+			primitives[i].update();
+		}
 	}
 
 	inline void trace(const Ray & ray, RayHit & ray_hit) const {
@@ -38,5 +51,8 @@ struct PrimitiveList {
 		return false;
 	}
 
-	inline PrimitiveType & operator[](int index) { return primitives[index]; }
+	inline PrimitiveType & operator[](int index) { 
+		assert(index >= 0 && index < primitive_count);
+		return primitives[index]; 
+	}
 };

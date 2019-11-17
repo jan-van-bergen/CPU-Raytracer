@@ -2,6 +2,10 @@
 
 #include "Util.h"
 
+void Sphere::update() {
+	transform.calc_world_matrix();
+}
+
 void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	Vector3 c = position - ray.origin;
 	float t = Vector3::dot(c, ray.direction);

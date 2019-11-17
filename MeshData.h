@@ -8,11 +8,5 @@ struct MeshData {
 	Vector3 * normals;
 	int       vertex_count;
 
-	struct Triangle {
-		int index0, index1, index2;
-	};
-	Triangle * triangles;
-	int        triangle_count;
-
 	static const MeshData * load(const char * file_path);
 };

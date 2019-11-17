@@ -3,6 +3,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
+#include "Math3d.h"
+
 static std::unordered_map<const char *, Texture *> cache;
 
 const Texture * Texture::load(const char * file_path) {
@@ -22,6 +24,9 @@ const Texture * Texture::load(const char * file_path) {
 }
 
 Vector3 Texture::get_texel(int x, int y) const {
+	x = Math3d::clamp(x, 0, width  - 1);
+	y = Math3d::clamp(y, 0, height - 1);
+
 	assert(data);
 	unsigned colour = data[x + y * width];
 
