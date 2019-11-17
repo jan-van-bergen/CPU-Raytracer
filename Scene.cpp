@@ -50,6 +50,8 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 }
 
 void Scene::update(float delta) {
+	camera.update(delta, SDL_GetKeyboardState(0));
+
 	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
 
 	spheres.update();
