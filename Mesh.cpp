@@ -6,8 +6,8 @@ void Mesh::update() {
 	transform.calc_world_matrix();
 
 	for (int i = 0; i < mesh_data->vertex_count; i++) {
-		world_positions[i] = transform.world_matrix.transform_position (mesh_data->positions[i]);
-		world_normals  [i] = transform.world_matrix.transform_direction(mesh_data->normals  [i]);
+		world_positions[i] = Matrix4::transform_position (transform.world_matrix, mesh_data->positions[i]);
+		world_normals  [i] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals  [i]);
 	}
 }
 

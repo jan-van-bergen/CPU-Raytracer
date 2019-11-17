@@ -1,14 +1,17 @@
 #include "Scene.h"
 
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
-	spheres[0].init(Vector3( 2.0f, 0.0f, 10.0f), 1.0f);
-	spheres[1].init(Vector3(-2.0f, 0.0f, 10.0f), 1.0f);
-	spheres[0].material.colour  = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[1].material.colour  = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].init(1.0f);
+	spheres[1].init(1.0f);
+	spheres[0].transform.position = Vector3( 2.0f, 0.0f, 10.0f);
+	spheres[1].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
+	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
 	spheres[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 	spheres[1].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
-	planes[0].init(Vector3(0.0f, 1.0f, 0.0f), 1.0f);
+	planes[0].transform.position.y = -1.0f;
+	planes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	planes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	meshes[0].init(DATA_PATH("Cube.obj"));

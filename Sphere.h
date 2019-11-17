@@ -6,13 +6,12 @@
 
 struct Sphere : Primitive {
 private:
-	Vector3 position;
+	Vector3 world_position;
 	float   radius_squared;
 
 public:
-	inline void init (const Vector3 & sphere_position, float sphere_radius) {
-		position       = sphere_position;
-		radius_squared = sphere_radius * sphere_radius;
+	inline void init(float radius) {
+		radius_squared = radius * radius;
 	}
 
 	void update();
