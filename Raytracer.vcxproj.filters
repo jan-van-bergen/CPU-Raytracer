@@ -16,6 +16,9 @@
     <Filter Include="Assets">
       <UniqueIdentifier>{0c892418-43c7-4698-a067-a0f026c48d24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{a27660bb-3206-476a-9396-8955fb30501c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -64,7 +67,6 @@
     <ClInclude Include="Scene.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="Util.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="Plane.h">
       <Filter>Raytracing\Primitives</Filter>
@@ -107,6 +109,12 @@
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Hash.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

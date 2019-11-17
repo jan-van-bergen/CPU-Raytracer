@@ -6,7 +6,9 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
-static std::unordered_map<const char *, MeshData *> cache;
+#include "Hash.h"
+
+static std::unordered_map<const char *, MeshData *, StringHash, StringCompare> cache;
 
 const MeshData * MeshData::load(const char * file_path) {
 	MeshData *& mesh_data = cache[file_path];

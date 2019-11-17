@@ -5,7 +5,9 @@
 
 #include "Math3d.h"
 
-static std::unordered_map<const char *, Texture *> cache;
+#include "Hash.h"
+
+static std::unordered_map<const char *, Texture *, StringHash, StringCompare> cache;
 
 const Texture * Texture::load(const char * file_path) {
 	Texture *& texture = cache[file_path];
