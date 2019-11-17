@@ -21,7 +21,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
-		SpotLight(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 0.0f, 12.0f), Vector3(0.0f, 0.0f, -1.0f), 0.5f)
+		SpotLight(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 0.0f, 12.0f), Vector3(0.0f, 0.0f, -1.0f), 90.0f)
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
@@ -106,7 +106,7 @@ void Scene::render(const Window & window) const {
 
 			// Check Directional Lights
 			for (int i = 0; i < directional_light_count; i++) {			
-				ray.direction = directional_lights[i].direction;
+				ray.direction = directional_lights[i].negative_direction;
 
 				if (!intersect_primitives(ray, INFINITY)) {
 					colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
