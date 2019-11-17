@@ -10,8 +10,10 @@ static std::unordered_map<const char *, Texture *> cache;
 const Texture * Texture::load(const char * file_path) {
 	Texture *& texture = cache[file_path];
 
+	// If the cache already contains this Texture simply return it
 	if (texture) return texture;
 
+	// Otherwise, load new Texture
 	texture = new Texture();
 
 	int channels;

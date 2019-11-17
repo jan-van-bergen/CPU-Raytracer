@@ -11,8 +11,10 @@ static std::unordered_map<const char *, MeshData *> cache;
 const MeshData * MeshData::load(const char * file_path) {
 	MeshData *& mesh_data = cache[file_path];
 
+	// If the cache already contains this MeshData simply return it
 	if (mesh_data) return mesh_data;
 
+	// Otherwise, load new MeshData
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
