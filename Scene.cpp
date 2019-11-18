@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#define NUMBER_OF_BOUNCES 1
+
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
@@ -11,12 +13,13 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[1].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	planes[0].transform.position.y = -1.0f;
-	planes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	planes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
+	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
+	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
+	planes[0].material.reflectiveness = 1.0f;
 
 	meshes[0].init(DATA_PATH("Cube.obj"));
 	meshes[0].transform.position.y = 2.0f;
-	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
+	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 
 	point_lights = new PointLight[point_light_count = 1] {
@@ -52,6 +55,68 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	return false;
 }
 
+Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
+	RayHit closest_hit;
+	trace_primitives(ray, closest_hit);
+
+	// If the Ray hit nothing, leave the pixel black
+	if (!closest_hit.hit) return Vector3(0.0f);
+			
+	Vector3 colour = ambient_lighting;
+
+	// Secondary Ray starts at hit location
+	Ray secondary_ray;
+	secondary_ray.origin = closest_hit.point;
+	Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
+
+	// Check Point Lights
+	for (int i = 0; i < point_light_count; i++) {
+		Vector3 to_light = point_lights[i].position - closest_hit.point;
+		float distance_to_light_squared = Vector3::length_squared(to_light);
+		float distance_to_light         = sqrtf(distance_to_light_squared);
+
+		to_light /= distance_to_light;
+		secondary_ray.direction = to_light;
+
+		if (!intersect_primitives(secondary_ray, distance_to_light)) {
+			colour += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+		}
+	}
+
+	// Check Spot Lights
+	for (int i = 0; i < spot_light_count; i++) {
+		Vector3 to_light = spot_lights[i].position - closest_hit.point;
+		float distance_to_light_squared = Vector3::length_squared(to_light);
+		float distance_to_light         = sqrtf(distance_to_light_squared);
+
+		to_light /= distance_to_light;
+		secondary_ray.direction = to_light;
+
+		if (!intersect_primitives(secondary_ray, distance_to_light)) {
+			colour += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+		}
+	}
+
+	// Check Directional Lights
+	for (int i = 0; i < directional_light_count; i++) {			
+		secondary_ray.direction = directional_lights[i].negative_direction;
+
+		if (!intersect_primitives(secondary_ray, INFINITY)) {
+			colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
+		}
+	}
+
+	if (bounces_left > 0) {
+		Ray reflected_ray;
+		reflected_ray.origin    = closest_hit.point;
+		reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
+
+		colour += closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1);
+	}
+
+	return colour * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
+}
+
 void Scene::update(float delta) {
 	camera.update(delta, SDL_GetKeyboardState(0));
 
@@ -67,56 +132,8 @@ void Scene::render(const Window & window) const {
 		for (int x = 0; x < window.width; x++) {
 			Ray ray = camera.get_ray(float(x), float(y));
 
-			RayHit closest_hit;
-			trace_primitives(ray, closest_hit);
-
-			// If the Ray hit nothing, leave the pixel black
-			if (!closest_hit.hit) continue;
-			
-			Vector3 colour = ambient_lighting;
-
-			// Secondary Ray starts at hit location
-			ray.origin = closest_hit.point;
-			Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
-
-			// Check Point Lights
-			for (int i = 0; i < point_light_count; i++) {
-				Vector3 to_light = point_lights[i].position - closest_hit.point;
-				float distance_to_light_squared = Vector3::length_squared(to_light);
-				float distance_to_light         = sqrtf(distance_to_light_squared);
-
-				to_light /= distance_to_light;
-				ray.direction = to_light;
-
-				if (!intersect_primitives(ray, distance_to_light)) {
-					colour += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
-				}
-			}
-
-			// Check Spot Lights
-			for (int i = 0; i < spot_light_count; i++) {
-				Vector3 to_light = spot_lights[i].position - closest_hit.point;
-				float distance_to_light_squared = Vector3::length_squared(to_light);
-				float distance_to_light         = sqrtf(distance_to_light_squared);
-
-				to_light /= distance_to_light;
-				ray.direction = to_light;
-
-				if (!intersect_primitives(ray, distance_to_light)) {
-					colour += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
-				}
-			}
-
-			// Check Directional Lights
-			for (int i = 0; i < directional_light_count; i++) {			
-				ray.direction = directional_lights[i].negative_direction;
-
-				if (!intersect_primitives(ray, INFINITY)) {
-					colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
-				}
-			}
-
-			window.plot(x, y, colour * closest_hit.material->get_colour(closest_hit.u, closest_hit.v));
+			Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES);
+			window.plot(x, y, colour);
 		}
 	}
 }

@@ -16,6 +16,10 @@ namespace Math3d {
 	inline T barycentric(const T & a, const T & b, const T & c, float u, float v) {
         return a + (u * (b - a)) + (v * (c - a));
     }
+	
+	inline Vector3 reflect(const Vector3 & vector, const Vector3 & normal) {
+		return vector - 2.0f * Vector3::dot(vector, normal) * normal;
+	}
 
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
 	template<int N> inline float pow2(float value);
