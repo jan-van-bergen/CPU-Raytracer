@@ -2,6 +2,7 @@
 #include "Sphere.h"
 #include "Plane.h"
 #include "Mesh.h"
+#include "PrimitiveList.h"
 
 #include "PointLight.h"
 #include "SpotLight.h"

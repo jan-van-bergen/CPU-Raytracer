@@ -6,8 +6,7 @@
 
 struct Sphere : Primitive {
 private:
-	Vector3 world_position;
-	float   radius_squared;
+	float radius_squared;
 
 public:
 	inline void init(float radius) {

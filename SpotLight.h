@@ -17,6 +17,6 @@ struct SpotLight : PointLight {
 
 		if (dot < cutoff) return Vector3(0.0f);
 
-		return (dot - cutoff) * one_over_one_minus_cutoff * PointLight::calc_lighting(normal, to_light, to_camera, distance_squared);
+		return /*(dot - cutoff) * one_over_one_minus_cutoff */ PointLight::calc_lighting(normal, to_light, to_camera, distance_squared);
 	}
 };

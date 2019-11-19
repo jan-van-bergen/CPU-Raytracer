@@ -1,38 +1,47 @@
 #include "Scene.h"
 
-#define NUMBER_OF_BOUNCES 1
+#define NUMBER_OF_BOUNCES 2
 
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
-	spheres[0].init(1.0f);
-	spheres[1].init(1.0f);
-	spheres[0].transform.position = Vector3( 2.0f, 0.0f, 10.0f);
-	spheres[1].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
-	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
-	spheres[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
-	spheres[1].material.texture = Texture::load(DATA_PATH("Floor.png"));
+Scene::Scene() : camera(110.0f), spheres(0), planes(1), meshes(1) {
+	//spheres[0].init(1.0f);
+	//spheres[1].init(1.0f);
+	//spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
+	//spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
+	//spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
+	//spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
+	//spheres[0].material.reflectiveness = 0.0f;
+	//spheres[1].material.reflectiveness = 0.0f;
+	//spheres[0].material.refractiveness = 0.0f;
+	//spheres[1].material.refractiveness = 0.0f;
+	//spheres[0].material.refractive_index = 1.33f;
+	//spheres[1].material.refractive_index = 2.4f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflectiveness = 1.0f;
 
-	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
+	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
+	meshes[0].material.reflectiveness = 0.0f;
+	meshes[0].material.refractiveness = 1.0f;
+	meshes[0].material.refractive_index = 1.33f;
 
 	point_lights = new PointLight[point_light_count = 1] {
-		PointLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 8.0f))
+		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
 	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
-		SpotLight(Vector3(0.0f, 0.0f, 1.0f), Vector3(0.0f, 0.0f, 12.0f), Vector3(0.0f, 0.0f, -1.0f), 90.0f)
+		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Vector3(0.0f, 0.0f, 1.0f), 179.0f)
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
 		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
 	};
+
+	camera.position = Vector3(0.0f, 2.0f, -2.0f);
 }
 
 Scene::~Scene() {
@@ -106,12 +115,67 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 		}
 	}
 
-	if (bounces_left > 0) {
-		Ray reflected_ray;
-		reflected_ray.origin    = closest_hit.point;
-		reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
+	// If we have bounces left to do, recurse one level deeper
+	if (bounces_left > 0) {	
+		Vector3 colour_reflection;
+		Vector3 colour_refraction;
 
-		colour += closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1);
+		if (closest_hit.material->reflectiveness > 0.0f) {
+			Ray reflected_ray;
+			reflected_ray.origin    = closest_hit.point;
+			reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
+
+			colour_reflection = closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1);
+		}
+
+		float dot = Vector3::dot(-ray.direction, closest_hit.normal);
+		float cos;
+
+		if (closest_hit.material->refractiveness > 0.0f) {
+			if (dot > 0.0f) {
+				// Entering material
+				float eta = Material::AIR_REFRACTIVE_INDEX / closest_hit.material->refractive_index;
+				float k   = 1.0f - eta*eta * (1.0f - dot*dot);
+
+				Ray refracted_ray;
+				refracted_ray.origin    = closest_hit.point;
+				refracted_ray.direction = Math3d::refract(ray.direction, closest_hit.normal, eta, dot, k);
+
+				colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
+
+				cos = dot;
+			} else {
+				// Leaving material
+				float eta = closest_hit.material->refractive_index / Material::AIR_REFRACTIVE_INDEX;
+				float k   = 1.0f - eta*eta * (1.0f - dot*dot);
+				
+				// In case of Total Internal Reflection, return only the reflection component
+				if (k < 0.0f) {
+					return (colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
+				}
+
+				Ray refracted_ray;
+				refracted_ray.origin    = closest_hit.point;
+				refracted_ray.direction = Math3d::refract(ray.direction, -closest_hit.normal, eta, dot, k);
+				
+				colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
+
+				cos = Vector3::dot(refracted_ray.direction, closest_hit.normal);
+			}
+			
+			// Use Schlick's Approximation
+			float eta_minus_one = closest_hit.material->refractive_index - 1.0f;
+			float eta_plus_one  = closest_hit.material->refractive_index + 1.0f;
+			
+			float one_minus_cos = 1.0f - cos;
+
+			float R0 = eta_minus_one*eta_minus_one / (eta_plus_one*eta_plus_one);
+			float R  = R0 +	(1.0f - R0) * (one_minus_cos*one_minus_cos)*(one_minus_cos*one_minus_cos)*one_minus_cos;
+
+			colour += R * colour_reflection + (1.0f - R) * colour_refraction;
+		} else {
+			colour += colour_reflection;
+		}
 	}
 
 	return colour * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
@@ -128,6 +192,7 @@ void Scene::update(float delta) {
 }
 
 void Scene::render(const Window & window) const {
+	#pragma omp parallel for
 	for (int y = 0; y < window.height; y++) {
 		for (int x = 0; x < window.width; x++) {
 			Ray ray = camera.get_ray(float(x), float(y));

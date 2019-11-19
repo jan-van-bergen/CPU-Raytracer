@@ -8,7 +8,15 @@ struct Material {
 
 	float reflectiveness = 0.1f;
 
+	float refractiveness   = 0.1f;
+	float refractive_index = 1.0f;
+
+	inline static const float AIR_REFRACTIVE_INDEX = 1.0003f;
+
 	inline Vector3 get_colour(float u, float v) const {
-		return colour * texture->sample(u, v);
+		if (texture) {
+			return colour * texture->sample_bilinear(u, v);
+		}
+		return colour;
 	}
 };
