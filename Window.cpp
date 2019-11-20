@@ -49,6 +49,9 @@ Window::Window(int width, int height, const char * title) : width(width), height
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+
+	tile_count_x = width  / tile_width;
+	tile_count_y = height / tile_height;
 }
 
 Window::~Window() {

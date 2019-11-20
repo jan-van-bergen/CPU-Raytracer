@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "Scene.h"
 
+#include "WorkerThread.h"
+
 // Forces NVIDIA driver to be used 
 extern "C" { _declspec(dllexport) unsigned NvOptimusEnablement = 0x00000001; }
 
@@ -40,6 +42,20 @@ int main(int argument_count, char ** arguments) {
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+	Params  parameters[THREAD_COUNT];
+	HANDLE workers   [THREAD_COUNT];
+
+	// spawn worker threads
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+		parameters[i].thread_id = i;
+		parameters[i].scene     = &scene;
+		parameters[i].window    = &window;
+		workers   [i] = CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
+	}
+
 	last = SDL_GetPerformanceCounter();
 
 	// Game loop
@@ -47,7 +63,13 @@ int main(int argument_count, char ** arguments) {
 		window.clear();
 
 		scene.update(delta_time);
-		scene.render(window);
+		
+		remaining = window.tile_count_x * window.tile_count_y;
+		for (int i = 0; i < THREAD_COUNT; i++) {
+			SetEvent(go_signal[i]);
+		}
+
+		WaitForMultipleObjects(THREAD_COUNT, done_signal, true, INFINITE);
 
 		window.update();
 

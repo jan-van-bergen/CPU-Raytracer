@@ -10,12 +10,18 @@ private:
 	SDL_Window *  window;
 	SDL_GLContext context;
 	
-	unsigned * frame_buffer;
-	GLuint     frame_buffer_handle;
+	alignas(64) unsigned * frame_buffer; // CacheLine aligned
+	GLuint                 frame_buffer_handle;
 
 public:
 	const int width;
 	const int height;
+	
+	const int tile_width  = 32;
+	const int tile_height = 32;
+
+	int tile_count_x;
+	int tile_count_y;
 
 	bool is_closed = false;
 

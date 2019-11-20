@@ -32,7 +32,7 @@ private:
 	
 	void trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
 	bool intersect_primitives(const Ray & ray, float max_distance) const;
-
+	
 	Vector3 bounce(const Ray & ray, int bounces_left) const;
 
 public:
@@ -42,6 +42,6 @@ public:
 	~Scene();
 
 	void update(float delta);
-
-	void render(const Window & window) const;
+	
+	void render_tile(const Window & window, int x, int y) const;
 };

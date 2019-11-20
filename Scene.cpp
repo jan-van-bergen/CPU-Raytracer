@@ -25,9 +25,9 @@ Scene::Scene() : camera(110.0f), spheres(0), planes(1), meshes(1) {
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
-	meshes[0].material.reflectiveness = 0.0f;
-	meshes[0].material.refractiveness = 1.0f;
-	meshes[0].material.refractive_index = 1.33f;
+	meshes[0].material.reflectiveness   = 1.0f;
+	meshes[0].material.refractiveness   = 1.0f;
+	meshes[0].material.refractive_index = 2.4f;
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
@@ -191,14 +191,13 @@ void Scene::update(float delta) {
 	meshes.update();
 }
 
-void Scene::render(const Window & window) const {
-	#pragma omp parallel for
-	for (int y = 0; y < window.height; y++) {
-		for (int x = 0; x < window.width; x++) {
-			Ray ray = camera.get_ray(float(x), float(y));
+void Scene::render_tile(const Window & window, int x, int y) const {
+	for (int j = y; j < y + window.tile_height; j++) {
+		for (int i = x; i < x + window.tile_width; i++) {
+			Ray ray = camera.get_ray(float(i), float(j));
 
 			Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES);
-			window.plot(x, y, colour);
+			window.plot(i, j, colour);
 		}
 	}
 }
