@@ -67,83 +67,26 @@ const MeshData * MeshData::load(const char * file_path) {
 		temp_tex[i] = Vector2(NAN, NAN);
 		temp_nor[i] = Vector3(NAN, NAN, NAN);
 	}
+
+	int permutations[12] = {
+		0, 3, 6, 9,
+		1, 4, 7, 10,
+		2, 5, 8, 11
+	};
 	
 	for (int i = 0; i < vertex_count_rounded; i += 12) {
-		// First Triangle (index 0 stays in place)
-		mesh_data->position_x[i    ] = temp_pos[i    ].x;
-		mesh_data->position_y[i    ] = temp_pos[i    ].y;
-		mesh_data->position_z[i    ] = temp_pos[i    ].z;
-		mesh_data->position_x[i + 1] = temp_pos[i + 3].x;
-		mesh_data->position_y[i + 1] = temp_pos[i + 3].y;
-		mesh_data->position_z[i + 1] = temp_pos[i + 3].z;
-		mesh_data->position_x[i + 2] = temp_pos[i + 6].x;
-		mesh_data->position_y[i + 2] = temp_pos[i + 6].y;
-		mesh_data->position_z[i + 2] = temp_pos[i + 6].z;
+		for (int j = 0; j < 12; j++) {
+			int index       = i + j;
+			int permutation = i + permutations[j];
 
-		mesh_data->normals[i    ] = temp_nor[i    ];
-		mesh_data->normals[i + 1] = temp_nor[i + 3];
-		mesh_data->normals[i + 2] = temp_nor[i + 6];
+			mesh_data->position_x[index] = temp_pos[permutation].x;
+			mesh_data->position_y[index] = temp_pos[permutation].y;
+			mesh_data->position_z[index] = temp_pos[permutation].z;
 
-		mesh_data->tex_coords[i    ] = temp_tex[i    ];
-		mesh_data->tex_coords[i + 1] = temp_tex[i + 3];
-		mesh_data->tex_coords[i + 2] = temp_tex[i + 6];
-
-		// Second Triangle
-		mesh_data->position_x[i + 3] = temp_pos[i + 9].x;
-		mesh_data->position_y[i + 3] = temp_pos[i + 9].y;
-		mesh_data->position_z[i + 3] = temp_pos[i + 9].z;
-		mesh_data->position_x[i + 4] = temp_pos[i + 1].x;
-		mesh_data->position_y[i + 4] = temp_pos[i + 1].y;
-		mesh_data->position_z[i + 4] = temp_pos[i + 1].z;
-		mesh_data->position_x[i + 5] = temp_pos[i + 4].x;
-		mesh_data->position_y[i + 5] = temp_pos[i + 4].y;
-		mesh_data->position_z[i + 5] = temp_pos[i + 4].z;
-
-		mesh_data->normals[i + 3] = temp_nor[i + 9];
-		mesh_data->normals[i + 4] = temp_nor[i + 1];
-		mesh_data->normals[i + 5] = temp_nor[i + 4];
-
-		mesh_data->tex_coords[i + 3] = temp_tex[i + 9];
-		mesh_data->tex_coords[i + 4] = temp_tex[i + 1];
-		mesh_data->tex_coords[i + 5] = temp_tex[i + 4];
-
-		// Third Triangle
-		mesh_data->position_x[i + 6] = temp_pos[i + 7].x;
-		mesh_data->position_y[i + 6] = temp_pos[i + 7].y;
-		mesh_data->position_z[i + 6] = temp_pos[i + 7].z;
-		mesh_data->position_x[i + 7] = temp_pos[i + 10].x;
-		mesh_data->position_y[i + 7] = temp_pos[i + 10].y;
-		mesh_data->position_z[i + 7] = temp_pos[i + 10].z;
-		mesh_data->position_x[i + 8] = temp_pos[i + 2].x;
-		mesh_data->position_y[i + 8] = temp_pos[i + 2].y;
-		mesh_data->position_z[i + 8] = temp_pos[i + 2].z;
-
-		mesh_data->normals[i + 6] = temp_nor[i + 7];
-		mesh_data->normals[i + 7] = temp_nor[i + 10];
-		mesh_data->normals[i + 8] = temp_nor[i + 2];
-
-		mesh_data->tex_coords[i + 6] = temp_tex[i + 7];
-		mesh_data->tex_coords[i + 7] = temp_tex[i + 10];
-		mesh_data->tex_coords[i + 8] = temp_tex[i + 2];
-
-		// Fourth Triangle (index 11 stays in place)
-		mesh_data->position_x[i + 9]  = temp_pos[i + 5].x;
-		mesh_data->position_y[i + 9]  = temp_pos[i + 5].y;
-		mesh_data->position_z[i + 9]  = temp_pos[i + 5].z;
-		mesh_data->position_x[i + 10] = temp_pos[i + 8].x;
-		mesh_data->position_y[i + 10] = temp_pos[i + 8].y;
-		mesh_data->position_z[i + 10] = temp_pos[i + 8].z;
-		mesh_data->position_x[i + 11] = temp_pos[i + 11].x;
-		mesh_data->position_y[i + 11] = temp_pos[i + 11].y;
-		mesh_data->position_z[i + 11] = temp_pos[i + 11].z;
-
-		mesh_data->normals[i + 9]  = temp_nor[i + 5];
-		mesh_data->normals[i + 10] = temp_nor[i + 8];
-		mesh_data->normals[i + 11] = temp_nor[i + 11];
-		
-		mesh_data->tex_coords[i + 9]  = temp_tex[i + 5];
-		mesh_data->tex_coords[i + 10] = temp_tex[i + 8];
-		mesh_data->tex_coords[i + 11] = temp_tex[i + 11];
+			mesh_data->normals[index] = temp_nor[permutation];
+			
+			mesh_data->tex_coords[index] = temp_tex[permutation];
+		}
 	}
 
 	delete[] temp_pos;
