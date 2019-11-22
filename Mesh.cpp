@@ -5,14 +5,41 @@
 
 void Mesh::update() {
 	transform.calc_world_matrix();
+	
+	__m128 matrix_00 = _mm_set1_ps(transform.world_matrix(0, 0));
+	__m128 matrix_01 = _mm_set1_ps(transform.world_matrix(1, 0));
+	__m128 matrix_02 = _mm_set1_ps(transform.world_matrix(2, 0));
+	__m128 matrix_03 = _mm_set1_ps(transform.world_matrix(3, 0));
+	__m128 matrix_10 = _mm_set1_ps(transform.world_matrix(0, 1));
+	__m128 matrix_11 = _mm_set1_ps(transform.world_matrix(1, 1));
+	__m128 matrix_12 = _mm_set1_ps(transform.world_matrix(2, 1));
+	__m128 matrix_13 = _mm_set1_ps(transform.world_matrix(3, 1));
+	__m128 matrix_20 = _mm_set1_ps(transform.world_matrix(0, 2));
+	__m128 matrix_21 = _mm_set1_ps(transform.world_matrix(1, 2));
+	__m128 matrix_22 = _mm_set1_ps(transform.world_matrix(2, 2));
+	__m128 matrix_23 = _mm_set1_ps(transform.world_matrix(3, 2));
+	__m128 matrix_30 = _mm_set1_ps(transform.world_matrix(0, 3));
+	__m128 matrix_31 = _mm_set1_ps(transform.world_matrix(1, 3));
+	__m128 matrix_32 = _mm_set1_ps(transform.world_matrix(2, 3));
+	__m128 matrix_33 = _mm_set1_ps(transform.world_matrix(3, 3));
 
-	for (int i = 0; i < mesh_data->vertex_count; i++) {
-		//Vector3 world_position = Matrix4::transform_position(transform.world_matrix, mesh_data->positions[i]);
-		world_positions_x[i] = mesh_data->position_x[i];
-		world_positions_y[i] = mesh_data->position_y[i];
-		world_positions_z[i] = mesh_data->position_z[i];
+	for (int i = 0; i < mesh_data->vertex_count; i += 4) {
+		__m128 model_x = _mm_load_ps(mesh_data->position_x + i);
+		__m128 model_y = _mm_load_ps(mesh_data->position_y + i);
+		__m128 model_z = _mm_load_ps(mesh_data->position_z + i);
+		
+		__m128 world_x = _mm_add_ps(_mm_add_ps(_mm_mul_ps(matrix_00, model_x), _mm_mul_ps(matrix_01, model_y)), _mm_add_ps(_mm_mul_ps(matrix_02, model_z), matrix_03));
+		__m128 world_y = _mm_add_ps(_mm_add_ps(_mm_mul_ps(matrix_10, model_x), _mm_mul_ps(matrix_11, model_y)), _mm_add_ps(_mm_mul_ps(matrix_12, model_z), matrix_13));
+		__m128 world_z = _mm_add_ps(_mm_add_ps(_mm_mul_ps(matrix_20, model_x), _mm_mul_ps(matrix_21, model_y)), _mm_add_ps(_mm_mul_ps(matrix_22, model_z), matrix_23));
 
-		world_normals[i] = mesh_data->normals[i]; // Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i]);
+		_mm_store_ps(world_positions_x + i, world_x);
+		_mm_store_ps(world_positions_y + i, world_y);
+		_mm_store_ps(world_positions_z + i, world_z);
+
+		world_normals[i  ] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i  ]);
+		world_normals[i+1] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+1]);
+		world_normals[i+2] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+2]);
+		world_normals[i+3] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+3]);
 	}
 }
 
