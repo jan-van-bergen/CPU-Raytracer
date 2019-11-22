@@ -38,6 +38,10 @@ int main(int argument_count, char ** arguments) {
 	float inv_perf_freq = 1.0f / (float)SDL_GetPerformanceFrequency();
 	float delta_time = 0;
 
+	float second = 0.0f;
+	int frames = 0;
+	int fps    = 0;
+
 	// Initialize Scene
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -91,8 +95,19 @@ int main(int argument_count, char ** arguments) {
 		}
 		avg /= count;
 
+		// Calculate fps
+		frames++;
+
+		second += delta_time;
+		while (second >= 1.0f) {
+			second -= 1.0f;
+
+			fps = frames;
+			frames = 0;
+		}
+
 		// Report timings
-		printf("%d - Delta: %f ms, Average: %f ms\n", current_frame, delta_time * 1000.0f, avg * 1000.0f);
+		printf("%d - Delta: %.2f ms, Average: %.2f ms, FPS: %d\n", current_frame, delta_time * 1000.0f, avg * 1000.0f, fps);
 	}
 
 	return EXIT_SUCCESS;
