@@ -8,17 +8,19 @@
 
 #define THREAD_COUNT 8
 
-inline HANDLE go_signal  [THREAD_COUNT];
-inline HANDLE done_signal[THREAD_COUNT];
+namespace WorkerThreads {
+	inline HANDLE go_signal  [THREAD_COUNT];
+	inline HANDLE done_signal[THREAD_COUNT];
 
-inline volatile LONG remaining;
+	inline volatile LONG remaining;
 
-struct Params {
-	int thread_id;
-	const Scene  * scene;
-	const Window * window;
-};
+	struct Params {
+		int thread_id;
+		const Scene  * scene;
+		const Window * window;
+	};
 
-void init_core_info();
+	void init_core_info();
 
-ULONG __stdcall worker_thread(LPVOID parameters);
+	ULONG __stdcall worker_thread(LPVOID parameters);
+}

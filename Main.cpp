@@ -42,20 +42,21 @@ int main(int argument_count, char ** arguments) {
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	init_core_info();
+	// Initialize multi threading stuff
+	WorkerThreads::init_core_info();
 
-	Params  parameters[THREAD_COUNT];
-	HANDLE workers   [THREAD_COUNT];
+	WorkerThreads::Params parameters[THREAD_COUNT];
+	HANDLE                workers   [THREAD_COUNT];
 
-	// spawn worker threads
+	// Spawn worker threads
 	for (int i = 0; i < THREAD_COUNT; i++) {
-		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		WorkerThreads::go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		WorkerThreads::done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
 		parameters[i].thread_id = i;
 		parameters[i].scene     = &scene;
 		parameters[i].window    = &window;
-		workers   [i] = CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
+		workers   [i] = CreateThread(nullptr, 0, WorkerThreads::worker_thread, &parameters[i], 0, nullptr);
 	}
 
 	last = SDL_GetPerformanceCounter();
@@ -66,12 +67,12 @@ int main(int argument_count, char ** arguments) {
 
 		scene.update(delta_time);
 		
-		remaining = window.tile_count_x * window.tile_count_y;
+		WorkerThreads::remaining = window.tile_count_x * window.tile_count_y;
 		for (int i = 0; i < THREAD_COUNT; i++) {
-			SetEvent(go_signal[i]);
+			SetEvent(WorkerThreads::go_signal[i]);
 		}
 
-		WaitForMultipleObjects(THREAD_COUNT, done_signal, true, INFINITE);
+		WaitForMultipleObjects(THREAD_COUNT, WorkerThreads::done_signal, true, INFINITE);
 
 		window.update();
 

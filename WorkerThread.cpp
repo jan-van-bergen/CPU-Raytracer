@@ -1,12 +1,13 @@
 #include "WorkerThread.h"
 
-//int thread_count;			// Number of Logical Processors
+using namespace WorkerThreads;
+
 int threads_per_processor;
 
 int   processor_count = 0;	         // Number of Physical Processors
 ULONG processor_masks[THREAD_COUNT]; // Stores the mask of each Physical Processor
 
-void init_core_info() {
+void WorkerThreads::init_core_info() {
 	SYSTEM_LOGICAL_PROCESSOR_INFORMATION info[64];
 	DWORD buffer_length = 64 * sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
 	GetLogicalProcessorInformation(info, &buffer_length);
@@ -21,7 +22,7 @@ void init_core_info() {
 	threads_per_processor = THREAD_COUNT / processor_count;
 }
 
-ULONG __stdcall worker_thread(LPVOID parameters) {
+ULONG __stdcall WorkerThreads::worker_thread(LPVOID parameters) {
 	Params params = *reinterpret_cast<Params *>(parameters);
 
 	// Set the Thread Affinity to two logical cores that belong to the same physical core
