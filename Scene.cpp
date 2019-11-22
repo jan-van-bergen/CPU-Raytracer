@@ -59,7 +59,7 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	if (spheres.intersect(ray, max_distance)) return true;
 	if (planes.intersect (ray, max_distance)) return true;
-	//if (meshes.intersect (ray, max_distance)) return true;
+	if (meshes.intersect (ray, max_distance)) return true;
 
 	return false;
 }
