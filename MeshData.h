@@ -3,7 +3,9 @@
 #include "Vector3.h"
 
 struct MeshData {
-	Vector3 * positions;
+	float   * position_x;
+	float   * position_y;
+	float   * position_z;
 	Vector2 * tex_coords;
 	Vector3 * normals;
 	int       vertex_count;

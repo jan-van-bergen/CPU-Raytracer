@@ -122,5 +122,8 @@
     <ClInclude Include="WorkerThread.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="SSEUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

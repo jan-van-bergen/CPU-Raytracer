@@ -42,6 +42,8 @@ int main(int argument_count, char ** arguments) {
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+	init_core_info();
+
 	Params  parameters[THREAD_COUNT];
 	HANDLE workers   [THREAD_COUNT];
 

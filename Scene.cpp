@@ -2,26 +2,26 @@
 
 #define NUMBER_OF_BOUNCES 2
 
-Scene::Scene() : camera(110.0f), spheres(0), planes(1), meshes(1) {
-	//spheres[0].init(1.0f);
-	//spheres[1].init(1.0f);
-	//spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
-	//spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
-	//spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
-	//spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
-	//spheres[0].material.reflectiveness = 0.0f;
-	//spheres[1].material.reflectiveness = 0.0f;
-	//spheres[0].material.refractiveness = 0.0f;
-	//spheres[1].material.refractiveness = 0.0f;
-	//spheres[0].material.refractive_index = 1.33f;
-	//spheres[1].material.refractive_index = 2.4f;
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
+	spheres[0].init(1.0f);
+	spheres[1].init(1.0f);
+	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
+	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
+	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].material.reflectiveness = 0.0f;
+	spheres[1].material.reflectiveness = 0.0f;
+	spheres[0].material.refractiveness = 0.0f;
+	spheres[1].material.refractiveness = 0.0f;
+	spheres[0].material.refractive_index = 1.33f;
+	spheres[1].material.refractive_index = 2.4f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflectiveness = 1.0f;
 
-	meshes[0].init(DATA_PATH("Diamond.obj"));
+	meshes[0].init(DATA_PATH("Triangle.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
@@ -59,7 +59,7 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	if (spheres.intersect(ray, max_distance)) return true;
 	if (planes.intersect (ray, max_distance)) return true;
-	if (meshes.intersect (ray, max_distance)) return true;
+	//if (meshes.intersect (ray, max_distance)) return true;
 
 	return false;
 }
@@ -70,9 +70,9 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 
 	// If the Ray hit nothing, leave the pixel black
 	if (!closest_hit.hit) return Vector3(0.0f);
-			
+	
 	Vector3 colour = ambient_lighting;
-
+	
 	// Secondary Ray starts at hit location
 	Ray secondary_ray;
 	secondary_ray.origin = closest_hit.point;
@@ -137,6 +137,8 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 				float eta = Material::AIR_REFRACTIVE_INDEX / closest_hit.material->refractive_index;
 				float k   = 1.0f - eta*eta * (1.0f - dot*dot);
 
+				//if (k < 0.0f) return Vector3(1.0f, 0.0f, 0.0f);
+
 				Ray refracted_ray;
 				refracted_ray.origin    = closest_hit.point;
 				refracted_ray.direction = Math3d::refract(ray.direction, closest_hit.normal, eta, dot, k);
@@ -184,7 +186,7 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 void Scene::update(float delta) {
 	camera.update(delta, SDL_GetKeyboardState(0));
 
-	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+	//meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
 
 	spheres.update();
 	planes.update();
