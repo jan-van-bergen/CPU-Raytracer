@@ -27,6 +27,10 @@ ULONG __stdcall worker_thread(LPVOID parameters) {
 	// Set the Thread Affinity to two logical cores that belong to the same physical core
 	HANDLE thread = GetCurrentThread(); 
 
+	WCHAR thread_name[32];
+	wsprintfW(thread_name, L"WorkerThread_%d", params.thread_id);
+	SetThreadDescription(thread, thread_name);
+
 	DWORD_PTR thread_affinity_mask     = processor_masks[params.thread_id / threads_per_processor];
 	DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
 
