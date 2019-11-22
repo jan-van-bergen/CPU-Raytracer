@@ -129,27 +129,39 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 		mask = ~mask; // Invert mask
 
+		assert((mask & 1) || (mask & 2) || (mask & 4) || (mask & 8));
+
 		float us[4]; _mm_store_ps(us, u);
 		float vs[4]; _mm_store_ps(vs, v);
 
+		int closest_j = -1;
+		float closest_t = ray_hit.distance;
+
 		for (int j = 0; j < 4; j++) {
-			if (mask & (1 << j) && ts[j] < ray_hit.distance) {
-				ray_hit.hit      = true;
-				ray_hit.distance = ts[j];
-
-				int index = i + j;
-
-				ray_hit.point  = ray.origin + ray.direction * ts[j];
-				ray_hit.normal = Vector3::normalize(Math3d::barycentric(world_normals[index], world_normals[index+4], world_normals[index+8], us[j], vs[j]));
-
-				// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-				Vector2 tex_coords = Math3d::barycentric(mesh_data->tex_coords[index], mesh_data->tex_coords[index+4], mesh_data->tex_coords[index+8], us[j], vs[j]);
-				ray_hit.u = tex_coords.x;
-				ray_hit.v = tex_coords.y;
-			
-				ray_hit.material = &material;
+			if (mask & (1 << j) && ts[j] < closest_t) {
+				closest_j = j;
+				closest_t = ts[j];
 			}
 		}
+
+		if (closest_j == -1) continue;
+
+		ray_hit.hit      = true;
+		ray_hit.distance = closest_t;
+
+		int index0 = i + closest_j;
+		int index1 = index0 + 4;
+		int index2 = index0 + 8;
+
+		ray_hit.point  = ray.origin + ray.direction * closest_t;
+		ray_hit.normal = Vector3::normalize(Math3d::barycentric(world_normals[index0], world_normals[index1], world_normals[index2], us[closest_j], vs[closest_j]));
+
+		// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
+		Vector2 tex_coords = Math3d::barycentric(mesh_data->tex_coords[index0], mesh_data->tex_coords[index1], mesh_data->tex_coords[index2], us[closest_j], vs[closest_j]);
+		ray_hit.u = tex_coords.x;
+		ray_hit.v = tex_coords.y;
+			
+		ray_hit.material = &material;
 	}
 }
 
