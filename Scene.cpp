@@ -164,7 +164,7 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			Ray refracted_ray;
 			refracted_ray.origin    = closest_hit.point;
-			refracted_ray.direction = Math3d::refract(ray.direction, closest_hit.normal, eta, dot, k);
+			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, cos_theta, k);
 
 			if (!test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction)) abort();
 
@@ -173,6 +173,10 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 			// Use Schlick's Approximation
 			float r_0 = (n_1 - n_2) / (n_1 + n_2);
 			r_0 *= r_0;
+
+			if (n_1 > n_2) {
+				cos_theta = -Vector3::dot(refracted_ray.direction, normal);
+			}
 
 			float one_minus_cos         = 1.0f - cos_theta;
 			float one_minus_cos_squared = one_minus_cos * one_minus_cos;

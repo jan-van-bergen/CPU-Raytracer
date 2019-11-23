@@ -21,9 +21,8 @@ namespace Math3d {
 		return vector - 2.0f * Vector3::dot(vector, normal) * normal;
 	}
 
-	inline Vector3 refract(const Vector3 & vector, const Vector3 & normal, float eta, float dot, float k) {
-		return Vector3::normalize(eta * (vector - normal * dot) - normal * sqrtf(k));
-		//return Vector3::normalize(eta * (vector + normal * (dot - sqrtf(k))));
+	inline Vector3 refract(const Vector3 & vector, const Vector3 & normal, float eta, float cos_theta, float k) {
+		return Vector3::normalize(eta * vector + (eta * cos_theta - sqrtf(k)) * normal);
 	}
 
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
