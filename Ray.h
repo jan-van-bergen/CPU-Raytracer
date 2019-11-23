@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector3.h"
 
-#define EPSILON 0.001f
+#define EPSILON 0.005f
 
 struct Ray {
 	Vector3 origin;
