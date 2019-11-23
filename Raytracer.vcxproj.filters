@@ -47,6 +47,9 @@
     <ClCompile Include="WorkerThread.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Util.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">

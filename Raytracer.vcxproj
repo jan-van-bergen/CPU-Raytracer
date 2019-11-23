@@ -198,6 +198,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Util.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>

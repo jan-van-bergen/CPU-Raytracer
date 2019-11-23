@@ -16,3 +16,5 @@
 #define KILO_BYTE(value) (value) * 1024
 #define MEGA_BYTE(value) (value) * 1024 * 1024
 #define GIGA_BYTE(value) (value) * 1024 * 1024 * 1024
+
+const char * get_path(const char * file_path);

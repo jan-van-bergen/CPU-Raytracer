@@ -25,7 +25,11 @@ const MeshData * MeshData::load(const char * file_path) {
 	std::string warning;
 	std::string error;
 
-	tinyobj::LoadObj(&attrib, &shapes, &materials, &warning, &error, file_path);
+	const char * path = get_path(file_path);
+
+	tinyobj::LoadObj(&attrib, &shapes, &materials, &warning, &error, file_path, path);
+
+	delete[] path;
 
 	if (shapes.size() == 0) abort(); // Either the model is empty, or something went wrong
 

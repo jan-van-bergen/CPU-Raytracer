@@ -23,7 +23,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflectiveness = 1.0f;
 
-	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Bedroom/bedroom.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
@@ -168,7 +168,7 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
 
-			// Use Schlick's Approximation
+			// Use Schlick's Approximation to simulate the Fresnel effect
 			float r_0 = (n_1 - n_2) / (n_1 + n_2);
 			r_0 *= r_0;
 
