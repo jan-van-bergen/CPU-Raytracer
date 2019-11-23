@@ -157,8 +157,6 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 			
 			// In case of Total Internal Reflection, return only the reflection component
 			if (k < 0.0f) {
-				return Vector3(1.0f, 0.0f, 0.0f);
-
 				return (colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
 			}
 
@@ -166,7 +164,7 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 			refracted_ray.origin    = closest_hit.point;
 			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, cos_theta, k);
 
-			if (!test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction)) abort();
+			assert(test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
 
 			colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
 
