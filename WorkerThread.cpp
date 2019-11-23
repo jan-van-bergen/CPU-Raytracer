@@ -56,6 +56,8 @@ ULONG __stdcall WorkerThreads::worker_thread(LPVOID parameters) {
 				int y = task / params.window->tile_count_x; 
 				
 				params.scene->render_tile(*params.window, x * params.window->tile_width, y * params.window->tile_height);
+
+				//printf("Task %i done\n", task);
 			} 
 		}
 		

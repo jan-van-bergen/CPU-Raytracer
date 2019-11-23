@@ -7,6 +7,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
 #include "Hash.h"
+#include "Util.h"
 
 static std::unordered_map<const char *, MeshData *, StringHash, StringCompare> cache;
 
@@ -47,20 +48,26 @@ const MeshData * MeshData::load(const char * file_path) {
 		int tex_coord_index = shapes[0].mesh.indices[i].texcoord_index;
 		int normal_index    = shapes[0].mesh.indices[i].normal_index;
 
-		temp_pos[i] = Vector3(
-			attrib.vertices[3*vertex_index    ], 
-			attrib.vertices[3*vertex_index + 1], 
-			attrib.vertices[3*vertex_index + 2]
-		);
-		temp_tex[i] = Vector2(
-			attrib.texcoords[2*tex_coord_index    ], 
-			attrib.texcoords[2*tex_coord_index + 1]
-		);
-		temp_nor[i] = Vector3(
-			attrib.normals[3*normal_index    ], 
-			attrib.normals[3*normal_index + 1], 
-			attrib.normals[3*normal_index + 2]
-		);
+		if (vertex_index != INVALID) {
+			temp_pos[i] = Vector3(
+				attrib.vertices[3*vertex_index    ], 
+				attrib.vertices[3*vertex_index + 1], 
+				attrib.vertices[3*vertex_index + 2]
+			);
+		}
+		if (tex_coord_index != INVALID) {
+			temp_tex[i] = Vector2(
+				attrib.texcoords[2*tex_coord_index    ], 
+				attrib.texcoords[2*tex_coord_index + 1]
+			);
+		}
+		if (normal_index != INVALID) {
+			temp_nor[i] = Vector3(
+				attrib.normals[3*normal_index    ], 
+				attrib.normals[3*normal_index + 1], 
+				attrib.normals[3*normal_index + 2]
+			);
+		}
 	}
 
 	// Pad the vertices with nonsense data until a multiple of 12 is reached

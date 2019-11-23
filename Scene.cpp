@@ -21,13 +21,13 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflectiveness = 1.0f;
 
-	meshes[0].init(DATA_PATH("Diamond.obj"));
+	meshes[0].init(DATA_PATH("Cube.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
 	meshes[0].material.reflectiveness   = 1.0f;
 	meshes[0].material.refractiveness   = 1.0f;
-	meshes[0].material.refractive_index = 2.4f;
+	meshes[0].material.refractive_index = 2.4;
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
@@ -120,61 +120,61 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 		Vector3 colour_reflection;
 		Vector3 colour_refraction;
 
+		Vector3 normal;
+		float cos_theta;
+
+		float n_1;
+		float n_2;
+
+		float dot = Vector3::dot(ray.direction, closest_hit.normal);
+		if (dot < 0.0f) { // Entering material		
+			n_1 = Material::AIR_REFRACTIVE_INDEX;
+			n_2 = closest_hit.material->refractive_index;
+
+			normal    =  closest_hit.normal;
+			cos_theta = -dot;
+		} else { // Leaving material
+			n_1 = closest_hit.material->refractive_index;
+			n_2 = Material::AIR_REFRACTIVE_INDEX;
+
+			normal    = -closest_hit.normal;
+			cos_theta =  dot;
+		}
+
 		if (closest_hit.material->reflectiveness > 0.0f) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
-			reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
+			reflected_ray.direction = Math3d::reflect(ray.direction, normal);
 
 			colour_reflection = closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1);
 		}
 
-		float dot = Vector3::dot(-ray.direction, closest_hit.normal);
-		float cos;
-
 		if (closest_hit.material->refractiveness > 0.0f) {
-			if (dot > 0.0f) {
-				// Entering material
-				float eta = Material::AIR_REFRACTIVE_INDEX / closest_hit.material->refractive_index;
-				float k   = 1.0f - eta*eta * (1.0f - dot*dot);
-
-				//if (k < 0.0f) return Vector3(1.0f, 0.0f, 0.0f);
-
-				Ray refracted_ray;
-				refracted_ray.origin    = closest_hit.point;
-				refracted_ray.direction = Math3d::refract(ray.direction, closest_hit.normal, eta, dot, k);
-
-				colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
-
-				cos = dot;
-			} else {
-				// Leaving material
-				float eta = closest_hit.material->refractive_index / Material::AIR_REFRACTIVE_INDEX;
-				float k   = 1.0f - eta*eta * (1.0f - dot*dot);
-				
-				// In case of Total Internal Reflection, return only the reflection component
-				if (k < 0.0f) {
-					return (colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
-				}
-
-				Ray refracted_ray;
-				refracted_ray.origin    = closest_hit.point;
-				refracted_ray.direction = Math3d::refract(ray.direction, -closest_hit.normal, eta, dot, k);
-				
-				colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
-
-				cos = Vector3::dot(refracted_ray.direction, closest_hit.normal);
+			float eta = n_1 / n_2;
+			float k = 1.0f - eta*eta * (1.0f - cos_theta*cos_theta);
+			
+			// In case of Total Internal Reflection, return only the reflection component
+			if (k < 0.0f) {
+				return (colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
 			}
-			
+
+			Ray refracted_ray;
+			refracted_ray.origin    = closest_hit.point;
+			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, dot, k);
+
+			colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
+
 			// Use Schlick's Approximation
-			float eta_minus_one = closest_hit.material->refractive_index - 1.0f;
-			float eta_plus_one  = closest_hit.material->refractive_index + 1.0f;
-			
-			float one_minus_cos = 1.0f - cos;
+			float r_0 = (n_1 - n_2) / (n_1 + n_2);
+			r_0 *= r_0;
 
-			float R0 = eta_minus_one*eta_minus_one / (eta_plus_one*eta_plus_one);
-			float R  = R0 +	(1.0f - R0) * (one_minus_cos*one_minus_cos)*(one_minus_cos*one_minus_cos)*one_minus_cos;
+			float one_minus_cos         = 1.0f - cos_theta;
+			float one_minus_cos_squared = one_minus_cos * one_minus_cos;
 
-			colour += R * colour_reflection + (1.0f - R) * colour_refraction;
+			float F_r = r_0 + ((1.0f - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
+			float F_t = 1.0f - F_r;
+
+			colour += F_r * colour_reflection + F_t * colour_refraction;
 		} else {
 			colour += colour_reflection;
 		}
