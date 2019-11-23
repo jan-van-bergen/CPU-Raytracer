@@ -65,9 +65,9 @@ const MeshData * MeshData::load(const char * file_path) {
 
 	// Pad the vertices with nonsense data until a multiple of 12 is reached
 	for (int i = vertex_count; i < vertex_count_rounded; i++) {
-		temp_pos[i] = Vector3(NAN, NAN, NAN);
-		temp_tex[i] = Vector2(NAN, NAN);
-		temp_nor[i] = Vector3(NAN, NAN, NAN);
+		temp_pos[i] = Vector3(0.0f, 0.0f, 0.0f);
+		temp_tex[i] = Vector2(0.0f, 0.0f);
+		temp_nor[i] = Vector3(0.0f, 0.0f, 0.0f);
 	}
 
 	// Permute the data so we end up with SoA buffers where the 3 vertices 0,1,2 of every 4 triangles a,b,c,d are arranged as such:

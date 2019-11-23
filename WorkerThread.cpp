@@ -32,14 +32,16 @@ ULONG __stdcall WorkerThreads::worker_thread(LPVOID parameters) {
 	wsprintfW(thread_name, L"WorkerThread_%d", params.thread_id);
 	SetThreadDescription(thread, thread_name);
 
-	DWORD_PTR thread_affinity_mask     = processor_masks[params.thread_id / threads_per_processor];
-	DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
+	if (THREAD_COUNT > 1) {
+		DWORD_PTR thread_affinity_mask     = processor_masks[params.thread_id / threads_per_processor];
+		DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
 
-	// Check validity of Thread Affinity
-    if ((thread_affinity_mask & thread_affinity_mask_old) == 0) {
-		printf("Unable to set Process Affinity Mask!\n");
+		// Check validity of Thread Affinity
+		if ((thread_affinity_mask & thread_affinity_mask_old) == 0) {
+			printf("Unable to set Process Affinity Mask!\n");
 
-		abort();
+			abort();
+		}
 	}
 
 	while (true) {
