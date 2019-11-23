@@ -105,5 +105,7 @@ const MeshData * MeshData::load(const char * file_path) {
 	delete[] temp_tex;
 	delete[] temp_nor;
 
+	printf("Loaded Mesh %s from disk, consisting of %u vertices.\n", file_path, mesh_data->vertex_count);
+
 	return mesh_data;
 }
