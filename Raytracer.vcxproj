@@ -222,6 +222,7 @@
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="SSEUtil.h" />
+    <ClInclude Include="Test.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Util.h" />

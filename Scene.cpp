@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#include "Test.h"
+
 #define NUMBER_OF_BOUNCES 2
 
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
@@ -14,7 +16,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[0].material.refractiveness = 0.0f;
 	spheres[1].material.refractiveness = 0.0f;
 	spheres[0].material.refractive_index = 1.33f;
-	spheres[1].material.refractive_index = 2.4f;
+	spheres[1].material.refractive_index = 1.68f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
@@ -155,12 +157,16 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 			
 			// In case of Total Internal Reflection, return only the reflection component
 			if (k < 0.0f) {
+				return Vector3(1.0f, 0.0f, 0.0f);
+
 				return (colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
 			}
 
 			Ray refracted_ray;
 			refracted_ray.origin    = closest_hit.point;
-			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, dot, k);
+			refracted_ray.direction = Math3d::refract(ray.direction, closest_hit.normal, eta, dot, k);
+
+			if (!test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction)) abort();
 
 			colour_refraction = closest_hit.material->refractiveness * bounce(refracted_ray, bounces_left - 1);
 

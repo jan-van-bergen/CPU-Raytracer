@@ -128,5 +128,8 @@
     <ClInclude Include="SSEUtil.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
