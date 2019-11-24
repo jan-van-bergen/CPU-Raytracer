@@ -1,7 +1,8 @@
 #include "Mesh.h"
 
+#include <immintrin.h>
+
 #include "Math3d.h"
-#include "SSEUtil.h"
 
 void Mesh::update() {
 	transform.calc_world_matrix();
@@ -86,7 +87,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		// the triangle no intersection is possible
 		//if (a > -EPSILON && a < EPSILON) continue;
 		int mask = _mm_movemask_ps(_mm_cmpgt_ps(a, neg_epsilon)) & _mm_movemask_ps(_mm_cmplt_ps(a, epsilon));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//float f = 1.0f / a;
 		__m128 f = _mm_rcp_ps(a);
@@ -102,7 +103,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		//if (u < 0.0f || u > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(u, zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(u, one));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//Vector3 q = Vector3::cross(s, edge0);
 		__m128 q_x = _mm_sub_ps(_mm_mul_ps(s_y, edge0_z), _mm_mul_ps(s_z, edge0_y));
@@ -116,7 +117,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		//if (v < 0.0f || u + v > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(v,                zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(_mm_add_ps(u, v), one));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//float t = f * Vector3::dot(edge1, q);
 		union { __m128 t; float ts[4]; };
@@ -125,7 +126,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		// Check if we are in the right distance range
 		//if (t < EPSILON || t > ray_hit.distance) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(t, epsilon));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		mask = ~mask; // Invert mask
 
@@ -210,7 +211,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 		// the triangle no intersection is possible
 		//if (a > -EPSILON && a < EPSILON) continue;
 		int mask = _mm_movemask_ps(_mm_cmpgt_ps(a, neg_epsilon)) & _mm_movemask_ps(_mm_cmplt_ps(a, epsilon));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//float f = 1.0f / a;
 		__m128 f = _mm_rcp_ps(a);
@@ -226,7 +227,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 		//if (u < 0.0f || u > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(u, zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(u, one));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//Vector3 q = Vector3::cross(s, edge0);
 		__m128 q_x = _mm_sub_ps(_mm_mul_ps(s_y, edge0_z), _mm_mul_ps(s_z, edge0_y));
@@ -240,7 +241,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 		//if (v < 0.0f || u + v > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(v,                zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(_mm_add_ps(u, v), one));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		//float t = f * Vector3::dot(edge1, q);
 		union { __m128 t; float ts[4]; };
@@ -250,7 +251,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 		//if (t < EPSILON || t > ray_hit.distance) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(t, epsilon));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(t, max_dist));
-		if (mask == ALL_TRUE_128) continue;
+		if (mask == 0xf) continue;
 
 		return true;
 	}
