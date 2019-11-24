@@ -50,6 +50,9 @@
     <ClCompile Include="Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Raytracing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -130,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="Test.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Raytracing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

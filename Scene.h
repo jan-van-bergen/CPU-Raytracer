@@ -10,6 +10,8 @@
 
 #include "Camera.h"
 
+#include "Skybox.h"
+
 #include "Window.h"
 
 struct Scene {
@@ -30,6 +32,8 @@ private:
 
 	Vector3 ambient_lighting = Vector3(0.1f);
 	
+	Skybox skybox;
+
 	void trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
 	bool intersect_primitives(const Ray & ray, float max_distance) const;
 	

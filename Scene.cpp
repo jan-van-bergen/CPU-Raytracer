@@ -73,9 +73,12 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 	RayHit closest_hit;
 	trace_primitives(ray, closest_hit);
 
-	// If the Ray hit nothing, leave the pixel black
-	if (!closest_hit.hit) return result;
-	
+	// If the Ray hit nothing, sample the skybox
+	if (!closest_hit.hit) {
+		result.colour = skybox.sample(ray.direction);
+		return result;
+	}
+
 	result.colour   = ambient_lighting;
 	result.distance = closest_hit.distance;
 	
