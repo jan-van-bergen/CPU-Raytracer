@@ -36,7 +36,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
-		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 80.0f, 70.0f)
+		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
