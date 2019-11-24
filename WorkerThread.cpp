@@ -49,7 +49,7 @@ ULONG WINAPI WorkerThreads::worker_thread(LPVOID parameters) {
 		WaitForSingleObject(go_signal[params.thread_id], INFINITE);
 
 		while (remaining > 0) { 
-			int task = (int)InterlockedDecrement(&remaining) - 1; 
+			int task = (int)InterlockedDecrement(&remaining); 
 			
 			if (task >= 0) { 
 				int x = task % params.window->tile_count_x;

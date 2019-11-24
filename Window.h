@@ -20,8 +20,8 @@ public:
 	const int tile_width  = 32;
 	const int tile_height = 32;
 
-	int tile_count_x;
-	int tile_count_y;
+	const int tile_count_x;
+	const int tile_count_y;
 
 	bool is_closed = false;
 

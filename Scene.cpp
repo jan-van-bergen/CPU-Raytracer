@@ -23,7 +23,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflectiveness = 1.0f;
 
-	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
@@ -174,7 +174,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			BounceResult refraction_result = bounce(refracted_ray, bounces_left - 1);
 			colour_refraction = closest_hit.material->refractiveness * refraction_result.colour;
-
+			
 			// Apply Beer's Law
 			colour_refraction.x *= expf(-closest_hit.material->absorbtion.x * refraction_result.distance);
 			colour_refraction.y *= expf(-closest_hit.material->absorbtion.y * refraction_result.distance);

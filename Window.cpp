@@ -3,7 +3,11 @@
 #include <iostream>
 #include <GL/glew.h>
 
-Window::Window(int width, int height, const char * title) : width(width), height(height) {
+Window::Window(int width, int height, const char * title) : 
+	width(width), height(height), 
+	tile_count_x(width  / tile_width), 
+	tile_count_y(height / tile_height)
+{
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -49,9 +53,6 @@ Window::Window(int width, int height, const char * title) : width(width), height
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-
-	tile_count_x = width  / tile_width;
-	tile_count_y = height / tile_height;
 }
 
 Window::~Window() {
