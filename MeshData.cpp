@@ -34,7 +34,7 @@ const MeshData * MeshData::load(const char * file_path) {
 	if (shapes.size() == 0) abort(); // Either the model is empty, or something went wrong
 
 	int vertex_count         = shapes[0].mesh.indices.size();
-	int vertex_count_rounded = ((vertex_count - 1) / 12 + 1) * 12;
+	int vertex_count_rounded = ((vertex_count - 1) / 12 + 1) * 12; // Round to multiple of 12 that is >= vertex_count
 
 	mesh_data = new MeshData();
 	mesh_data->vertex_count = vertex_count_rounded;
