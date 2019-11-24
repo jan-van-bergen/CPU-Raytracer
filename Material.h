@@ -11,6 +11,8 @@ struct Material {
 	float refractiveness   = 0.0f;
 	float refractive_index = 1.0f;
 
+	Vector3 absorbtion;
+
 	inline static const float AIR_REFRACTIVE_INDEX = 1.0003f;
 
 	inline Vector3 get_colour(float u, float v) const {

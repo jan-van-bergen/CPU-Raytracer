@@ -33,7 +33,12 @@ private:
 	void trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
 	bool intersect_primitives(const Ray & ray, float max_distance) const;
 	
-	Vector3 bounce(const Ray & ray, int bounces_left) const;
+	struct BounceResult {
+		Vector3 colour;
+		float   distance; // Used for Beer's Law
+	};
+	
+	BounceResult bounce(const Ray & ray, int bounces_left) const;
 
 public:
 	Camera camera;
