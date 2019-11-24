@@ -78,6 +78,7 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 	// Secondary Ray starts at hit location
 	Ray secondary_ray;
 	secondary_ray.origin = closest_hit.point;
+
 	Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
 
 	// Check Point Lights
@@ -122,36 +123,36 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left) const {
 		Vector3 colour_reflection;
 		Vector3 colour_refraction;
 
-		Vector3 normal;
-		float cos_theta;
-
-		float n_1;
-		float n_2;
-
-		float dot = Vector3::dot(ray.direction, closest_hit.normal);
-		if (dot < 0.0f) { // Entering material		
-			n_1 = Material::AIR_REFRACTIVE_INDEX;
-			n_2 = closest_hit.material->refractive_index;
-
-			normal    =  closest_hit.normal;
-			cos_theta = -dot;
-		} else { // Leaving material
-			n_1 = closest_hit.material->refractive_index;
-			n_2 = Material::AIR_REFRACTIVE_INDEX;
-
-			normal    = -closest_hit.normal;
-			cos_theta =  dot;
-		}
-
 		if (closest_hit.material->reflectiveness > 0.0f) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
-			reflected_ray.direction = Math3d::reflect(ray.direction, normal);
+			reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
 
 			colour_reflection = closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1);
 		}
 
-		if (closest_hit.material->refractiveness > 0.0f) {
+		if (closest_hit.material->refractiveness > 0.0f) {		
+			Vector3 normal;
+			float cos_theta;
+
+			float n_1;
+			float n_2;
+
+			float dot = Vector3::dot(ray.direction, closest_hit.normal);
+			if (dot < 0.0f) { // Entering material		
+				n_1 = Material::AIR_REFRACTIVE_INDEX;
+				n_2 = closest_hit.material->refractive_index;
+
+				normal    =  closest_hit.normal;
+				cos_theta = -dot;
+			} else { // Leaving material
+				n_1 = closest_hit.material->refractive_index;
+				n_2 = Material::AIR_REFRACTIVE_INDEX;
+
+				normal    = -closest_hit.normal;
+				cos_theta =  dot;
+			}
+
 			float eta = n_1 / n_2;
 			float k = 1.0f - eta*eta * (1.0f - cos_theta*cos_theta);
 			
