@@ -22,7 +22,7 @@ void WorkerThreads::init_core_info() {
 	threads_per_processor = THREAD_COUNT / processor_count;
 }
 
-ULONG __stdcall WorkerThreads::worker_thread(LPVOID parameters) {
+ULONG WINAPI WorkerThreads::worker_thread(LPVOID parameters) {
 	Params params = *reinterpret_cast<Params *>(parameters);
 
 	// Set the Thread Affinity to two logical cores that belong to the same physical core
