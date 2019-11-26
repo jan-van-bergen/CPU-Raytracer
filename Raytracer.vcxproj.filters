@@ -38,9 +38,6 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Assets</Filter>
     </ClCompile>
-    <ClCompile Include="MeshData.cpp">
-      <Filter>Assets</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Raytracing\Primitives</Filter>
     </ClCompile>
@@ -52,6 +49,9 @@
     </ClCompile>
     <ClCompile Include="Skybox.cpp">
       <Filter>Raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelData.cpp">
+      <Filter>Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +136,12 @@
     </ClInclude>
     <ClInclude Include="Skybox.h">
       <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelData.h">
+      <Filter>Assets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -11,26 +11,25 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
 	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
 	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
-	spheres[0].material.reflectiveness = 0.0f;
-	spheres[1].material.reflectiveness = 0.0f;
-	spheres[0].material.refractiveness = 0.0f;
-	spheres[1].material.refractiveness = 0.0f;
-	spheres[0].material.refractive_index = 1.33f;
-	spheres[1].material.refractive_index = 1.68f;
+	spheres[0].material.specular = 0.0f;
+	spheres[1].material.specular = 0.0f;
+	spheres[0].material.transmittance = 0.0f;
+	spheres[1].material.transmittance = 0.0f;
+	spheres[0].material.index_of_refraction = 1.33f;
+	spheres[1].material.index_of_refraction = 1.68f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	planes[0].material.texture        = Texture::load(DATA_PATH("Floor.png"));
-	planes[0].material.reflectiveness = 1.0f;
+	planes[0].material.texture  = Texture::load(DATA_PATH("Floor.png"));
+	planes[0].material.specular = 1.0f;
 
-	meshes[0].init(DATA_PATH("Diamond.obj"));
+	meshes[0].init(DATA_PATH("Scene1.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
-	meshes[0].material.reflectiveness   = 1.0f;
-	meshes[0].material.refractiveness   = 1.0f;
-	meshes[0].material.refractive_index = 2.4;
-	meshes[0].material.absorbtion       = Vector3(0.1f, 0.5f, 0.1f);
+	meshes[0].material.specular            = 1.0f;
+	meshes[0].material.transmittance       = 1.0f;
+	meshes[0].material.index_of_refraction = 2.4f;
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
@@ -130,15 +129,15 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 		Vector3 colour_reflection;
 		Vector3 colour_refraction;
 
-		if (closest_hit.material->reflectiveness > 0.0f) {
+		if (Vector3::length_squared(closest_hit.material->specular) > 0.0f) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
 
-			colour_reflection = closest_hit.material->reflectiveness * bounce(reflected_ray, bounces_left - 1).colour;
+			colour_reflection = closest_hit.material->specular * bounce(reflected_ray, bounces_left - 1).colour;
 		}
 
-		if (closest_hit.material->refractiveness > 0.0f) {		
+		if (Vector3::length_squared(closest_hit.material->transmittance) > 0.0f) {		
 			Vector3 normal;
 			float cos_theta;
 
@@ -147,14 +146,14 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			float dot = Vector3::dot(ray.direction, closest_hit.normal);
 			if (dot < 0.0f) { // Entering material		
-				n_1 = Material::AIR_REFRACTIVE_INDEX;
-				n_2 = closest_hit.material->refractive_index;
+				n_1 = Material::AIR_INDEX_OF_REFRACTION;
+				n_2 = closest_hit.material->index_of_refraction;
 
 				normal    =  closest_hit.normal;
 				cos_theta = -dot;
 			} else { // Leaving material
-				n_1 = closest_hit.material->refractive_index;
-				n_2 = Material::AIR_REFRACTIVE_INDEX;
+				n_1 = closest_hit.material->index_of_refraction;
+				n_2 = Material::AIR_INDEX_OF_REFRACTION;
 
 				normal    = -closest_hit.normal;
 				cos_theta =  dot;
@@ -176,12 +175,12 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			assert(test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
 
 			BounceResult refraction_result = bounce(refracted_ray, bounces_left - 1);
-			colour_refraction = closest_hit.material->refractiveness * refraction_result.colour;
+			colour_refraction = closest_hit.material->transmittance * refraction_result.colour;
 			
 			// Apply Beer's Law
-			colour_refraction.x *= expf(-closest_hit.material->absorbtion.x * refraction_result.distance);
-			colour_refraction.y *= expf(-closest_hit.material->absorbtion.y * refraction_result.distance);
-			colour_refraction.z *= expf(-closest_hit.material->absorbtion.z * refraction_result.distance);
+			colour_refraction.x *= expf((closest_hit.material->transmittance.x - 1.0f) * refraction_result.distance);
+			colour_refraction.y *= expf((closest_hit.material->transmittance.y - 1.0f) * refraction_result.distance);
+			colour_refraction.z *= expf((closest_hit.material->transmittance.z - 1.0f) * refraction_result.distance);
 
 			// Use Schlick's Approximation to simulate the Fresnel effect
 			float r_0 = (n_1 - n_2) / (n_1 + n_2);

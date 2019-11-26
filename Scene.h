@@ -1,7 +1,7 @@
 #pragma once
 #include "Sphere.h"
 #include "Plane.h"
-#include "Mesh.h"
+#include "Model.h"
 #include "PrimitiveList.h"
 
 #include "PointLight.h"
@@ -18,7 +18,7 @@ struct Scene {
 private:
 	PrimitiveList<Sphere> spheres;
 	PrimitiveList<Plane>  planes;
-	PrimitiveList<Mesh>   meshes;
+	PrimitiveList<Model>  meshes;
 	
 	// Lights
 	PointLight * point_lights      = nullptr;

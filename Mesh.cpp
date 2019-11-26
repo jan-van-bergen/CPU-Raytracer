@@ -4,25 +4,23 @@
 
 #include "Math3d.h"
 
-void Mesh::update() {
-	transform.calc_world_matrix();
-	
-	__m128 matrix_00 = _mm_set1_ps(transform.world_matrix(0, 0));
-	__m128 matrix_01 = _mm_set1_ps(transform.world_matrix(1, 0));
-	__m128 matrix_02 = _mm_set1_ps(transform.world_matrix(2, 0));
-	__m128 matrix_03 = _mm_set1_ps(transform.world_matrix(3, 0));
-	__m128 matrix_10 = _mm_set1_ps(transform.world_matrix(0, 1));
-	__m128 matrix_11 = _mm_set1_ps(transform.world_matrix(1, 1));
-	__m128 matrix_12 = _mm_set1_ps(transform.world_matrix(2, 1));
-	__m128 matrix_13 = _mm_set1_ps(transform.world_matrix(3, 1));
-	__m128 matrix_20 = _mm_set1_ps(transform.world_matrix(0, 2));
-	__m128 matrix_21 = _mm_set1_ps(transform.world_matrix(1, 2));
-	__m128 matrix_22 = _mm_set1_ps(transform.world_matrix(2, 2));
-	__m128 matrix_23 = _mm_set1_ps(transform.world_matrix(3, 2));
-	__m128 matrix_30 = _mm_set1_ps(transform.world_matrix(0, 3));
-	__m128 matrix_31 = _mm_set1_ps(transform.world_matrix(1, 3));
-	__m128 matrix_32 = _mm_set1_ps(transform.world_matrix(2, 3));
-	__m128 matrix_33 = _mm_set1_ps(transform.world_matrix(3, 3));
+void Mesh::update(const Matrix4 & world_matrix) {
+	__m128 matrix_00 = _mm_set1_ps(world_matrix(0, 0));
+	__m128 matrix_01 = _mm_set1_ps(world_matrix(1, 0));
+	__m128 matrix_02 = _mm_set1_ps(world_matrix(2, 0));
+	__m128 matrix_03 = _mm_set1_ps(world_matrix(3, 0));
+	__m128 matrix_10 = _mm_set1_ps(world_matrix(0, 1));
+	__m128 matrix_11 = _mm_set1_ps(world_matrix(1, 1));
+	__m128 matrix_12 = _mm_set1_ps(world_matrix(2, 1));
+	__m128 matrix_13 = _mm_set1_ps(world_matrix(3, 1));
+	__m128 matrix_20 = _mm_set1_ps(world_matrix(0, 2));
+	__m128 matrix_21 = _mm_set1_ps(world_matrix(1, 2));
+	__m128 matrix_22 = _mm_set1_ps(world_matrix(2, 2));
+	__m128 matrix_23 = _mm_set1_ps(world_matrix(3, 2));
+	__m128 matrix_30 = _mm_set1_ps(world_matrix(0, 3));
+	__m128 matrix_31 = _mm_set1_ps(world_matrix(1, 3));
+	__m128 matrix_32 = _mm_set1_ps(world_matrix(2, 3));
+	__m128 matrix_33 = _mm_set1_ps(world_matrix(3, 3));
 
 	for (int i = 0; i < mesh_data->vertex_count; i += 4) {
 		__m128 model_x = _mm_load_ps(mesh_data->position_x + i);
@@ -37,10 +35,10 @@ void Mesh::update() {
 		_mm_store_ps(world_positions_y + i, world_y);
 		_mm_store_ps(world_positions_z + i, world_z);
 
-		world_normals[i  ] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i  ]);
-		world_normals[i+1] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+1]);
-		world_normals[i+2] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+2]);
-		world_normals[i+3] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+3]);
+		world_normals[i  ] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i  ]);
+		world_normals[i+1] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+1]);
+		world_normals[i+2] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+2]);
+		world_normals[i+3] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+3]);
 	}
 }
 
@@ -162,7 +160,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		ray_hit.u = tex_coords.x;
 		ray_hit.v = tex_coords.y;
 		
-		ray_hit.material = &material;
+		ray_hit.material = &mesh_data->material;
 	}
 }
 

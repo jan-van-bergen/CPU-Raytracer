@@ -2,6 +2,8 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
+#include "Material.h"
+
 struct MeshData {
 	float   * position_x;
 	float   * position_y;
@@ -10,5 +12,5 @@ struct MeshData {
 	Vector3 * normals;
 	int       vertex_count;
 
-	static const MeshData * load(const char * file_path);
+	Material material;
 };
