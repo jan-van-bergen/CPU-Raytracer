@@ -8,7 +8,14 @@
 
 #include "Util.h"
 
+static std::unordered_map<std::string, ModelData *> cache;
+
 const ModelData * ModelData::load(const char * file_path) {
+	ModelData *& model_data = cache[file_path];
+
+	// If the cache already contains this Model Data simply return it
+	if (model_data) return model_data;
+
 	// Otherwise, load new MeshData
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -23,7 +30,7 @@ const ModelData * ModelData::load(const char * file_path) {
 
 	if (shapes.size() == 0) abort(); // Either the model is empty, or something went wrong
 
-	ModelData * model_data = new ModelData();
+	model_data = new ModelData();
 	model_data->mesh_data_count = shapes.size();
 	model_data->mesh_data       = new MeshData[model_data->mesh_data_count];
 
