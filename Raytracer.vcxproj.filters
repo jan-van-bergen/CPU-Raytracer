@@ -98,9 +98,6 @@
     <ClInclude Include="Light.h">
       <Filter>Raytracing\Lights</Filter>
     </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
@@ -141,6 +138,9 @@
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
     <ClInclude Include="ModelData.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
       <Filter>Assets</Filter>
     </ClInclude>
   </ItemGroup>
