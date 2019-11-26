@@ -26,11 +26,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
-	meshes[0].material.specular            = 1.0f;
-	meshes[0].material.transmittance       = 1.0f;
-	meshes[0].material.index_of_refraction = 2.4f;
-
+	
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
 	};
