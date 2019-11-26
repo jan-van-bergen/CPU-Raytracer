@@ -3,6 +3,7 @@
 
 // Various math util functions
 namespace Math3d {
+	// Clamps the value between a smallest and largest allowed value
 	template<typename T>
 	inline T clamp(T value, T min, T max) {
 		if (value < min) return min;
@@ -17,14 +18,19 @@ namespace Math3d {
         return a + (u * (b - a)) + (v * (c - a));
     }
 	
+	// Reflects the vector in the normal
+	// The sign of the normal is irrelevant, but it should be normalized
 	inline Vector3 reflect(const Vector3 & vector, const Vector3 & normal) {
 		return vector - 2.0f * Vector3::dot(vector, normal) * normal;
 	}
 
+	// Refracts the vector in the normal, according to Snell's Law
+	// The normal should be oriented such that it makes the smallest angle possible with the vector
 	inline Vector3 refract(const Vector3 & vector, const Vector3 & normal, float eta, float cos_theta, float k) {
 		return Vector3::normalize(eta * vector + (eta * cos_theta - sqrtf(k)) * normal);
 	}
 	
+	// Checks if n is a power of two
 	inline constexpr bool is_power_of_two(int n) {
 		if (n == 0) return false;
 
