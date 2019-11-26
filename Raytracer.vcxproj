@@ -207,7 +207,6 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DirectionalLight.h" />
-    <ClInclude Include="Hash.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Math3d.h" />

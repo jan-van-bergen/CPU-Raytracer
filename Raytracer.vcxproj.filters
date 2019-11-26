@@ -116,9 +116,6 @@
     <ClInclude Include="Util.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Hash.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="PrimitiveList.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>

@@ -6,7 +6,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
-#include "Hash.h"
 #include "Util.h"
 
 const ModelData * ModelData::load(const char * file_path) {
