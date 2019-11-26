@@ -70,7 +70,9 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 	// If the Ray hit nothing, sample the skybox
 	if (!closest_hit.hit) {
-		result.colour = skybox.sample(ray.direction);
+		result.colour   = skybox.sample(ray.direction);
+		result.distance = INFINITY;
+
 		return result;
 	}
 
