@@ -107,9 +107,6 @@
     <ClInclude Include="RayHit.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="MeshData.h">
-      <Filter>Assets</Filter>
-    </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>

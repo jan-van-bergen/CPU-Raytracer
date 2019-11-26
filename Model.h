@@ -3,6 +3,7 @@
 #include "ModelData.h"
 #include "Mesh.h"
 
+// A Model can consist of a set of Meshes
 struct Model : Primitive {
 	const ModelData * model_data = nullptr;
 

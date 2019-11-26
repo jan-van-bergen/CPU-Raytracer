@@ -213,7 +213,6 @@
     <ClInclude Include="Math3d.h" />
     <ClInclude Include="Matrix4.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshData.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelData.h" />
     <ClInclude Include="Plane.h" />

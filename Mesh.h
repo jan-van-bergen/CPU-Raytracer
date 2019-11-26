@@ -1,6 +1,6 @@
 #pragma once
 #include "Primitive.h"
-#include "MeshData.h"
+#include "ModelData.h"
 
 #include "Ray.h"
 #include "RayHit.h"
