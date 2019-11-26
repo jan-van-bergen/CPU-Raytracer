@@ -1,17 +1,17 @@
 # Blender MTL File: 'None'
 # Material Count: 2
 
-newmtl Material
+newmtl GreenCube
 Ns 1.000000
 Ka 1.000000 1.000000 1.000000
-map_Kd -s 1 1 1 -o 0 0 0 -mm 0 1 Floor.png
+# map_Kd -s 1 1 1 -o 0 0 0 -mm 0 1 Floor.png
 Kd 0.000000 0.800000 0.044745
 Ks 0.500000 0.500000 0.500000
 Ni 1.450000
 d 1.000000
 illum 2
 
-newmtl Material.001
+newmtl RedCube
 Ns 1.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.000000 0.017107
