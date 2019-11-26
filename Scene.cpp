@@ -23,7 +23,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].material.texture  = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.specular = 1.0f;
 
-	meshes[0].init(DATA_PATH("Scene1.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	//meshes[0].material.texture = Texture::load(DATA_PATH("Floor.png"));
