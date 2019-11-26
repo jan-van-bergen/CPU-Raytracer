@@ -16,3 +16,4 @@
 - Full support for Dielectrics; Snell, Fresnel, and Beer.
 - Efficient tile-based multithreading using the Windows API.
 - Optimized Renderer: Triangle/Ray intersection makes use of SIMD.
+- Skybox using 6 Cubemap Textures
