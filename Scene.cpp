@@ -9,8 +9,8 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
 	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
-	spheres[0].material.colour = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[1].material.colour = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
 	spheres[0].material.specular = 0.0f;
 	spheres[1].material.specular = 0.0f;
 	spheres[0].material.transmittance = 0.0f;
@@ -21,15 +21,16 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	planes[0].material.texture  = Texture::load(DATA_PATH("Floor.png"));
-	planes[0].material.specular = 1.0f;
+	planes[0].material.specular = 0.5f;
 
-	meshes[0].init(DATA_PATH("Test.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	
-	point_lights = new PointLight[point_light_count = 1] {
+	point_light_count = 0;
+	/*point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
-	};
+	};*/
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
 		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
@@ -76,49 +77,52 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 		return result;
 	}
 
-	result.colour   = ambient_lighting;
 	result.distance = closest_hit.distance;
 	
-	// Secondary Ray starts at hit location
-	Ray secondary_ray;
-	secondary_ray.origin = closest_hit.point;
+	if (Vector3::length_squared(closest_hit.material->diffuse) > 0.0f) {
+		result.colour = ambient_lighting;
 
-	Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
+		// Secondary Ray starts at hit location
+		Ray secondary_ray;
+		secondary_ray.origin = closest_hit.point;
 
-	// Check Point Lights
-	for (int i = 0; i < point_light_count; i++) {
-		Vector3 to_light = point_lights[i].position - closest_hit.point;
-		float distance_to_light_squared = Vector3::length_squared(to_light);
-		float distance_to_light         = sqrtf(distance_to_light_squared);
+		Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
 
-		to_light /= distance_to_light;
-		secondary_ray.direction = to_light;
+		// Check Point Lights
+		for (int i = 0; i < point_light_count; i++) {
+			Vector3 to_light = point_lights[i].position - closest_hit.point;
+			float distance_to_light_squared = Vector3::length_squared(to_light);
+			float distance_to_light         = sqrtf(distance_to_light_squared);
 
-		if (!intersect_primitives(secondary_ray, distance_to_light)) {
-			result.colour += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+			to_light /= distance_to_light;
+			secondary_ray.direction = to_light;
+
+			if (!intersect_primitives(secondary_ray, distance_to_light)) {
+				result.colour += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+			}
 		}
-	}
 
-	// Check Spot Lights
-	for (int i = 0; i < spot_light_count; i++) {
-		Vector3 to_light = spot_lights[i].position - closest_hit.point;
-		float distance_to_light_squared = Vector3::length_squared(to_light);
-		float distance_to_light         = sqrtf(distance_to_light_squared);
+		// Check Spot Lights
+		for (int i = 0; i < spot_light_count; i++) {
+			Vector3 to_light = spot_lights[i].position - closest_hit.point;
+			float distance_to_light_squared = Vector3::length_squared(to_light);
+			float distance_to_light         = sqrtf(distance_to_light_squared);
 
-		to_light /= distance_to_light;
-		secondary_ray.direction = to_light;
+			to_light /= distance_to_light;
+			secondary_ray.direction = to_light;
 
-		if (!intersect_primitives(secondary_ray, distance_to_light)) {
-			result.colour += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+			if (!intersect_primitives(secondary_ray, distance_to_light)) {
+				result.colour += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+			}
 		}
-	}
 
-	// Check Directional Lights
-	for (int i = 0; i < directional_light_count; i++) {			
-		secondary_ray.direction = directional_lights[i].negative_direction;
+		// Check Directional Lights
+		for (int i = 0; i < directional_light_count; i++) {			
+			secondary_ray.direction = directional_lights[i].negative_direction;
 
-		if (!intersect_primitives(secondary_ray, INFINITY)) {
-			result.colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
+			if (!intersect_primitives(secondary_ray, INFINITY)) {
+				result.colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
+			}
 		}
 	}
 
@@ -170,15 +174,18 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			refracted_ray.origin    = closest_hit.point;
 			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, cos_theta, k);
 
+			// Make sure that Snell's Law is correctly obeyed
 			assert(test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
 
 			BounceResult refraction_result = bounce(refracted_ray, bounces_left - 1);
 			colour_refraction = refraction_result.colour;
 			
 			// Apply Beer's Law
-			colour_refraction.x *= expf((closest_hit.material->transmittance.x - 1.0f) * refraction_result.distance);
-			colour_refraction.y *= expf((closest_hit.material->transmittance.y - 1.0f) * refraction_result.distance);
-			colour_refraction.z *= expf((closest_hit.material->transmittance.z - 1.0f) * refraction_result.distance);
+			if (dot < 0.0f) {
+				colour_refraction.x *= expf((closest_hit.material->transmittance.x - 1.0f) * refraction_result.distance);
+				colour_refraction.y *= expf((closest_hit.material->transmittance.y - 1.0f) * refraction_result.distance);
+				colour_refraction.z *= expf((closest_hit.material->transmittance.z - 1.0f) * refraction_result.distance);
+			}
 
 			// Use Schlick's Approximation to simulate the Fresnel effect
 			float r_0 = (n_1 - n_2) / (n_1 + n_2);
@@ -193,8 +200,9 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			float F_r = r_0 + ((1.0f - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
 			float F_t = 1.0f - F_r;
-
-			result.colour += F_r * colour_reflection + F_t * colour_refraction;
+			
+			result.colour = F_r * colour_reflection + F_t * colour_refraction;
+			return result;
 		} else {
 			result.colour += colour_reflection;
 		}

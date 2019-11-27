@@ -51,7 +51,8 @@ const ModelData * ModelData::load(const char * file_path) {
 		if (material_id != -1) {
 			tinyobj::material_t material = materials[material_id];
 
-			mesh_data->material.colour  = Vector3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+			mesh_data->material.ambient = Vector3(material.ambient[0], material.ambient[1], material.ambient[2]);
+			mesh_data->material.diffuse = Vector3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
 
 			if (material.diffuse_texname.length() > 0) {
 				mesh_data->material.texture = Texture::load((std::string(path) + material.diffuse_texname).c_str());
@@ -61,6 +62,14 @@ const ModelData * ModelData::load(const char * file_path) {
 
 			mesh_data->material.transmittance       = Vector3(material.transmittance[0], material.transmittance[1], material.transmittance[2]);
 			mesh_data->material.index_of_refraction = material.ior;
+
+			/*switch (material.illum) {
+				case 0: case 1:                 mesh_data->material.type = Material::Type::DIFFUSE;    break;
+				case 3: case 8:                 mesh_data->material.type = Material::Type::MIRROR;     break;
+				case 4: case 5: case 6: case 7: mesh_data->material.type = Material::Type::DIELECTRIC; break;
+			}*/
+		} else {
+			mesh_data->material.diffuse = Vector3(1.0f, 0.0f, 1.0f);
 		}
 
 		// First copy the vertices into 3 temporary AoS buffers
