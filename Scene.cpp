@@ -51,8 +51,8 @@ Scene::~Scene() {
 
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	spheres.trace(ray, ray_hit);
-	planes.trace(ray, ray_hit);
-	meshes.trace(ray, ray_hit);
+	planes.trace (ray, ray_hit);
+	meshes.trace (ray, ray_hit);
 }
 
 bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
@@ -191,10 +191,13 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			float r_0 = (n_1 - n_2) / (n_1 + n_2);
 			r_0 *= r_0;
 
+			// In case n_1 is larger than n_2, theta should be the angle
+			// between the normal and the refracted Ray direction
 			if (n_1 > n_2) {
 				cos_theta = -Vector3::dot(refracted_ray.direction, normal);
 			}
 
+			// Calculate (1 - cos(theta))^5 efficiently, without using pow
 			float one_minus_cos         = 1.0f - cos_theta;
 			float one_minus_cos_squared = one_minus_cos * one_minus_cos;
 
