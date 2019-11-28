@@ -33,8 +33,8 @@ int main(int argument_count, char ** arguments) {
 #endif
 
 	// Initialize timing stuff
-	float now  = 0.0f;
-	float last = 0.0f;
+	Uint64 now  = 0;
+	Uint64 last = 0;
 	float inv_perf_freq = 1.0f / (float)SDL_GetPerformanceFrequency();
 	float delta_time = 0;
 
@@ -49,7 +49,7 @@ int main(int argument_count, char ** arguments) {
 	// Initialize multi threading stuff
 	WorkerThreads::init(scene, window);
 
-	last = float(SDL_GetPerformanceCounter());
+	last = SDL_GetPerformanceCounter();
 
 	// Game loop
 	while (!window.is_closed) {
@@ -63,9 +63,13 @@ int main(int argument_count, char ** arguments) {
 		window.update();
 
 		// Perform frame timing
-		now = float(SDL_GetPerformanceCounter());
-		delta_time = (now - last) * inv_perf_freq;
+		now = SDL_GetPerformanceCounter();
+		delta_time = float(now - last) * inv_perf_freq;
 		last = now;
+
+		if (delta_time == 0.0f) {
+			__debugbreak();
+		}
 
 		// Calculate average of last TOTAL_TIMING_COUNT frames
 		timings[current_frame++ % TOTAL_TIMING_COUNT] = delta_time;

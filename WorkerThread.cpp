@@ -28,13 +28,13 @@ struct Params {
 ULONG WINAPI worker_thread(LPVOID parameters) {
 	Params params = *reinterpret_cast<Params *>(parameters);
 
-	// Set the Thread Affinity to two logical cores that belong to the same physical core
 	HANDLE thread = GetCurrentThread(); 
 
 	WCHAR thread_name[32];
 	wsprintfW(thread_name, L"WorkerThread_%d", params.thread_id);
 	SetThreadDescription(thread, thread_name);
-
+	
+	// Set the Thread Affinity to two logical cores that belong to the same physical core
 	if (THREAD_COUNT > 1) {
 		DWORD_PTR thread_affinity_mask     = processor_masks[params.thread_id / threads_per_processor];
 		DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
