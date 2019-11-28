@@ -5,7 +5,7 @@
 
 using namespace WorkerThreads;
 
-#define THREAD_COUNT 1
+#define THREAD_COUNT 8
 
 int threads_per_processor;
 

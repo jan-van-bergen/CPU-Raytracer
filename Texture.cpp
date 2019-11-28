@@ -52,10 +52,10 @@ Vector3 Texture::sample_bilinear(float u, float v) const {
 	u *= width_f;
 	v *= height_f;
 
+	// Convert pixel coordinates to integers
 	int u_i = int(u);
 	int v_i = int(v);
 	
-	// Convert pixel coordinates to integers
 	int u0_i = Math::mod(u_i,     width);
 	int u1_i = Math::mod(u_i + 1, width);
 	int v0_i = Math::mod(v_i,     height);
