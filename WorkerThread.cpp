@@ -21,7 +21,7 @@ struct Params {
 	int thread_id;
 	const Scene  * scene;
 	const Window * window;
-};
+} parameters[THREAD_COUNT];
 
 // This is the actual function that will run on each Worker Thread
 // It will wait until work becomes available, execute it and notify when the work is done
@@ -85,9 +85,6 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 	threads_per_processor = THREAD_COUNT / processor_count;
 
 	// Spawn the appropriate number of Worker Threads.
-	Params parameters[THREAD_COUNT];
-	HANDLE workers   [THREAD_COUNT];
-
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -95,7 +92,8 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 		parameters[i].thread_id = i;
 		parameters[i].scene     = &scene;
 		parameters[i].window    = &window;
-		workers   [i] = CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
+		
+		CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
 	}
 }
 
