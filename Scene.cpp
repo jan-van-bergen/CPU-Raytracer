@@ -175,7 +175,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
 			// Make sure that Snell's Law is correctly obeyed
-			assert(test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
+			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
 
 			BounceResult refraction_result = bounce(refracted_ray, bounces_left - 1);
 			colour_refraction = refraction_result.colour;

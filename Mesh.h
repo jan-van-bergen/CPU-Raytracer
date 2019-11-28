@@ -1,6 +1,8 @@
 #pragma once
-#include "Primitive.h"
+#include <cassert>
+
 #include "ModelData.h"
+#include "Transform.h"
 
 #include "Ray.h"
 #include "RayHit.h"
@@ -14,8 +16,10 @@ struct Mesh {
 	Vector3 * world_normals   = nullptr;
 
 	inline void init(const MeshData * data)  {
-		//assert(world_positions == nullptr);
-		assert(world_normals   == nullptr);
+		assert(world_positions_x == nullptr);
+		assert(world_positions_y == nullptr);
+		assert(world_positions_z == nullptr);
+		assert(world_normals     == nullptr);
 
 		mesh_data = data;
 		world_positions_x = new float[mesh_data->vertex_count];

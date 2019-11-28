@@ -41,9 +41,6 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Raytracing\Primitives</Filter>
     </ClCompile>
-    <ClCompile Include="WorkerThread.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
@@ -53,6 +50,7 @@
     <ClCompile Include="ModelData.cpp">
       <Filter>Assets</Filter>
     </ClCompile>
+    <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -116,9 +114,6 @@
     <ClInclude Include="PrimitiveList.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
-    <ClInclude Include="WorkerThread.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="Test.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -137,5 +132,6 @@
     <ClInclude Include="Math.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="WorkerThread.h" />
   </ItemGroup>
 </Project>

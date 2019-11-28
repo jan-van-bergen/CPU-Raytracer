@@ -1,7 +1,6 @@
 #include "Window.h"
 
-#include <iostream>
-#include <GL/glew.h>
+#include <cstring>
 
 Window::Window(int width, int height, const char * title) : 
 	width(width), height(height), 

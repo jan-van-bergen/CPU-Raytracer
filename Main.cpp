@@ -1,6 +1,5 @@
 #include <cstdio>
-
-#include <GL/glew.h>
+#include <cstdlib>
 
 #include "Window.h"
 #include "Scene.h"

@@ -1,6 +1,4 @@
 #pragma once
-#include <new>
-
 #include "Material.h"
 #include "Transform.h"
 

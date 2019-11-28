@@ -1,7 +1,4 @@
 #pragma once
-#include <cassert>
-#include <unordered_map>
-
 #include "Vector3.h"
 
 struct Texture {
