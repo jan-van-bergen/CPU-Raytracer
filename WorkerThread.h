@@ -8,6 +8,7 @@
 
 #define THREAD_COUNT 8
 
+// Threading code is based on code presented in INFOMOV slides
 namespace WorkerThreads {
 	inline HANDLE go_signal  [THREAD_COUNT];
 	inline HANDLE done_signal[THREAD_COUNT];
