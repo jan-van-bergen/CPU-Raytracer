@@ -84,11 +84,10 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 
 	threads_per_processor = THREAD_COUNT / processor_count;
 
-	// Spawn an appropriate number of Worker Threads.
+	// Spawn the appropriate number of Worker Threads.
 	Params parameters[THREAD_COUNT];
 	HANDLE workers   [THREAD_COUNT];
 
-	// Spawn worker threads
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
