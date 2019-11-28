@@ -1,17 +1,29 @@
 #pragma once
+#include <cstdio>
+
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 
 #include "Vector3.h"
 #include "Math3d.h"
 
+// OpenGL Debug Callback function to report errors
+inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * userParam) {
+	printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "", type, severity, message);
+
+	__debugbreak();
+}
+
+#define SCREEN_WIDTH  512
+#define SCREEN_HEIGHT 512
+
 struct Window {
 private:
 	SDL_Window *  window;
 	SDL_GLContext context;
 	
-	alignas(64) unsigned * frame_buffer; // CacheLine aligned
-	GLuint                 frame_buffer_handle;
+	unsigned * frame_buffer; // CacheLine aligned
+	GLuint     frame_buffer_handle;
 
 public:
 	const int width;
