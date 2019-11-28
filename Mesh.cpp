@@ -73,46 +73,46 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		__m128 edge1_y = _mm_sub_ps(_mm_load_ps(world_positions_y + i + 8), world_position_i_y);
 		__m128 edge1_z = _mm_sub_ps(_mm_load_ps(world_positions_z + i + 8), world_position_i_z);
 
-		//Vector3 h = Vector3::cross(ray.direction, edge1);
+		// Vector3 h = Vector3::cross(ray.direction, edge1);
 		__m128 h_x = _mm_sub_ps(_mm_mul_ps(ray_direction_y, edge1_z), _mm_mul_ps(ray_direction_z, edge1_y));
 		__m128 h_y = _mm_sub_ps(_mm_mul_ps(ray_direction_z, edge1_x), _mm_mul_ps(ray_direction_x, edge1_z));
 		__m128 h_z = _mm_sub_ps(_mm_mul_ps(ray_direction_x, edge1_y), _mm_mul_ps(ray_direction_y, edge1_x));
 
-		//float a = Vector3::dot(edge0, h);
+		// float a = Vector3::dot(edge0, h);
 		__m128 a = _mm_add_ps(_mm_add_ps(_mm_mul_ps(edge0_x, h_x), _mm_mul_ps(edge0_y, h_y)), _mm_mul_ps(edge0_z, h_z));
 
 		// If the ray is parallel to the plane formed by 
 		// the triangle no intersection is possible
-		//if (a > -EPSILON && a < EPSILON) continue;
+		// if (a > -EPSILON && a < EPSILON) continue;
 		int mask = _mm_movemask_ps(_mm_cmpgt_ps(a, neg_epsilon)) & _mm_movemask_ps(_mm_cmplt_ps(a, epsilon));
 		if (mask == 0xf) continue;
 
-		//float f = 1.0f / a;
+		// float f = 1.0f / a;
 		__m128 f = _mm_rcp_ps(a);
-		//Vector3 s = ray.origin - world_positions[i];
+		// Vector3 s = ray.origin - world_positions[i];
 		__m128 s_x = _mm_sub_ps(ray_origin_x, world_position_i_x);
 		__m128 s_y = _mm_sub_ps(ray_origin_y, world_position_i_y);
 		__m128 s_z = _mm_sub_ps(ray_origin_z, world_position_i_z);
-		//float u = f * Vector3::dot(s, h);
+		// float u = f * Vector3::dot(s, h);
 		__m128 u = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(s_x, h_x), _mm_mul_ps(s_y, h_y)), _mm_mul_ps(s_z, h_z)));
 
 		// If the barycentric coordinate on the edge between vertices i and i+1 
 		// is outside the interval [0, 1] we know no intersection is possible
-		//if (u < 0.0f || u > 1.0f) continue;
+		// if (u < 0.0f || u > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(u, zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(u, one));
 		if (mask == 0xf) continue;
 
-		//Vector3 q = Vector3::cross(s, edge0);
+		// Vector3 q = Vector3::cross(s, edge0);
 		__m128 q_x = _mm_sub_ps(_mm_mul_ps(s_y, edge0_z), _mm_mul_ps(s_z, edge0_y));
 		__m128 q_y = _mm_sub_ps(_mm_mul_ps(s_z, edge0_x), _mm_mul_ps(s_x, edge0_z));
 		__m128 q_z = _mm_sub_ps(_mm_mul_ps(s_x, edge0_y), _mm_mul_ps(s_y, edge0_x));
-		//float v = f * Vector3::dot(ray.direction, q);
+		// float v = f * Vector3::dot(ray.direction, q);
 		__m128 v = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(ray_direction_x, q_x), _mm_mul_ps(ray_direction_y, q_y)), _mm_mul_ps(ray_direction_z, q_z)));
 
 		// If the barycentric coordinate on the edge between vertices i and i+2 
 		// is outside the interval [0, 1] we know no intersection is possible
-		//if (v < 0.0f || u + v > 1.0f) continue;
+		// if (v < 0.0f || u + v > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(v,                zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(_mm_add_ps(u, v), one));
 		if (mask == 0xf) continue;
@@ -122,7 +122,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		t = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(edge1_x, q_x), _mm_mul_ps(edge1_y, q_y)), _mm_mul_ps(edge1_z, q_z)));
 
 		// Check if we are in the right distance range
-		//if (t < EPSILON || t > ray_hit.distance) continue;
+		// if (t < EPSILON || t > ray_hit.distance) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(t, epsilon));
 		if (mask == 0xf) continue;
 
@@ -207,36 +207,36 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 
 		// If the ray is parallel to the plane formed by 
 		// the triangle no intersection is possible
-		//if (a > -EPSILON && a < EPSILON) continue;
+		// if (a > -EPSILON && a < EPSILON) continue;
 		int mask = _mm_movemask_ps(_mm_cmpgt_ps(a, neg_epsilon)) & _mm_movemask_ps(_mm_cmplt_ps(a, epsilon));
 		if (mask == 0xf) continue;
 
-		//float f = 1.0f / a;
+		// float f = 1.0f / a;
 		__m128 f = _mm_rcp_ps(a);
-		//Vector3 s = ray.origin - world_positions[i];
+		// Vector3 s = ray.origin - world_positions[i];
 		__m128 s_x = _mm_sub_ps(ray_origin_x, world_position_i_x);
 		__m128 s_y = _mm_sub_ps(ray_origin_y, world_position_i_y);
 		__m128 s_z = _mm_sub_ps(ray_origin_z, world_position_i_z);
-		//float u = f * Vector3::dot(s, h);
+		// float u = f * Vector3::dot(s, h);
 		__m128 u = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(s_x, h_x), _mm_mul_ps(s_y, h_y)), _mm_mul_ps(s_z, h_z)));
 
 		// If the barycentric coordinate on the edge between vertices i and i+1 
 		// is outside the interval [0, 1] we know no intersection is possible
-		//if (u < 0.0f || u > 1.0f) continue;
+		// if (u < 0.0f || u > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(u, zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(u, one));
 		if (mask == 0xf) continue;
 
-		//Vector3 q = Vector3::cross(s, edge0);
+		// Vector3 q = Vector3::cross(s, edge0);
 		__m128 q_x = _mm_sub_ps(_mm_mul_ps(s_y, edge0_z), _mm_mul_ps(s_z, edge0_y));
 		__m128 q_y = _mm_sub_ps(_mm_mul_ps(s_z, edge0_x), _mm_mul_ps(s_x, edge0_z));
 		__m128 q_z = _mm_sub_ps(_mm_mul_ps(s_x, edge0_y), _mm_mul_ps(s_y, edge0_x));
-		//float v = f * Vector3::dot(ray.direction, q);
+		// float v = f * Vector3::dot(ray.direction, q);
 		__m128 v = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(ray_direction_x, q_x), _mm_mul_ps(ray_direction_y, q_y)), _mm_mul_ps(ray_direction_z, q_z)));
 
 		// If the barycentric coordinate on the edge between vertices i and i+2 
 		// is outside the interval [0, 1] we know no intersection is possible
-		//if (v < 0.0f || u + v > 1.0f) continue;
+		// if (v < 0.0f || u + v > 1.0f) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(v,                zero));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(_mm_add_ps(u, v), one));
 		if (mask == 0xf) continue;
@@ -246,7 +246,7 @@ bool Mesh::intersect(const Ray & ray, float max_distance) const {
 		t = _mm_mul_ps(f, _mm_add_ps(_mm_add_ps(_mm_mul_ps(edge1_x, q_x), _mm_mul_ps(edge1_y, q_y)), _mm_mul_ps(edge1_z, q_z)));
 
 		// Check if we are in the right distance range
-		//if (t < EPSILON || t > ray_hit.distance) continue;
+		// if (t < EPSILON || t > ray_hit.distance) continue;
 		mask |= _mm_movemask_ps(_mm_cmplt_ps(t, epsilon));
 		mask |= _mm_movemask_ps(_mm_cmpgt_ps(t, max_dist));
 		if (mask == 0xf) continue;
