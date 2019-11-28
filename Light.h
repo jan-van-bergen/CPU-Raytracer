@@ -1,5 +1,5 @@
 #pragma once
-#include "Math3d.h"
+#include "Math.h"
 #include "Vector3.h"
 
 struct Light {
@@ -17,7 +17,7 @@ struct Light {
 
         float specular_factor = Vector3::dot(normal, half_angle);
         if (specular_factor > 0.0f) {
-            intensity += Math3d::pow2<128>(specular_factor);
+            intensity += Math::pow2<128>(specular_factor);
 		}
 
         return intensity * colour;

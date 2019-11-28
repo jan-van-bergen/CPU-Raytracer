@@ -134,7 +134,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 		if (Vector3::length_squared(closest_hit.material->specular) > 0.0f) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
-			reflected_ray.direction = Math3d::reflect(ray.direction, closest_hit.normal);
+			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
 			colour_reflection = closest_hit.material->specular * bounce(reflected_ray, bounces_left - 1).colour;
 		}
@@ -172,7 +172,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 			Ray refracted_ray;
 			refracted_ray.origin    = closest_hit.point;
-			refracted_ray.direction = Math3d::refract(ray.direction, normal, eta, cos_theta, k);
+			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
 			// Make sure that Snell's Law is correctly obeyed
 			assert(test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));

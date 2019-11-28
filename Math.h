@@ -2,7 +2,7 @@
 #include "Vector3.h"
 
 // Various math util functions
-namespace Math3d {
+namespace Math {
 	// Clamps the value between a smallest and largest allowed value
 	template<typename T>
 	inline T clamp(T value, T min, T max) {
@@ -37,6 +37,16 @@ namespace Math3d {
 		return (n & (n - 1)) == 0;
 	}
 	
+	// Computes positive modulo of given value
+	inline unsigned mod(int value, int modulus) {
+		int result = value % modulus;
+		if (result < 0) {
+			result += modulus;
+		}
+
+		return result;
+	}
+
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
 	template<int N> inline float pow2(float value);
 

@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-#include "Math3d.h"
+#include "Math.h"
 
 static std::unordered_map<std::string, Texture *> cache;
 
@@ -26,8 +26,8 @@ const Texture * Texture::load(const char * file_path) {
 }
 
 Vector3 Texture::get_texel(int x, int y) const {
-	x = Math3d::clamp(x, 0, width  - 1);
-	y = Math3d::clamp(y, 0, height - 1);
+	assert(x >= 0 && x < width);
+	assert(y >= 0 && y < height);
 
 	assert(data);
 	unsigned colour = data[x + y * width];
@@ -41,40 +41,37 @@ Vector3 Texture::get_texel(int x, int y) const {
 }
 
 Vector3 Texture::sample(float u, float v) const {
-	u = u > 0.0f ? fmodf(u, 1.0f) : fmodf(u, 1.0f) + 1.0f;
-	v = v > 0.0f ? fmodf(v, 1.0f) : fmodf(v, 1.0f) + 1.0f;
-
-	int x = int(u * width_f);
-	int y = int(v * height_f);
+	int x = Math::mod(int(u * width_f  + 0.5f), width);
+	int y = Math::mod(int(v * height_f + 0.5f), height);
 
 	return get_texel(x, y);
 }
 
 Vector3 Texture::sample_bilinear(float u, float v) const {
-	u = u > 0.0f ? fmodf(u, 1.0f) : fmodf(u, 1.0f) + 1.0f;
-	v = v > 0.0f ? fmodf(v, 1.0f) : fmodf(v, 1.0f) + 1.0f;
-
 	// Convert normalized (u,v) to pixel space
 	u *= width_f;
 	v *= height_f;
 
-	// Calculate bilinear weights
-	float u0 = floor(u);
-    float v0 = floor(v);
-
-    float u1 = u0 + 1.0f;
-    float v1 = v0 + 1.0f;
-
-    float w0 = (u1 - u) * (v1 - v);
-    float w1 = (u - u0) * (v1 - v);
-    float w2 = (u1 - u) * (v - v0);
-    float w3 = 1.0f - w0 - w1 - w2;
-
+	int u_i = int(u);
+	int v_i = int(v);
+	
 	// Convert pixel coordinates to integers
-	int u0_i = int(u0);
-	int u1_i = int(u1);
-	int v0_i = int(v0);
-	int v1_i = int(v1);
+	int u0_i = Math::mod(u_i,     width);
+	int u1_i = Math::mod(u_i + 1, width);
+	int v0_i = Math::mod(v_i,     height);
+	int v1_i = Math::mod(v_i + 1, height);
+
+	// Calculate bilinear weights
+	float fractional_u = u - floor(u);
+	float fractional_v = v - floor(v);
+
+	float one_minus_fractional_u = 1.0f - fractional_u;
+	float one_minus_fractional_v = 1.0f - fractional_v;
+
+	float w0 = one_minus_fractional_u * one_minus_fractional_v;
+	float w1 =           fractional_u * one_minus_fractional_v;
+	float w2 = one_minus_fractional_u *           fractional_v;
+	float w3 = 1.0f - w0 - w1 - w2;
 
 	// Blend everything together using the weights
 	return 

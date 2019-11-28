@@ -2,7 +2,7 @@
 
 #include <immintrin.h>
 
-#include "Math3d.h"
+#include "Math.h"
 
 void Mesh::update(const Matrix4 & world_matrix) {
 	__m128 matrix_00 = _mm_set1_ps(world_matrix(0, 0));
@@ -153,10 +153,10 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		int index2 = index0 + 8;
 
 		ray_hit.point  = ray.origin + ray.direction * closest_t;
-		ray_hit.normal = Vector3::normalize(Math3d::barycentric(world_normals[index0], world_normals[index1], world_normals[index2], us[closest_j], vs[closest_j]));
+		ray_hit.normal = Vector3::normalize(Math::barycentric(world_normals[index0], world_normals[index1], world_normals[index2], us[closest_j], vs[closest_j]));
 
 		// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-		Vector2 tex_coords = Math3d::barycentric(mesh_data->tex_coords[index0], mesh_data->tex_coords[index1], mesh_data->tex_coords[index2], us[closest_j], vs[closest_j]);
+		Vector2 tex_coords = Math::barycentric(mesh_data->tex_coords[index0], mesh_data->tex_coords[index1], mesh_data->tex_coords[index2], us[closest_j], vs[closest_j]);
 		ray_hit.u = tex_coords.x;
 		ray_hit.v = tex_coords.y;
 		

@@ -4,8 +4,8 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 
+#include "Math.h"
 #include "Vector3.h"
-#include "Math3d.h"
 
 // OpenGL Debug Callback function to report errors
 inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * userParam) {
@@ -49,9 +49,9 @@ public:
 	}
 
 	inline void plot(int x, int y, const Vector3 & colour) const {
-		int r = int(Math3d::clamp(colour.x * 255.0f, 0.0f, 255.0f));
-		int g = int(Math3d::clamp(colour.y * 255.0f, 0.0f, 255.0f));
-		int b = int(Math3d::clamp(colour.z * 255.0f, 0.0f, 255.0f));
+		int r = int(Math::clamp(colour.x * 255.0f, 0.0f, 255.0f));
+		int g = int(Math::clamp(colour.y * 255.0f, 0.0f, 255.0f));
+		int b = int(Math::clamp(colour.z * 255.0f, 0.0f, 255.0f));
 
 		frame_buffer[x + width * y] = (r << 16) | (g << 8) | b;
 	}
