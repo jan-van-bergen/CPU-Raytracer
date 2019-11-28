@@ -31,7 +31,7 @@ const ModelData * ModelData::load(const char * file_path) {
 	if (shapes.size() == 0) abort(); // Either the model is empty, or something went wrong
 
 	model_data = new ModelData();
-	model_data->mesh_data_count = shapes.size();
+	model_data->mesh_data_count = int(shapes.size());
 	model_data->mesh_data       = new MeshData[model_data->mesh_data_count];
 
 	for (int m = 0; m < model_data->mesh_data_count; m++) {
