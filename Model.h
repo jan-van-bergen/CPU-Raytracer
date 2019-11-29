@@ -32,7 +32,7 @@ struct Model : Primitive {
 		}
 	}
 
-	inline bool intersect(const Ray & ray, float max_distance) const {
+	inline bool intersect(const Ray & ray, __m128 max_distance) const {
 		for (int m = 0; m < model_data->mesh_data_count; m++) {
 			if (meshes[m].intersect(ray, max_distance)) {
 				return true;

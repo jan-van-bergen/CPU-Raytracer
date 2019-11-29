@@ -55,7 +55,7 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	meshes.trace (ray, ray_hit);
 }
 
-bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
+bool Scene::intersect_primitives(const Ray & ray, __m128 max_distance) const {
 	if (spheres.intersect(ray, max_distance)) return true;
 	if (planes.intersect (ray, max_distance)) return true;
 	if (meshes.intersect (ray, max_distance)) return true;
@@ -63,115 +63,142 @@ bool Scene::intersect_primitives(const Ray & ray, float max_distance) const {
 	return false;
 }
 
-Vector3 Scene::bounce(const Ray & ray, int bounces_left, float & distance) const {
-	Vector3 result;
+SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, __m128 & distance) const {
+	SIMD_Vector3 result;
 
 	RayHit closest_hit;
 	trace_primitives(ray, closest_hit);
 
-	// If the Ray hit nothing, sample the skybox
-	if (!closest_hit.hit) {
-		result   = skybox.sample(ray.direction);
-		distance = INFINITY;
+	int hit_mask = _mm_movemask_ps(closest_hit.hit);
 
-		return result;
+	// If any of the Rays did not hit
+	if (hit_mask != 0xf) {
+		//result   = skybox.sample(ray.direction);
+		__m128 distance = _mm_set1_ps(INFINITY);
+
+		// If none of the Rays hit, early out
+		if (hit_mask == 0) return result;
 	}
 
-	distance = closest_hit.distance;
+	distance = _mm_blendv_ps(distance, closest_hit.distance, closest_hit.hit);
 	
-	Vector3 material_colour = closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
+	float us[4]; _mm_store_ps(us, closest_hit.u);
+	float vs[4]; _mm_store_ps(vs, closest_hit.v);
+	
+	SIMD_Vector3 material_diffuse(
+		closest_hit.material[3] ? closest_hit.material[3]->get_colour(us[3], vs[3]) : Vector3(0.0f),
+		closest_hit.material[2] ? closest_hit.material[2]->get_colour(us[2], vs[2]) : Vector3(0.0f),
+		closest_hit.material[1] ? closest_hit.material[1]->get_colour(us[1], vs[1]) : Vector3(0.0f),
+		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
+	);
+	__m128 mask_diffuse = _mm_cmpgt_ps(SIMD_Vector3::length_squared(material_diffuse), _mm_set1_ps(0.0f));
 
-	if (Vector3::length_squared(closest_hit.material->diffuse) > 0.0f) {
-		result = ambient_lighting;
+	if (_mm_movemask_ps(mask_diffuse) != 0x0) {
+		SIMD_Vector3 diffuse = SIMD_Vector3(ambient_lighting);
 
 		// Secondary Ray starts at hit location
 		Ray secondary_ray;
 		secondary_ray.origin = closest_hit.point;
 
-		Vector3 to_camera = Vector3::normalize(camera.position - closest_hit.point);
+		SIMD_Vector3 to_camera = SIMD_Vector3::normalize(SIMD_Vector3(camera.position) - closest_hit.point);
 
 		// Check Point Lights
 		for (int i = 0; i < point_light_count; i++) {
-			Vector3 to_light = point_lights[i].position - closest_hit.point;
-			float distance_to_light_squared = Vector3::length_squared(to_light);
-			float distance_to_light         = sqrtf(distance_to_light_squared);
+			SIMD_Vector3 to_light = SIMD_Vector3(point_lights[i].position) - closest_hit.point;
+			__m128 distance_to_light_squared = SIMD_Vector3::length_squared(to_light);
+			__m128 distance_to_light         = _mm_sqrt_ps(distance_to_light_squared);
 
 			to_light /= distance_to_light;
 			secondary_ray.direction = to_light;
 
 			if (!intersect_primitives(secondary_ray, distance_to_light)) {
-				result += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+				diffuse += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
 			}
 		}
 
 		// Check Spot Lights
 		for (int i = 0; i < spot_light_count; i++) {
-			Vector3 to_light = spot_lights[i].position - closest_hit.point;
-			float distance_to_light_squared = Vector3::length_squared(to_light);
-			float distance_to_light         = sqrtf(distance_to_light_squared);
+			SIMD_Vector3 to_light = SIMD_Vector3(spot_lights[i].position) - closest_hit.point;
+			__m128 distance_to_light_squared = SIMD_Vector3::length_squared(to_light);
+			__m128 distance_to_light         = _mm_sqrt_ps(distance_to_light_squared);
 
 			to_light /= distance_to_light;
 			secondary_ray.direction = to_light;
 
 			if (!intersect_primitives(secondary_ray, distance_to_light)) {
-				result += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
+				diffuse += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
 			}
 		}
 
 		// Check Directional Lights
-		for (int i = 0; i < directional_light_count; i++) {			
-			secondary_ray.direction = directional_lights[i].negative_direction;
+		__m128 inf = _mm_set1_ps(INFINITY);
 
-			if (!intersect_primitives(secondary_ray, INFINITY)) {
-				result += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
+		for (int i = 0; i < directional_light_count; i++) {			
+			secondary_ray.direction = SIMD_Vector3(directional_lights[i].negative_direction);
+
+			if (!intersect_primitives(secondary_ray, inf)) {
+				diffuse += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
 			}
 		}
 
-		result *= material_colour;
+		result += diffuse * material_diffuse;
 	}
 
 	// If we have bounces left to do, recurse one level deeper
 	if (bounces_left > 0) {	
-		Vector3 colour_reflection;
-		Vector3 colour_refraction;
+		SIMD_Vector3 colour_reflection;
+		SIMD_Vector3 colour_refraction;
 
-		if (Vector3::length_squared(closest_hit.material->reflection) > 0.0f) {
+		SIMD_Vector3 material_reflection(
+			closest_hit.material[3] ? closest_hit.material[3]->reflection : Vector3(0.0f),
+			closest_hit.material[2] ? closest_hit.material[2]->reflection : Vector3(0.0f),
+			closest_hit.material[1] ? closest_hit.material[1]->reflection : Vector3(0.0f),
+			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
+		);
+		__m128 mask_reflection = _mm_cmpgt_ps(SIMD_Vector3::length_squared(material_reflection), _mm_set1_ps(0.0f));
+
+		if (_mm_movemask_ps(mask_reflection) != 0x0) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
-			float reflection_distance;
-			colour_reflection = closest_hit.material->reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance) * material_colour;
+			__m128 reflection_distance;
+			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance) * material_diffuse;
 		}
 
-		if (Vector3::length_squared(closest_hit.material->transmittance) > 0.0f) {		
-			Vector3 normal;
-			float cos_theta;
+		SIMD_Vector3 material_transmittance(
+			closest_hit.material[3] ? closest_hit.material[3]->transmittance : Vector3(0.0f),
+			closest_hit.material[2] ? closest_hit.material[2]->transmittance : Vector3(0.0f),
+			closest_hit.material[1] ? closest_hit.material[1]->transmittance : Vector3(0.0f),
+			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
+		);
+		__m128 mask_refraction = _mm_cmpgt_ps(SIMD_Vector3::length_squared(material_transmittance), _mm_set1_ps(0.0f));
 
-			float n_1;
-			float n_2;
+		if (_mm_movemask_ps(mask_refraction) != 0x0) {		
+			__m128 dot = SIMD_Vector3::dot(ray.direction, closest_hit.normal);
+			__m128 dot_mask = _mm_cmplt_ps(dot, _mm_set1_ps(0.0f));
 
-			float dot = Vector3::dot(ray.direction, closest_hit.normal);
-			if (dot < 0.0f) { // Entering material		
-				n_1 = Material::AIR_INDEX_OF_REFRACTION;
-				n_2 = closest_hit.material->index_of_refraction;
+			__m128 air = _mm_set1_ps(Material::AIR_INDEX_OF_REFRACTION);
+			__m128 ior = _mm_set_ps(
+				closest_hit.material[3] ? closest_hit.material[3]->index_of_refraction : 0.0f,
+				closest_hit.material[2] ? closest_hit.material[2]->index_of_refraction : 0.0f,
+				closest_hit.material[1] ? closest_hit.material[1]->index_of_refraction : 0.0f,
+				closest_hit.material[0] ? closest_hit.material[0]->index_of_refraction : 0.0f
+			);
 
-				normal    =  closest_hit.normal;
-				cos_theta = -dot;
-			} else { // Leaving material
-				n_1 = closest_hit.material->index_of_refraction;
-				n_2 = Material::AIR_INDEX_OF_REFRACTION;
+			__m128 n_1 = _mm_blendv_ps(ior, air, dot_mask);
+			__m128 n_2 = _mm_blendv_ps(air, ior, dot_mask);
 
-				normal    = -closest_hit.normal;
-				cos_theta =  dot;
-			}
+			__m128       cos_theta = _mm_blendv_ps(dot, _mm_sub_ps(_mm_set1_ps(0.0f), dot), dot_mask);
+			SIMD_Vector3 normal    = SIMD_Vector3::blend(-closest_hit.normal, closest_hit.normal, dot_mask);
 
-			float eta = n_1 / n_2;
-			float k = 1.0f - eta*eta * (1.0f - cos_theta*cos_theta);
+			__m128 eta = _mm_div_ps(n_1, n_2);
+			__m128 k = _mm_sub_ps(_mm_set1_ps(1.0f), _mm_mul_ps(_mm_mul_ps(eta, eta), _mm_sub_ps(_mm_set1_ps(1.0f), _mm_mul_ps(cos_theta, cos_theta))));
 			
 			// In case of Total Internal Reflection, return only the reflection component
-			if (k < 0.0f) {
-				return result + colour_reflection;
+			__m128 tir_mask = _mm_and_ps(closest_hit.hit, _mm_cmplt_ps(k, _mm_set1_ps(0.0f)));
+			if (_mm_movemask_ps(tir_mask) == _mm_movemask_ps(mask_refraction)) {
+				return SIMD_Vector3::blend(result, result + colour_reflection, mask_reflection);
 			}
 
 			Ray refracted_ray;
@@ -179,39 +206,47 @@ Vector3 Scene::bounce(const Ray & ray, int bounces_left, float & distance) const
 			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
 			// Make sure that Snell's Law is correctly obeyed
-			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction));
+			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, _mm_and_ps(closest_hit.hit, (k, _mm_set1_ps(0.0f)))));
 
-			float refraction_distance;
+			__m128 refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
 
 			// Apply Beer's Law
-			if (dot < 0.0f) {
-				colour_refraction.x *= expf((closest_hit.material->transmittance.x - 1.0f) * refraction_distance);
-				colour_refraction.y *= expf((closest_hit.material->transmittance.y - 1.0f) * refraction_distance);
-				colour_refraction.z *= expf((closest_hit.material->transmittance.z - 1.0f) * refraction_distance);
-			}
+			SIMD_Vector3 material_transmittance(
+				closest_hit.material[3] ? closest_hit.material[3]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[2] ? closest_hit.material[2]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[1] ? closest_hit.material[1]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
+			);
+			
+			__m128 beer_x = Math::exp(_mm_mul_ps(material_transmittance.x, refraction_distance));
+			__m128 beer_y = Math::exp(_mm_mul_ps(material_transmittance.y, refraction_distance));
+			__m128 beer_z = Math::exp(_mm_mul_ps(material_transmittance.z, refraction_distance));
+			
+			colour_refraction.x = _mm_blendv_ps(colour_refraction.x, _mm_mul_ps(colour_refraction.x, beer_x), dot_mask);
+			colour_refraction.y = _mm_blendv_ps(colour_refraction.y, _mm_mul_ps(colour_refraction.y, beer_y), dot_mask);
+			colour_refraction.z = _mm_blendv_ps(colour_refraction.z, _mm_mul_ps(colour_refraction.z, beer_z), dot_mask);
 
 			// Use Schlick's Approximation to simulate the Fresnel effect
-			float r_0 = (n_1 - n_2) / (n_1 + n_2);
-			r_0 *= r_0;
+			__m128 r_0 = _mm_div_ps(_mm_sub_ps(n_1, n_2), _mm_add_ps(n_1, n_2));
+			r_0 = _mm_mul_ps(r_0, r_0);
 
 			// In case n_1 is larger than n_2, theta should be the angle
 			// between the normal and the refracted Ray direction
-			if (n_1 > n_2) {
-				cos_theta = -Vector3::dot(refracted_ray.direction, normal);
-			}
+			cos_theta = _mm_blendv_ps(cos_theta, _mm_sub_ps(_mm_set1_ps(0.0f), SIMD_Vector3::dot(refracted_ray.direction, normal)), _mm_cmpgt_ps(n_1, n_2));
 
 			// Calculate (1 - cos(theta))^5 efficiently, without using pow
-			float one_minus_cos         = 1.0f - cos_theta;
-			float one_minus_cos_squared = one_minus_cos * one_minus_cos;
+			__m128 one_minus_cos         = _mm_sub_ps(_mm_set1_ps(1.0f), cos_theta);
+			__m128 one_minus_cos_squared = _mm_mul_ps(one_minus_cos, one_minus_cos);
 
-			float F_r = r_0 + ((1.0f - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
-			float F_t = 1.0f - F_r;
+			__m128 F_r = _mm_add_ps(r_0, _mm_mul_ps(_mm_mul_ps(_mm_sub_ps(_mm_set1_ps(1.0f), r_0), one_minus_cos_squared), _mm_mul_ps(one_minus_cos_squared, one_minus_cos))); // r_0 + (1 - r_0) * (1 - cos)^5
+			__m128 F_t = _mm_sub_ps(_mm_set1_ps(1.0f), F_r);
 			
-			result += F_r * colour_reflection + F_t * colour_refraction;
-			return result;
+			SIMD_Vector3 blend = SIMD_Vector3::blend(F_r * colour_reflection + F_t * colour_refraction, colour_reflection, tir_mask);
+
+			return SIMD_Vector3::blend(result, result + blend, mask_refraction);
 		} else {
-			result += colour_reflection;
+			return SIMD_Vector3::blend(result, result + colour_reflection, mask_reflection);
 		}
 	}
 
@@ -229,12 +264,32 @@ void Scene::update(float delta) {
 }
 
 void Scene::render_tile(const Window & window, int x, int y) const {
-	for (int j = y; j < y + window.tile_height; j++) {
-		for (int i = x; i < x + window.tile_width; i++) {
-			Ray ray = camera.get_ray(float(i), float(j));
+	Ray ray;
+	ray.origin.x = _mm_set1_ps(camera.position.x);
+	ray.origin.y = _mm_set1_ps(camera.position.y);
+	ray.origin.z = _mm_set1_ps(camera.position.z);
 
-			float distance;
-			window.plot(i, j, bounce(ray, NUMBER_OF_BOUNCES, distance));
+	for (int j = y; j < y + window.tile_height; j += 2) {
+		for (int i = x; i < x + window.tile_width; i += 2) {
+			float i_f = float(i);
+			float j_f = float(j);
+
+			__m128 is = _mm_set_ps(i_f, i_f + 1.0f, i_f,        i_f + 1.0f);
+			__m128 js = _mm_set_ps(j_f, j_f,        j_f + 1.0f, j_f + 1.0f);
+
+			ray.direction = camera.get_ray_direction(is, js);
+
+			__m128 distance;
+			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
+
+			float xs[4]; _mm_store_ps(xs, colour.x);
+			float ys[4]; _mm_store_ps(ys, colour.y);
+			float zs[4]; _mm_store_ps(zs, colour.z);
+
+			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));
+			window.plot(i + 1, j,     Vector3(xs[2], ys[2], zs[2]));
+			window.plot(i,     j + 1, Vector3(xs[1], ys[1], zs[1]));
+			window.plot(i + 1, j + 1, Vector3(xs[0], ys[0], zs[0]));
 		}
 	}
 }

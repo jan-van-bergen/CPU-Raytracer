@@ -1,4 +1,6 @@
 #pragma once
+#include "SIMDUtil.h"
+
 #include "Vector3.h"
 #include "Quaternion.h"
 
@@ -23,7 +25,7 @@ public:
 
 	void resize(int width, int height);
 
-	Ray get_ray(float x, float y) const; 
+	SIMD_Vector3 get_ray_direction(__m128 x, __m128 y) const; 
 
 	void update(float delta, const unsigned char * keys);
 };

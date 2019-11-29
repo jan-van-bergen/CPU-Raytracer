@@ -25,7 +25,7 @@ struct Vector3 {
 		return left.x * right.x + left.y * right.y + left.z * right.z;
 	}
 
-	inline static Vector3 cross(const Vector3 left, const Vector3 & right) {
+	inline static Vector3 cross(const Vector3 & left, const Vector3 & right) {
 		return Vector3(
 			left.y * right.z - left.z * right.y,
 			left.z * right.x - left.x * right.z,

@@ -15,12 +15,9 @@ void Camera::resize(int width, int height) {
 	y_axis = Vector3::normalize(Vector3(0.0f,  -height, 0.0f));
 }
 
-Ray Camera::get_ray(float x, float y) const {
-	Ray ray;
-	ray.origin    = position;
-	ray.direction = Vector3::normalize(top_left_corner_rotated + x * x_axis_rotated + y * y_axis_rotated);
-
-	return ray;
+SIMD_Vector3 Camera::get_ray_direction(__m128 x, __m128 y) const {
+	SIMD_Vector3 direction = SIMD_Vector3::normalize(SIMD_Vector3(top_left_corner_rotated) + x * SIMD_Vector3(x_axis_rotated) + y * SIMD_Vector3(y_axis_rotated));
+	return direction;
 }
 
 void Camera::update(float delta, const unsigned char * keys) {

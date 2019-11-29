@@ -133,5 +133,8 @@
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="WorkerThread.h" />
+    <ClInclude Include="SIMDUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
