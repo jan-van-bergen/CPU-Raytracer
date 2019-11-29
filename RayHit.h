@@ -9,7 +9,7 @@ struct RayHit {
 	SIMD_Vector3 point;  // Coordinates of the hit in World Space
 	SIMD_Vector3 normal; // Normal      of the hit in World Space
 
-	const Material * material[4] = { nullptr };
+	const Material * material[SIMD_LANE_SIZE] = { nullptr };
 	SIMD_float u, v;
 
 	inline RayHit() {

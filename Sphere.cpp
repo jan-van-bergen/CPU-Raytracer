@@ -37,10 +37,11 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.5f), mask);// + atan2f(-ray_hit.normal.z, -ray_hit.normal.x) * ONE_OVER_TWO_PI;
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.5f), mask);// + asinf (-ray_hit.normal.y)                    * ONE_OVER_PI;
 
-	if (int_mask & 8) ray_hit.material[3] = &material;
-	if (int_mask & 4) ray_hit.material[2] = &material;
-	if (int_mask & 2) ray_hit.material[1] = &material;
-	if (int_mask & 1) ray_hit.material[0] = &material;
+	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
+		if (int_mask & (1 << i)) {
+			ray_hit.material[i] = &material;
+		}
+	}
 }
 
 bool Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {

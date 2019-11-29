@@ -82,15 +82,28 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
-	float us[4]; SIMD_float::store(us, closest_hit.u);
-	float vs[4]; SIMD_float::store(vs, closest_hit.v);
+	float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
+	float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
 	
+#if SIMD_LANE_SIZE == 4
 	SIMD_Vector3 material_diffuse(
 		closest_hit.material[3] ? closest_hit.material[3]->get_colour(us[3], vs[3]) : Vector3(0.0f),
 		closest_hit.material[2] ? closest_hit.material[2]->get_colour(us[2], vs[2]) : Vector3(0.0f),
 		closest_hit.material[1] ? closest_hit.material[1]->get_colour(us[1], vs[1]) : Vector3(0.0f),
 		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
 	);
+#elif SIMD_LANE_SIZE == 8
+	SIMD_Vector3 material_diffuse(
+		closest_hit.material[7] ? closest_hit.material[7]->get_colour(us[7], vs[7]) : Vector3(0.0f),
+		closest_hit.material[6] ? closest_hit.material[6]->get_colour(us[6], vs[6]) : Vector3(0.0f),
+		closest_hit.material[5] ? closest_hit.material[5]->get_colour(us[5], vs[5]) : Vector3(0.0f),
+		closest_hit.material[4] ? closest_hit.material[4]->get_colour(us[4], vs[4]) : Vector3(0.0f),
+		closest_hit.material[3] ? closest_hit.material[3]->get_colour(us[3], vs[3]) : Vector3(0.0f),
+		closest_hit.material[2] ? closest_hit.material[2]->get_colour(us[2], vs[2]) : Vector3(0.0f),
+		closest_hit.material[1] ? closest_hit.material[1]->get_colour(us[1], vs[1]) : Vector3(0.0f),
+		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
+	);
+#endif
 	SIMD_float mask_diffuse = SIMD_Vector3::length_squared(material_diffuse) > SIMD_float(0.0f);
 
 	if (!SIMD_float::all_false(mask_diffuse)) {
@@ -149,12 +162,25 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		SIMD_Vector3 colour_reflection;
 		SIMD_Vector3 colour_refraction;
 
+#if SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_reflection(
 			closest_hit.material[3] ? closest_hit.material[3]->reflection : Vector3(0.0f),
 			closest_hit.material[2] ? closest_hit.material[2]->reflection : Vector3(0.0f),
 			closest_hit.material[1] ? closest_hit.material[1]->reflection : Vector3(0.0f),
 			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
 		);
+#elif SIMD_LANE_SIZE == 8
+		SIMD_Vector3 material_reflection(
+			closest_hit.material[7] ? closest_hit.material[7]->reflection : Vector3(0.0f),
+			closest_hit.material[6] ? closest_hit.material[6]->reflection : Vector3(0.0f),
+			closest_hit.material[5] ? closest_hit.material[5]->reflection : Vector3(0.0f),
+			closest_hit.material[4] ? closest_hit.material[4]->reflection : Vector3(0.0f),
+			closest_hit.material[3] ? closest_hit.material[3]->reflection : Vector3(0.0f),
+			closest_hit.material[2] ? closest_hit.material[2]->reflection : Vector3(0.0f),
+			closest_hit.material[1] ? closest_hit.material[1]->reflection : Vector3(0.0f),
+			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
+		);
+#endif
 		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection) > SIMD_float(0.0f);
 
 		if (!SIMD_float::all_false(reflection_mask)) {
@@ -166,12 +192,25 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance) * material_diffuse;
 		}
 
+#if SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_transmittance(
 			closest_hit.material[3] ? closest_hit.material[3]->transmittance : Vector3(0.0f),
 			closest_hit.material[2] ? closest_hit.material[2]->transmittance : Vector3(0.0f),
 			closest_hit.material[1] ? closest_hit.material[1]->transmittance : Vector3(0.0f),
 			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
 		);
+#elif SIMD_LANE_SIZE == 8
+		SIMD_Vector3 material_transmittance(
+			closest_hit.material[7] ? closest_hit.material[7]->transmittance : Vector3(0.0f),
+			closest_hit.material[6] ? closest_hit.material[6]->transmittance : Vector3(0.0f),
+			closest_hit.material[5] ? closest_hit.material[5]->transmittance : Vector3(0.0f),
+			closest_hit.material[4] ? closest_hit.material[4]->transmittance : Vector3(0.0f),
+			closest_hit.material[3] ? closest_hit.material[3]->transmittance : Vector3(0.0f),
+			closest_hit.material[2] ? closest_hit.material[2]->transmittance : Vector3(0.0f),
+			closest_hit.material[1] ? closest_hit.material[1]->transmittance : Vector3(0.0f),
+			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
+		);
+#endif
 		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > SIMD_float(0.0f);
 
 		if (!SIMD_float::all_false(refraction_mask)) {		
@@ -179,13 +218,26 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			SIMD_float dot_mask = dot < SIMD_float(0.0f);
 
 			SIMD_float air(Material::AIR_INDEX_OF_REFRACTION);
+#if SIMD_LANE_SIZE == 4
 			SIMD_float ior(
 				closest_hit.material[3] ? closest_hit.material[3]->index_of_refraction : 0.0f,
 				closest_hit.material[2] ? closest_hit.material[2]->index_of_refraction : 0.0f,
 				closest_hit.material[1] ? closest_hit.material[1]->index_of_refraction : 0.0f,
 				closest_hit.material[0] ? closest_hit.material[0]->index_of_refraction : 0.0f
 			);
-
+#elif SIMD_LANE_SIZE == 8
+			SIMD_float ior(
+				closest_hit.material[7] ? closest_hit.material[7]->index_of_refraction : 0.0f,
+				closest_hit.material[6] ? closest_hit.material[6]->index_of_refraction : 0.0f,
+				closest_hit.material[5] ? closest_hit.material[5]->index_of_refraction : 0.0f,
+				closest_hit.material[4] ? closest_hit.material[4]->index_of_refraction : 0.0f,
+				closest_hit.material[3] ? closest_hit.material[3]->index_of_refraction : 0.0f,
+				closest_hit.material[2] ? closest_hit.material[2]->index_of_refraction : 0.0f,
+				closest_hit.material[1] ? closest_hit.material[1]->index_of_refraction : 0.0f,
+				closest_hit.material[0] ? closest_hit.material[0]->index_of_refraction : 0.0f
+			);
+#endif
+			
 			SIMD_float n_1 = SIMD_float::blend(ior, air, dot_mask);
 			SIMD_float n_2 = SIMD_float::blend(air, ior, dot_mask);
 
@@ -214,13 +266,25 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
 
 			// Apply Beer's Law
+#if SIMD_LANE_SIZE == 4
 			SIMD_Vector3 material_transmittance(
 				closest_hit.material[3] ? closest_hit.material[3]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[2] ? closest_hit.material[2]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[1] ? closest_hit.material[1]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
 			);
-			
+#elif SIMD_LANE_SIZE == 8
+			SIMD_Vector3 material_transmittance(
+				closest_hit.material[7] ? closest_hit.material[7]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[6] ? closest_hit.material[6]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[5] ? closest_hit.material[5]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[4] ? closest_hit.material[4]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[3] ? closest_hit.material[3]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[2] ? closest_hit.material[2]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[1] ? closest_hit.material[1]->transmittance - Vector3(1.0f) : Vector3(0.0f),
+				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
+			);
+#endif
 			SIMD_float beer_x = SIMD_float::exp(material_transmittance.x * refraction_distance);
 			SIMD_float beer_y = SIMD_float::exp(material_transmittance.y * refraction_distance);
 			SIMD_float beer_z = SIMD_float::exp(material_transmittance.z * refraction_distance);
@@ -272,26 +336,41 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 	ray.origin.z = SIMD_float(camera.position.z);
 
 	for (int j = y; j < y + window.tile_height; j += 2) {
-		for (int i = x; i < x + window.tile_width; i += 2) {
+		for (int i = x; i < x + window.tile_width; i += SIMD_LANE_SIZE / 2) {
 			float i_f = float(i);
 			float j_f = float(j);
 
+#if (SIMD_LANE_SIZE == 4) 
 			SIMD_float is(i_f, i_f + 1.0f, i_f,        i_f + 1.0f);
 			SIMD_float js(j_f, j_f,        j_f + 1.0f, j_f + 1.0f);
-
+#elif (SIMD_LANE_SIZE == 8)
+			SIMD_float is(i_f, i_f + 1.0f, i_f + 2.0f, i_f + 3.0f, i_f,        i_f + 1.0f, i_f + 2.0f, i_f + 3.0f);
+			SIMD_float js(j_f, j_f,        j_f,        j_f,        j_f + 1.0f, j_f + 1.0f, j_f + 1.0f, j_f + 1.0f);
+#endif
 			ray.direction = camera.get_ray_direction(is, js);
 
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
-			float xs[4]; SIMD_float::store(xs, colour.x);
-			float ys[4]; SIMD_float::store(ys, colour.y);
-			float zs[4]; SIMD_float::store(zs, colour.z);
+			float xs[SIMD_LANE_SIZE]; SIMD_float::store(xs, colour.x);
+			float ys[SIMD_LANE_SIZE]; SIMD_float::store(ys, colour.y);
+			float zs[SIMD_LANE_SIZE]; SIMD_float::store(zs, colour.z);
 
+#if (SIMD_LANE_SIZE == 4) 
 			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));
 			window.plot(i + 1, j,     Vector3(xs[2], ys[2], zs[2]));
 			window.plot(i,     j + 1, Vector3(xs[1], ys[1], zs[1]));
 			window.plot(i + 1, j + 1, Vector3(xs[0], ys[0], zs[0]));
+#elif (SIMD_LANE_SIZE == 8)
+			window.plot(i,     j,     Vector3(xs[7], ys[7], zs[7]));
+			window.plot(i + 1, j,     Vector3(xs[6], ys[6], zs[6]));
+			window.plot(i + 2, j,     Vector3(xs[5], ys[5], zs[5]));
+			window.plot(i + 3, j,     Vector3(xs[4], ys[4], zs[4]));
+			window.plot(i,     j + 1, Vector3(xs[3], ys[3], zs[3]));
+			window.plot(i + 1, j + 1, Vector3(xs[2], ys[2], zs[2]));
+			window.plot(i + 2, j + 1, Vector3(xs[1], ys[1], zs[1]));
+			window.plot(i + 3, j + 1, Vector3(xs[0], ys[0], zs[0]));
+#endif
 		}
 	}
 }

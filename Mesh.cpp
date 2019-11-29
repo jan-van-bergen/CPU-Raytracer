@@ -64,10 +64,11 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.5f), mask);//tex_coords.x;
 		ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.5f), mask);//tex_coords.y;
 			
-		if (int_mask & 8) ray_hit.material[3] = &mesh_data->material;
-		if (int_mask & 4) ray_hit.material[2] = &mesh_data->material;
-		if (int_mask & 2) ray_hit.material[1] = &mesh_data->material;
-		if (int_mask & 1) ray_hit.material[0] = &mesh_data->material;
+		for (int i = 0; i < SIMD_LANE_SIZE; i++) {
+			if (int_mask & (1 << i)) {
+				ray_hit.material[i] = &mesh_data->material;
+			}
+		}
 	}
 }
 
