@@ -79,6 +79,8 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 
 	result.distance = closest_hit.distance;
 	
+	Vector3 material_colour = closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
+
 	if (Vector3::length_squared(closest_hit.material->diffuse) > 0.0f) {
 		result.colour = ambient_lighting;
 
@@ -124,6 +126,8 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 				result.colour += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
 			}
 		}
+
+		result.colour *= material_colour;
 	}
 
 	// If we have bounces left to do, recurse one level deeper
@@ -136,7 +140,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
-			colour_reflection = closest_hit.material->reflection * bounce(reflected_ray, bounces_left - 1).colour;
+			colour_reflection = closest_hit.material->reflection * bounce(reflected_ray, bounces_left - 1).colour * material_colour;
 		}
 
 		if (Vector3::length_squared(closest_hit.material->transmittance) > 0.0f) {		
@@ -166,7 +170,7 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			
 			// In case of Total Internal Reflection, return only the reflection component
 			if (k < 0.0f) {
-				result.colour = (result.colour + colour_reflection) * closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
+				result.colour = result.colour + colour_reflection;
 				return result;
 			}
 
@@ -204,14 +208,13 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			float F_r = r_0 + ((1.0f - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
 			float F_t = 1.0f - F_r;
 			
-			result.colour = F_r * colour_reflection + F_t * colour_refraction;
+			result.colour += F_r * colour_reflection + F_t * colour_refraction;
 			return result;
 		} else {
 			result.colour += colour_reflection;
 		}
 	}
 
-	result.colour *= closest_hit.material->get_colour(closest_hit.u, closest_hit.v);
 	return result; 
 }
 
