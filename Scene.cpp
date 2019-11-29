@@ -11,17 +11,17 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
 	spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
 	spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
-	spheres[0].material.specular = 0.0f;
-	spheres[1].material.specular = 0.0f;
-	spheres[0].material.transmittance = 0.0f;
-	spheres[1].material.transmittance = 0.0f;
+	spheres[0].material.reflection = 0.0f;
+	spheres[1].material.reflection = 0.0f;
+	spheres[0].material.absorption = 0.0f;
+	spheres[1].material.absorption = 0.0f;
 	spheres[0].material.index_of_refraction = 1.33f;
 	spheres[1].material.index_of_refraction = 1.68f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	planes[0].material.texture  = Texture::load(DATA_PATH("Floor.png"));
-	planes[0].material.specular = 0.5f;
+	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
+	planes[0].material.reflection = 0.5f;
 
 	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
@@ -131,15 +131,15 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 		Vector3 colour_reflection;
 		Vector3 colour_refraction;
 
-		if (Vector3::length_squared(closest_hit.material->specular) > 0.0f) {
+		if (Vector3::length_squared(closest_hit.material->reflection) > 0.0f) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
-			colour_reflection = closest_hit.material->specular * bounce(reflected_ray, bounces_left - 1).colour;
+			colour_reflection = closest_hit.material->reflection * bounce(reflected_ray, bounces_left - 1).colour;
 		}
 
-		if (Vector3::length_squared(closest_hit.material->transmittance) > 0.0f) {		
+		if (Vector3::length_squared(closest_hit.material->absorption) > 0.0f) {		
 			Vector3 normal;
 			float cos_theta;
 
@@ -182,9 +182,9 @@ Scene::BounceResult Scene::bounce(const Ray & ray, int bounces_left) const {
 			
 			// Apply Beer's Law
 			if (dot < 0.0f) {
-				colour_refraction.x *= expf((closest_hit.material->transmittance.x - 1.0f) * refraction_result.distance);
-				colour_refraction.y *= expf((closest_hit.material->transmittance.y - 1.0f) * refraction_result.distance);
-				colour_refraction.z *= expf((closest_hit.material->transmittance.z - 1.0f) * refraction_result.distance);
+				colour_refraction.x *= expf(-closest_hit.material->absorption.x * refraction_result.distance);
+				colour_refraction.y *= expf(-closest_hit.material->absorption.y * refraction_result.distance);
+				colour_refraction.z *= expf(-closest_hit.material->absorption.z * refraction_result.distance);
 			}
 
 			// Use Schlick's Approximation to simulate the Fresnel effect

@@ -7,9 +7,9 @@ struct Material {
 	Vector3 diffuse = 1.0f;	
 	const Texture * texture = nullptr;
 
-	Vector3 specular = 0.0f;
+	Vector3 reflection = 0.0f;
 
-	Vector3 transmittance       = 0.0f;
+	Vector3 absorption       = 0.0f;
 	float   index_of_refraction = 1.0f;
 
 	inline static const float AIR_INDEX_OF_REFRACTION = 1.0f;

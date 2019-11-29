@@ -58,9 +58,9 @@ const ModelData * ModelData::load(const char * file_path) {
 				mesh_data->material.texture = Texture::load((std::string(path) + material.diffuse_texname).c_str());
 			}
 
-			mesh_data->material.specular = Vector3(material.specular[0], material.specular[1], material.specular[2]);
+			mesh_data->material.reflection = Vector3(material.specular[0], material.specular[1], material.specular[2]);
 
-			mesh_data->material.transmittance       = Vector3(material.transmittance[0], material.transmittance[1], material.transmittance[2]);
+			mesh_data->material.absorption          = Vector3(1.0f - material.transmittance[0], 1.0f - material.transmittance[1], 1.0f - material.transmittance[2]);
 			mesh_data->material.index_of_refraction = material.ior;
 
 			/*switch (material.illum) {
