@@ -206,7 +206,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, __m128 & distance)
 			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
 			// Make sure that Snell's Law is correctly obeyed
-			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, _mm_and_ps(closest_hit.hit, (k, _mm_set1_ps(0.0f)))));
+			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, _mm_and_ps(closest_hit.hit, _mm_cmpge_ps(k, _mm_set1_ps(0.0f)))));
 
 			__m128 refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
