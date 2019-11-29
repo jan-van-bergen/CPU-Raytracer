@@ -18,7 +18,11 @@ struct Vector3 {
 
 	inline static Vector3 normalize(const Vector3 & vector) {
 		float inv_length = 1.0f / length(vector);
-		return Vector3(vector.x * inv_length, vector.y * inv_length, vector.z * inv_length);
+		return Vector3(
+			vector.x * inv_length, 
+			vector.y * inv_length, 
+			vector.z * inv_length
+		);
 	}
 
 	inline static float dot(const Vector3 & left, const Vector3 & right) {

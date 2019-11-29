@@ -221,13 +221,13 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
 			);
 			
-			SIMD_float beer_x = SIMD_float::exp(SIMD_float(material_transmittance.x) * refraction_distance);
-			SIMD_float beer_y = SIMD_float::exp(SIMD_float(material_transmittance.y) * refraction_distance);
-			SIMD_float beer_z = SIMD_float::exp(SIMD_float(material_transmittance.z) * refraction_distance);
+			SIMD_float beer_x = SIMD_float::exp(material_transmittance.x * refraction_distance);
+			SIMD_float beer_y = SIMD_float::exp(material_transmittance.y * refraction_distance);
+			SIMD_float beer_z = SIMD_float::exp(material_transmittance.z * refraction_distance);
 			
-			colour_refraction.x = SIMD_float::blend(SIMD_float(colour_refraction.x), SIMD_float(colour_refraction.x) * beer_x, dot_mask).data;
-			colour_refraction.y = SIMD_float::blend(SIMD_float(colour_refraction.y), SIMD_float(colour_refraction.y) * beer_y, dot_mask).data;
-			colour_refraction.z = SIMD_float::blend(SIMD_float(colour_refraction.z), SIMD_float(colour_refraction.z) * beer_z, dot_mask).data;
+			colour_refraction.x = SIMD_float::blend(colour_refraction.x, colour_refraction.x * beer_x, dot_mask);
+			colour_refraction.y = SIMD_float::blend(colour_refraction.y, colour_refraction.y * beer_y, dot_mask);
+			colour_refraction.z = SIMD_float::blend(colour_refraction.z, colour_refraction.z * beer_z, dot_mask);
 
 			// Use Schlick's Approximation to simulate the Fresnel effect
 			SIMD_float r_0 = (n_1 - n_2) / (n_1 + n_2);
@@ -267,9 +267,9 @@ void Scene::update(float delta) {
 
 void Scene::render_tile(const Window & window, int x, int y) const {
 	Ray ray;
-	ray.origin.x = _mm_set1_ps(camera.position.x);
-	ray.origin.y = _mm_set1_ps(camera.position.y);
-	ray.origin.z = _mm_set1_ps(camera.position.z);
+	ray.origin.x = SIMD_float(camera.position.x);
+	ray.origin.y = SIMD_float(camera.position.y);
+	ray.origin.z = SIMD_float(camera.position.z);
 
 	for (int j = y; j < y + window.tile_height; j += 2) {
 		for (int i = x; i < x + window.tile_width; i += 2) {
@@ -284,9 +284,9 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
-			float xs[4]; _mm_store_ps(xs, colour.x);
-			float ys[4]; _mm_store_ps(ys, colour.y);
-			float zs[4]; _mm_store_ps(zs, colour.z);
+			float xs[4]; SIMD_float::store(xs, colour.x);
+			float ys[4]; SIMD_float::store(ys, colour.y);
+			float zs[4]; SIMD_float::store(zs, colour.z);
 
 			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));
 			window.plot(i + 1, j,     Vector3(xs[2], ys[2], zs[2]));
