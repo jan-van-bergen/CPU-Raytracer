@@ -15,7 +15,7 @@ void Camera::resize(int width, int height) {
 	y_axis = Vector3::normalize(Vector3(0.0f,  -height, 0.0f));
 }
 
-SIMD_Vector3 Camera::get_ray_direction(__m128 x, __m128 y) const {
+SIMD_Vector3 Camera::get_ray_direction(SIMD_float x, SIMD_float y) const {
 	SIMD_Vector3 direction = SIMD_Vector3::normalize(SIMD_Vector3(top_left_corner_rotated) + x * SIMD_Vector3(x_axis_rotated) + y * SIMD_Vector3(y_axis_rotated));
 	return direction;
 }

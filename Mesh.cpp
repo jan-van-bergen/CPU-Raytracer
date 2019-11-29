@@ -18,54 +18,51 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		SIMD_Vector3 edge1(world_positions[i+2] - world_positions[i]);
 
 		SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
-		__m128 a = SIMD_Vector3::dot(edge0, h);
+		SIMD_float   a = SIMD_Vector3::dot(edge0, h);
 
 		// If the ray is parallel to the plane formed by 
 		// the triangle no intersection is possible
-		__m128 mask = _mm_or_ps(
-			_mm_cmplt_ps(a, _mm_sub_ps(_mm_set1_ps(0.0f), Ray::EPSILON)), 
-			_mm_cmpgt_ps(a, Ray::EPSILON)
-		);
-		if (_mm_movemask_ps(mask) == 0x0) continue;
+		SIMD_float mask = (a < -Ray::EPSILON) | (a > Ray::EPSILON);
+		if (SIMD_float::all_false(mask)) continue;
 
-		__m128 f = _mm_rcp_ps(a);
+		SIMD_float f   = SIMD_float::rcp(a);
 		SIMD_Vector3 s = ray.origin - SIMD_Vector3(world_positions[i]);
-		__m128 u = _mm_mul_ps(f, SIMD_Vector3::dot(s, h));
+		SIMD_float u   = f * SIMD_Vector3::dot(s, h);
 
 		// If the barycentric coordinate on the edge between vertices i and i+1 
 		// is outside the interval [0, 1] we know no intersection is possible
-		mask = _mm_and_ps(mask, _mm_cmpgt_ps(u, _mm_set1_ps(0.0f)));
-		mask = _mm_and_ps(mask, _mm_cmplt_ps(u, _mm_set1_ps(1.0f)));
-		if (_mm_movemask_ps(mask) == 0x0) continue;
+		mask = mask & (u > SIMD_float(0.0f));
+		mask = mask & (u < SIMD_float(1.0f));
+		if (SIMD_float::all_false(mask)) continue;
 
 		SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
-		__m128 v = _mm_mul_ps(f, SIMD_Vector3::dot(ray.direction, q));
+		SIMD_float   v = f * SIMD_Vector3::dot(ray.direction, q);
 
 		// If the barycentric coordinate on the edge between vertices i and i+2 
 		// is outside the interval [0, 1] we know no intersection is possible
-		mask = _mm_and_ps(mask, _mm_cmpgt_ps(v,                _mm_set1_ps(0.0f)));
-		mask = _mm_and_ps(mask, _mm_cmplt_ps(_mm_add_ps(u, v), _mm_set1_ps(1.0f)));
-		if (_mm_movemask_ps(mask) == 0x0) continue;
+		mask = mask & (v       > SIMD_float(0.0f));
+		mask = mask & ((u + v) < SIMD_float(1.0f));
+		if (SIMD_float::all_false(mask)) continue;
 
-		__m128 t = _mm_mul_ps(f, SIMD_Vector3::dot(edge1, q));
+		SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
 
 		// Check if we are in the right distance range
-		mask = _mm_and_ps(mask, _mm_cmpgt_ps(t, Ray::EPSILON));
-		mask = _mm_and_ps(mask, _mm_cmplt_ps(t, ray_hit.distance));
+		mask = mask & (t > Ray::EPSILON);
+		mask = mask & (t < ray_hit.distance);
 
-		int int_mask = _mm_movemask_ps(mask);
+		int int_mask = SIMD_float::mask(mask);
 		if (int_mask == 0x0) continue;
 		
-		ray_hit.hit      = _mm_or_ps(ray_hit.hit, mask);
-		ray_hit.distance = _mm_blendv_ps(ray_hit.distance, t, mask);
+		ray_hit.hit      = ray_hit.hit | mask;
+		ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
 		ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + ray.direction * t, mask);
 		ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, SIMD_Vector3::normalize(Math::barycentric(SIMD_Vector3(world_normals[i]), SIMD_Vector3(world_normals[i+1]), SIMD_Vector3(world_normals[i+2]), u, v)), mask);
 
 		// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
 		//SIMD_Vector3 tex_coords = Math::barycentric(mesh_data->tex_coords[i], mesh_data->tex_coords[i+1], mesh_data->tex_coords[i+2], u, v);
-		ray_hit.u = _mm_blendv_ps(ray_hit.u, _mm_set1_ps(0.5f), mask);//tex_coords.x;
-		ray_hit.v = _mm_blendv_ps(ray_hit.v, _mm_set1_ps(0.5f), mask);//tex_coords.y;
+		ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.5f), mask);//tex_coords.x;
+		ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.5f), mask);//tex_coords.y;
 			
 		if (int_mask & 8) ray_hit.material[3] = &mesh_data->material;
 		if (int_mask & 4) ray_hit.material[2] = &mesh_data->material;
@@ -74,7 +71,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 	}
 }
 
-bool Mesh::intersect(const Ray & ray, __m128 max_distance) const {
+bool Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 	// Iterate over all Triangles in the Mesh
 	//for (int i = 0; i < mesh_data->vertex_count; i += 3) {
 	//	Vector3 edge0 = world_positions[i+1] - world_positions[i];

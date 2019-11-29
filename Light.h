@@ -10,18 +10,18 @@ struct Light {
 
 	// Calculate lighting using Blinn-Phong model
 	inline SIMD_Vector3 calc_lighting(const SIMD_Vector3 & normal, const SIMD_Vector3 & to_light, const SIMD_Vector3 & to_camera) const {
-		const __m128 zero = _mm_set1_ps(0.0f);
+		const SIMD_float zero(0.0f);
 
-        __m128 intensity = SIMD_Vector3::dot(normal, to_light);
+        SIMD_float intensity = SIMD_Vector3::dot(normal, to_light);
 
-		__m128 mask = _mm_cmpgt_ps(intensity, zero);
-        if (_mm_movemask_ps(mask) == 0x0) return SIMD_Vector3(0.0f);
+		SIMD_float mask = intensity > zero;
+        if (SIMD_float::all_false(mask)) return SIMD_Vector3(0.0f);
 
-        SIMD_Vector3 half_angle = SIMD_Vector3::normalize(_mm_set1_ps(0.5f) * (to_light + to_camera));
+        SIMD_Vector3 half_angle = SIMD_Vector3::normalize(SIMD_float(0.5f) * (to_light + to_camera));
 
-        __m128 specular_factor = SIMD_Vector3::dot(normal, half_angle);
-        intensity = _mm_add_ps(intensity, Math::pow2<128>(specular_factor));
+        SIMD_float specular_factor = SIMD_Vector3::dot(normal, half_angle);
+        intensity = intensity + Math::pow2<128>(specular_factor);
 
-        return _mm_blendv_ps(zero, intensity, mask) * SIMD_Vector3(colour);
+        return SIMD_float::blend(zero, intensity, mask) * SIMD_Vector3(colour);
 	}
 };

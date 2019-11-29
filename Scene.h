@@ -35,9 +35,9 @@ private:
 	Skybox skybox;
 
 	void trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
-	bool intersect_primitives(const Ray & ray, __m128 max_distance) const;
+	bool intersect_primitives(const Ray & ray, SIMD_float max_distance) const;
 	
-	SIMD_Vector3 bounce(const Ray & ray, int bounces_left, __m128 & distance) const;
+	SIMD_Vector3 bounce(const Ray & ray, int bounces_left, SIMD_float & distance) const;
 
 public:
 	Camera camera;

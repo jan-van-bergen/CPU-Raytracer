@@ -32,7 +32,7 @@ struct PrimitiveList {
 		}
 	}
 
-	inline bool intersect(const Ray & ray, __m128 max_distance) const {
+	inline bool intersect(const Ray & ray, SIMD_float max_distance) const {
 		for (int i = 0; i < primitive_count; i++) {
 			if (primitives[i].intersect(ray, max_distance)) {
 				return true;

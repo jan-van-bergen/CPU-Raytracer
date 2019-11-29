@@ -25,7 +25,7 @@ public:
 
 	void resize(int width, int height);
 
-	SIMD_Vector3 get_ray_direction(__m128 x, __m128 y) const; 
+	SIMD_Vector3 get_ray_direction(SIMD_float x, SIMD_float y) const; 
 
 	void update(float delta, const unsigned char * keys);
 };

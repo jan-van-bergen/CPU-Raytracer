@@ -4,7 +4,7 @@
 //#define EPSILON 0.005f
 
 struct Ray {
-	inline static const __m128 EPSILON = _mm_set1_ps(0.005f);
+	inline static const SIMD_float EPSILON = SIMD_float(0.005f);
 
 	SIMD_Vector3 origin;
 	SIMD_Vector3 direction;
