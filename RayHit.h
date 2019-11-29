@@ -1,5 +1,5 @@
 #pragma once
-#include "SIMDUtil.h"
+#include "SIMD.h"
 #include "Material.h"
 
 struct RayHit {

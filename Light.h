@@ -1,7 +1,7 @@
 #pragma once
 #include "Math.h"
+#include "SIMD.h"
 #include "Vector3.h"
-#include "SIMDUtil.h"
 
 struct Light {
 	Vector3 colour;

@@ -222,7 +222,7 @@
     <ClInclude Include="Ray.h" />
     <ClInclude Include="RayHit.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SIMDUtil.h" />
+    <ClInclude Include="SIMD.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="SpotLight.h" />

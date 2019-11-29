@@ -1,5 +1,5 @@
 #pragma once
-#include "SIMDUtil.h"
+#include "SIMD.h"
 
 #include "Vector3.h"
 #include "Quaternion.h"
