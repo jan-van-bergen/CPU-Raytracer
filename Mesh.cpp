@@ -66,13 +66,22 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
 		ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + ray.direction * t, mask);
-		ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, SIMD_Vector3::normalize(Math::barycentric(SIMD_Vector3(world_normals[i]), SIMD_Vector3(world_normals[i+1]), SIMD_Vector3(world_normals[i+2]), u, v)), mask);
+		ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, 
+			SIMD_Vector3::normalize(Math::barycentric(
+				SIMD_Vector3(world_normals[i]), 
+				SIMD_Vector3(world_normals[i+1]), 
+				SIMD_Vector3(world_normals[i+2]), 
+			u, v)), mask);
 
 		// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-		//SIMD_Vector3 tex_coords = Math::barycentric(mesh_data->tex_coords[i], mesh_data->tex_coords[i+1], mesh_data->tex_coords[i+2], u, v);
-		ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.5f), mask);//tex_coords.x;
-		ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.5f), mask);//tex_coords.y;
-			
+		SIMD_Vector3 tex_coord_a(Vector3(mesh_data->tex_coords[i  ].x, mesh_data->tex_coords[i  ].y, 1.0f));
+		SIMD_Vector3 tex_coord_b(Vector3(mesh_data->tex_coords[i+1].x, mesh_data->tex_coords[i+1].y, 1.0f));
+		SIMD_Vector3 tex_coord_c(Vector3(mesh_data->tex_coords[i+2].x, mesh_data->tex_coords[i+2].y, 1.0f));
+
+		SIMD_Vector3 tex_coords = Math::barycentric(tex_coord_a, tex_coord_b, tex_coord_c, u, v);
+		ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
+		ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
+		
 		for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 			if (int_mask & (1 << i)) {
 				ray_hit.material[i] = &mesh_data->material;

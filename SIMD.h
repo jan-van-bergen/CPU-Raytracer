@@ -38,16 +38,9 @@ struct SIMD_float4 {
 		return SIMD_float4(_mm_fmadd_ps(a.data, b.data, c.data));
 	}
 
-	// @TODO: improve
-	inline static SIMD_float4 exp(SIMD_float4 floats) {
-		float temp[4]; _mm_store_ps(temp, floats.data);
-		temp[3] = expf(temp[3]);
-		temp[2] = expf(temp[2]);
-		temp[1] = expf(temp[1]);
-		temp[0] = expf(temp[0]);
-
-		return SIMD_float4(_mm_load_ps(temp));
-	}
+	static SIMD_float4 sin(SIMD_float4 floats);
+	static SIMD_float4 cos(SIMD_float4 floats);
+	static SIMD_float4 exp(SIMD_float4 floats);
 
 	inline static bool all_false(SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0xf; }
@@ -72,8 +65,8 @@ inline SIMD_float4 operator>=(SIMD_float4 left, SIMD_float4 right) { return SIMD
 inline SIMD_float4 operator< (SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmplt_ps(left.data, right.data)); }
 inline SIMD_float4 operator<=(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmple_ps(left.data, right.data)); }
 
-inline SIMD_float4 operator==(const SIMD_float4 & left, const SIMD_float4 & right) { return SIMD_float4(_mm_cmpeq_ps (left.data, right.data)); }
-inline SIMD_float4 operator!=(const SIMD_float4 & left, const SIMD_float4 & right) { return SIMD_float4(_mm_cmpneq_ps(left.data, right.data)); }
+inline SIMD_float4 operator==(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmpeq_ps (left.data, right.data)); }
+inline SIMD_float4 operator!=(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmpneq_ps(left.data, right.data)); }
 
 // Represents 8 floats
 struct SIMD_float8 {
@@ -110,20 +103,9 @@ struct SIMD_float8 {
 		return SIMD_float8(_mm256_fmadd_ps(a.data, b.data, c.data));
 	}
 
-	// @TODO: improve
-	inline static SIMD_float8 exp(SIMD_float8 floats) {
-		float temp[8]; _mm256_store_ps(temp, floats.data);
-		temp[7] = expf(temp[7]);
-		temp[6] = expf(temp[6]);
-		temp[5] = expf(temp[5]);
-		temp[4] = expf(temp[4]);
-		temp[3] = expf(temp[3]);
-		temp[2] = expf(temp[2]);
-		temp[1] = expf(temp[1]);
-		temp[0] = expf(temp[0]);
-
-		return SIMD_float8(_mm256_load_ps(temp));
-	}
+	static SIMD_float8 sin(SIMD_float8 floats);
+	static SIMD_float8 cos(SIMD_float8 floats);
+	static SIMD_float8 exp(SIMD_float8 floats);
 
 	inline static bool all_false(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0xff; }
@@ -148,8 +130,8 @@ inline SIMD_float8 operator>=(SIMD_float8 left, SIMD_float8 right) { return SIMD
 inline SIMD_float8 operator< (SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_LT_OQ)); }
 inline SIMD_float8 operator<=(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_LE_OQ)); }
 
-inline SIMD_float8 operator==(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
-inline SIMD_float8 operator!=(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
+inline SIMD_float8 operator==(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
+inline SIMD_float8 operator!=(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
 
 #define SIMD_LANE_SIZE 4
 
