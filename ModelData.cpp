@@ -36,7 +36,8 @@ const ModelData * ModelData::load(const char * file_path) {
 
 	for (int m = 0; m < model_data->mesh_data_count; m++) {
 		int vertex_count = shapes[m].mesh.indices.size();
-		
+		assert(vertex_count % 3 == 0);
+
 		MeshData * mesh_data = const_cast<MeshData *>(model_data->mesh_data + m);
 		mesh_data->vertex_count = vertex_count;
 		mesh_data->positions  = new Vector3[vertex_count];
@@ -94,6 +95,11 @@ const ModelData * ModelData::load(const char * file_path) {
 					attrib.normals[3*normal_index + 2]
 				);
 			}
+		}
+
+		for (int i = 0; i < vertex_count; i += 3) {
+			mesh_data->positions[i+1] -= mesh_data->positions[i];
+			mesh_data->positions[i+2] -= mesh_data->positions[i];
 		}
 
 		printf("Loaded Mesh %s from disk, consisting of %u vertices.\n", file_path, model_data->mesh_data[m].vertex_count);
