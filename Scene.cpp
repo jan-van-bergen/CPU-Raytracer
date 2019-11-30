@@ -338,6 +338,10 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 	ray.origin.y = SIMD_float(camera.position.y);
 	ray.origin.z = SIMD_float(camera.position.z);
 
+	SIMD_Vector3 camera_top_left_corner_rotated(camera.top_left_corner_rotated);
+	SIMD_Vector3 camera_x_axis_rotated         (camera.x_axis_rotated);
+	SIMD_Vector3 camera_y_axis_rotated         (camera.y_axis_rotated);
+
 	for (int j = y; j < y + window.tile_height; j += 2) {
 		for (int i = x; i < x + window.tile_width; i += SIMD_LANE_SIZE / 2) {
 			float i_f = float(i);
@@ -350,7 +354,11 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 			SIMD_float is(i_f, i_f + 1.0f, i_f + 2.0f, i_f + 3.0f, i_f,        i_f + 1.0f, i_f + 2.0f, i_f + 3.0f);
 			SIMD_float js(j_f, j_f,        j_f,        j_f,        j_f + 1.0f, j_f + 1.0f, j_f + 1.0f, j_f + 1.0f);
 #endif
-			ray.direction = camera.get_ray_direction(is, js);
+			ray.direction = SIMD_Vector3::normalize(
+				camera_top_left_corner_rotated
+				+ is * camera_x_axis_rotated
+				+ js * camera_y_axis_rotated
+			);
 
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);

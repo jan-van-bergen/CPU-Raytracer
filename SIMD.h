@@ -30,10 +30,9 @@ struct SIMD_float4 {
 		return SIMD_float4(_mm_rcp_ps(floats.data));
 	}
 
-	inline static SIMD_float4 sqrt(SIMD_float4 floats) {
-		return SIMD_float4(_mm_sqrt_ps(floats.data));
-	}
-	
+	inline static SIMD_float4 sqrt    (SIMD_float4 floats) { return SIMD_float4(_mm_sqrt_ps   (floats.data)); }
+	inline static SIMD_float4 inv_sqrt(SIMD_float4 floats) { return SIMD_float4(_mm_invsqrt_ps(floats.data)); }
+
 	// Computes a*b + c
 	inline static SIMD_float4 madd(SIMD_float4 a, SIMD_float4 b, SIMD_float4 c) {
 		return SIMD_float4(_mm_fmadd_ps(a.data, b.data, c.data));
@@ -100,9 +99,8 @@ struct SIMD_float8 {
 		return SIMD_float8(_mm256_rcp_ps(floats.data));
 	}
 
-	inline static SIMD_float8 sqrt(SIMD_float8 floats) {
-		return SIMD_float8(_mm256_sqrt_ps(floats.data));
-	}
+	inline static SIMD_float8 sqrt    (SIMD_float8 floats) { return SIMD_float8(_mm256_sqrt_ps   (floats.data)); }
+	inline static SIMD_float8 inv_sqrt(SIMD_float8 floats) { return SIMD_float8(_mm256_invsqrt_ps(floats.data)); }
 
 	// Computes a*b + c
 	inline static SIMD_float8 madd(SIMD_float8 a, SIMD_float8 b, SIMD_float8 c) {
@@ -192,7 +190,7 @@ struct SIMD_Vector3 {
 	}
 
 	inline static SIMD_Vector3 normalize(const SIMD_Vector3 & vector) {
-		SIMD_float inv_length = SIMD_float::rcp(length(vector));
+		SIMD_float inv_length = SIMD_float::inv_sqrt(length_squared(vector));
 		return SIMD_Vector3(
 			vector.x * inv_length, 
 			vector.y * inv_length, 
