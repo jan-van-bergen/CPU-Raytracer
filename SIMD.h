@@ -34,6 +34,7 @@ struct SIMD_float4 {
 		return SIMD_float4(_mm_sqrt_ps(floats.data));
 	}
 	
+	// Computes a*b + c
 	inline static SIMD_float4 madd(SIMD_float4 a, SIMD_float4 b, SIMD_float4 c) {
 		return SIMD_float4(_mm_fmadd_ps(a.data, b.data, c.data));
 	}
@@ -103,6 +104,7 @@ struct SIMD_float8 {
 		return SIMD_float8(_mm256_sqrt_ps(floats.data));
 	}
 
+	// Computes a*b + c
 	inline static SIMD_float8 madd(SIMD_float8 a, SIMD_float8 b, SIMD_float8 c) {
 		return SIMD_float8(_mm256_fmadd_ps(a.data, b.data, c.data));
 	}

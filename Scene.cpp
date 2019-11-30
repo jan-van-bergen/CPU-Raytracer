@@ -87,6 +87,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
+	const SIMD_float inf (INFINITY);
 
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
@@ -150,8 +151,6 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		}
 
 		// Check Directional Lights
-		SIMD_float inf(INFINITY);
-
 		for (int i = 0; i < directional_light_count; i++) {			
 			secondary_ray.direction = SIMD_Vector3(directional_lights[i].negative_direction);
 
