@@ -62,10 +62,6 @@ int main(int argument_count, char ** arguments) {
 		delta_time = float(now - last) * inv_perf_freq;
 		last = now;
 
-		if (delta_time == 0.0f) {
-			__debugbreak();
-		}
-
 		// Calculate average of last TOTAL_TIMING_COUNT frames
 		timings[current_frame++ % TOTAL_TIMING_COUNT] = delta_time;
 
