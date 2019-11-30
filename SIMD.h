@@ -143,7 +143,7 @@ inline SIMD_float8 operator<=(SIMD_float8 left, SIMD_float8 right) { return SIMD
 inline SIMD_float8 operator==(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
 inline SIMD_float8 operator!=(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
 
-#define SIMD_LANE_SIZE 8
+#define SIMD_LANE_SIZE 4
 
 #if SIMD_LANE_SIZE == 4
 typedef SIMD_float4 SIMD_float;
@@ -153,7 +153,7 @@ typedef SIMD_float8 SIMD_float;
 static_assert(false, "Unsupported Lane Size!");
 #endif
 
-// Represents 4 Vector3s
+// Represents SIMD_LANE_SIZE Vector3s
 struct SIMD_Vector3 {
 	SIMD_float x;
 	SIMD_float y;

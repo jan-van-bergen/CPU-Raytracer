@@ -80,6 +80,9 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		if (SIMD_float::all_false(closest_hit.hit)) return result;
 	}
 
+	const SIMD_float zero(0.0f);
+	const SIMD_float one (1.0f);
+
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
 	float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
@@ -104,7 +107,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
 	);
 #endif
-	SIMD_float mask_diffuse = SIMD_Vector3::length_squared(material_diffuse) > SIMD_float(0.0f);
+	SIMD_float mask_diffuse = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
 	if (!SIMD_float::all_false(mask_diffuse)) {
 		SIMD_Vector3 diffuse = SIMD_Vector3(ambient_lighting);
@@ -181,7 +184,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
 		);
 #endif
-		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection) > SIMD_float(0.0f);
+		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection) > zero;
 
 		if (!SIMD_float::all_false(reflection_mask)) {
 			Ray reflected_ray;
@@ -211,11 +214,11 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
 		);
 #endif
-		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > SIMD_float(0.0f);
+		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > zero;
 
 		if (!SIMD_float::all_false(refraction_mask)) {		
 			SIMD_float dot      = SIMD_Vector3::dot(ray.direction, closest_hit.normal);
-			SIMD_float dot_mask = dot < SIMD_float(0.0f);
+			SIMD_float dot_mask = dot < zero;
 
 			SIMD_float air(Material::AIR_INDEX_OF_REFRACTION);
 #if SIMD_LANE_SIZE == 4
@@ -241,14 +244,14 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			SIMD_float n_1 = SIMD_float::blend(ior, air, dot_mask);
 			SIMD_float n_2 = SIMD_float::blend(air, ior, dot_mask);
 
-			SIMD_float   cos_theta = SIMD_float::blend(dot, SIMD_float(0.0f) - dot, dot_mask);
+			SIMD_float   cos_theta = SIMD_float::blend(dot, zero - dot, dot_mask);
 			SIMD_Vector3 normal    = SIMD_Vector3::blend(-closest_hit.normal, closest_hit.normal, dot_mask);
 
 			SIMD_float eta = n_1 / n_2;
-			SIMD_float k = (SIMD_float(1.0f) - (eta*eta * (SIMD_float(1.0f) - (cos_theta * cos_theta))));
+			SIMD_float k = (one - (eta*eta * (one - (cos_theta * cos_theta))));
 			
 			// In case of Total Internal Reflection, return only the reflection component
-			SIMD_float tir_mask = closest_hit.hit & (k < SIMD_float(0.0f));
+			SIMD_float tir_mask = closest_hit.hit & (k < zero);
 
 			if (SIMD_float::mask(tir_mask) == SIMD_float::mask(refraction_mask)) {
 				return SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask);
@@ -260,7 +263,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 			// Make sure that Snell's Law is correctly obeyed
 
-			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= SIMD_float(0.0f))));
+			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
 
 			SIMD_float refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
@@ -299,14 +302,14 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 			// In case n_1 is larger than n_2, theta should be the angle
 			// between the normal and the refracted Ray direction
-			cos_theta = SIMD_float::blend(cos_theta, SIMD_float(0.0f) - SIMD_Vector3::dot(refracted_ray.direction, normal), n_1 > n_2);
+			cos_theta = SIMD_float::blend(cos_theta, zero - SIMD_Vector3::dot(refracted_ray.direction, normal), n_1 > n_2);
 
 			// Calculate (1 - cos(theta))^5 efficiently, without using pow
-			SIMD_float one_minus_cos         = SIMD_float(1.0f) - cos_theta;
+			SIMD_float one_minus_cos         = one - cos_theta;
 			SIMD_float one_minus_cos_squared = one_minus_cos * one_minus_cos;
 
-			SIMD_float F_r = r_0 + ((SIMD_float(1.0f) - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
-			SIMD_float F_t = SIMD_float(1.0f) - F_r;
+			SIMD_float F_r = r_0 + ((one - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
+			SIMD_float F_t = one - F_r;
 			
 			SIMD_Vector3 blend = SIMD_Vector3::blend(F_r * colour_reflection + F_t * colour_refraction, colour_reflection, tir_mask);
 

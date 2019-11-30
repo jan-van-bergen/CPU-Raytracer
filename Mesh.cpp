@@ -12,6 +12,9 @@ void Mesh::update(const Matrix4 & world_matrix) {
 }
 
 void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
+	const SIMD_float zero(0.0f);
+	const SIMD_float one (1.0f);
+
 	// Iterate over all Triangles in the Mesh
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
 		SIMD_Vector3 edge0(world_positions[i+1] - world_positions[i]);
@@ -31,8 +34,8 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 		// If the barycentric coordinate on the edge between vertices i and i+1 
 		// is outside the interval [0, 1] we know no intersection is possible
-		mask = mask & (u > SIMD_float(0.0f));
-		mask = mask & (u < SIMD_float(1.0f));
+		mask = mask & (u > zero);
+		mask = mask & (u < one);
 		if (SIMD_float::all_false(mask)) continue;
 
 		SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
@@ -40,8 +43,8 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 		// If the barycentric coordinate on the edge between vertices i and i+2 
 		// is outside the interval [0, 1] we know no intersection is possible
-		mask = mask & (v       > SIMD_float(0.0f));
-		mask = mask & ((u + v) < SIMD_float(1.0f));
+		mask = mask & (v       > zero);
+		mask = mask & ((u + v) < one);
 		if (SIMD_float::all_false(mask)) continue;
 
 		SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
