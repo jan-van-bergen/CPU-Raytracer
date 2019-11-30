@@ -41,12 +41,12 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	}
 }
 
-bool Plane::intersect(const Ray & ray, SIMD_float max_distance) const {
-	return false;
+SIMD_float Plane::intersect(const Ray & ray, SIMD_float max_distance) const {
+	SIMD_Vector3 normal  (world_normal);
+	SIMD_float   distance(world_distance);
 
 	// Solve plane equation for t
-	//float t = -(Vector3::dot(world_normal, ray.origin) + world_distance) / (Vector3::dot(world_normal, ray.direction));
-	//
-	//// Check if we are in the right distance range
-	//return t > EPSILON && t < max_distance;
+	SIMD_float t = -(SIMD_Vector3::dot(normal, ray.origin) + distance) / SIMD_Vector3::dot(normal, ray.direction);
+
+	return (t > Ray::EPSILON) & (t < max_distance);
 }

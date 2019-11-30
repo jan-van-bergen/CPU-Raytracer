@@ -32,13 +32,15 @@ struct Model : Primitive {
 		}
 	}
 
-	inline bool intersect(const Ray & ray, SIMD_float max_distance) const {
+	inline SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
+		SIMD_float result(0.0f);
+
 		for (int m = 0; m < model_data->mesh_data_count; m++) {
-			if (meshes[m].intersect(ray, max_distance)) {
-				return true;
-			}
+			result = result | meshes[m].intersect(ray, max_distance);
+
+			if (SIMD_float::all_true(result)) break;
 		}
 
-		return false;
+		return result;
 	}
 };

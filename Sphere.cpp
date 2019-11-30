@@ -44,16 +44,24 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	}
 }
 
-bool Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {
-	return false;
-	/*Vector3 c = transform.position - ray.origin;
-	float t = Vector3::dot(c, ray.direction);
+SIMD_float Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {
+	SIMD_Vector3 center(transform.position);
 
-	Vector3 Q = c - t * ray.direction;
-	float p2 = Vector3::dot(Q, Q);
+	SIMD_Vector3 c = center - ray.origin;
+	SIMD_float   t = SIMD_Vector3::dot(c, ray.direction);
+
+	SIMD_Vector3 Q  = c - t * ray.direction;
+	SIMD_float   p2 = SIMD_Vector3::dot(Q, Q);
 	
-	if (p2 > radius_squared) return false;
+	SIMD_float rs(radius_squared);
+	SIMD_float mask = p2 < rs;
+
+	if (SIMD_float::all_false(mask)) return mask;
 	
-	t -= sqrtf(radius_squared - p2);
-	return t > EPSILON && t < max_distance;*/
+	t = t - SIMD_float::sqrt(rs - p2);
+
+	mask = mask & (t > Ray::EPSILON);
+	mask = mask & (t < max_distance);
+	
+	return mask;
 }

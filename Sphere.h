@@ -15,6 +15,6 @@ public:
 
 	void update();
 
-	void trace    (const Ray & ray, RayHit & ray_hit) const;
-	bool intersect(const Ray & ray, SIMD_float max_distance) const;
+	void       trace    (const Ray & ray, RayHit & ray_hit) const;
+	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 };

@@ -55,12 +55,17 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	meshes.trace (ray, ray_hit);
 }
 
-bool Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
-	if (spheres.intersect(ray, max_distance)) return true;
-	if (planes.intersect (ray, max_distance)) return true;
-	if (meshes.intersect (ray, max_distance)) return true;
+SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
+	SIMD_float result(0.0f);
 
-	return false;
+	result = spheres.intersect(ray, max_distance);
+	if (SIMD_float::all_true(result)) return result;
+
+	result = result | planes.intersect (ray, max_distance);
+	if (SIMD_float::all_true(result)) return result;
+
+	result = result | meshes.intersect (ray, max_distance);
+	return result;
 }
 
 SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & distance) const {
@@ -127,9 +132,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			to_light /= distance_to_light;
 			secondary_ray.direction = to_light;
 
-			if (!intersect_primitives(secondary_ray, distance_to_light)) {
-				diffuse += point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
-			}
+			SIMD_float shadow_mask = intersect_primitives(secondary_ray, distance_to_light);
+			diffuse = SIMD_Vector3::blend(diffuse + point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
 		}
 
 		// Check Spot Lights
@@ -141,9 +145,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			to_light /= distance_to_light;
 			secondary_ray.direction = to_light;
 
-			if (!intersect_primitives(secondary_ray, distance_to_light)) {
-				diffuse += spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared);
-			}
+			SIMD_float shadow_mask = intersect_primitives(secondary_ray, distance_to_light);
+			diffuse = SIMD_Vector3::blend(diffuse + spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
 		}
 
 		// Check Directional Lights
@@ -152,9 +155,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		for (int i = 0; i < directional_light_count; i++) {			
 			secondary_ray.direction = SIMD_Vector3(directional_lights[i].negative_direction);
 
-			if (!intersect_primitives(secondary_ray, inf)) {
-				diffuse += directional_lights[i].calc_lighting(closest_hit.normal, to_camera);
-			}
+			SIMD_float shadow_mask = intersect_primitives(secondary_ray, inf);
+			diffuse = SIMD_Vector3::blend(diffuse + directional_lights[i].calc_lighting(closest_hit.normal, to_camera), diffuse, shadow_mask);
 		}
 
 		result += diffuse * material_diffuse;
