@@ -38,9 +38,13 @@ struct SIMD_float4 {
 		return SIMD_float4(_mm_fmadd_ps(a.data, b.data, c.data));
 	}
 
-	static SIMD_float4 sin(SIMD_float4 floats);
-	static SIMD_float4 cos(SIMD_float4 floats);
-	static SIMD_float4 exp(SIMD_float4 floats);
+	inline static SIMD_float4 sin(SIMD_float4 floats) { return SIMD_float4(_mm_sin_ps(floats.data)); }
+	inline static SIMD_float4 cos(SIMD_float4 floats) { return SIMD_float4(_mm_cos_ps(floats.data)); }
+	
+	inline static SIMD_float4 atan2(SIMD_float4 y, SIMD_float4 x) { return SIMD_float4(_mm_atan2_ps(y.data, x.data)); }
+	inline static SIMD_float4 acos (SIMD_float4 floats)           { return SIMD_float4(_mm_acos_ps(floats.data)); }
+
+	inline static SIMD_float4 exp(SIMD_float4 floats) { return SIMD_float4(_mm_exp_ps(floats.data)); }
 
 	inline static bool all_false(SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0xf; }
@@ -102,10 +106,14 @@ struct SIMD_float8 {
 	inline static SIMD_float8 madd(SIMD_float8 a, SIMD_float8 b, SIMD_float8 c) {
 		return SIMD_float8(_mm256_fmadd_ps(a.data, b.data, c.data));
 	}
+	
+	inline static SIMD_float8 sin(SIMD_float8 floats) { return SIMD_float8(_mm256_sin_ps(floats.data)); }
+	inline static SIMD_float8 cos(SIMD_float8 floats) { return SIMD_float8(_mm256_cos_ps(floats.data)); }
+	
+	inline static SIMD_float8 atan2(SIMD_float8 y, SIMD_float8 x) { return SIMD_float8(_mm256_atan2_ps(y.data, x.data)); }
+	inline static SIMD_float8 acos (SIMD_float8 floats)           { return SIMD_float8(_mm256_acos_ps(floats.data)); }
 
-	static SIMD_float8 sin(SIMD_float8 floats);
-	static SIMD_float8 cos(SIMD_float8 floats);
-	static SIMD_float8 exp(SIMD_float8 floats);
+	inline static SIMD_float8 exp(SIMD_float8 floats) { return SIMD_float8(_mm256_exp_ps(floats.data)); }
 
 	inline static bool all_false(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0xff; }

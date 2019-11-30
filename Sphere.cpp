@@ -34,8 +34,14 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, SIMD_Vector3::normalize(ray_hit.point - center), mask);
 
 	// Obtain u,v by converting the normal direction to spherical coordinates
-	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.5f), mask);// + atan2f(-ray_hit.normal.z, -ray_hit.normal.x) * ONE_OVER_TWO_PI;
-	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.5f), mask);// + asinf (-ray_hit.normal.y)                    * ONE_OVER_PI;
+	SIMD_Vector3 neg_normal = -ray_hit.normal;
+
+	SIMD_float one_over_two_pi(ONE_OVER_TWO_PI);
+	SIMD_float one_over_pi    (ONE_OVER_PI);
+	SIMD_float half(0.5f);
+
+	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(neg_normal.z, neg_normal.x), one_over_two_pi, half), mask);
+	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (neg_normal.y),               one_over_pi,     half), mask);
 
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (int_mask & (1 << i)) {

@@ -51,9 +51,6 @@
       <Filter>Assets</Filter>
     </ClCompile>
     <ClCompile Include="WorkerThread.cpp" />
-    <ClCompile Include="SIMD.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
