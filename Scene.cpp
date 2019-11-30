@@ -91,8 +91,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
-	float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
-	float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
+	alignas(SIMD_float) float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
+	alignas(SIMD_float) float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
 	
 #if SIMD_LANE_SIZE == 4
 	SIMD_Vector3 material_diffuse(
@@ -363,9 +363,9 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
-			float xs[SIMD_LANE_SIZE]; SIMD_float::store(xs, colour.x);
-			float ys[SIMD_LANE_SIZE]; SIMD_float::store(ys, colour.y);
-			float zs[SIMD_LANE_SIZE]; SIMD_float::store(zs, colour.z);
+			alignas(SIMD_float) float xs[SIMD_LANE_SIZE]; SIMD_float::store(xs, colour.x);
+			alignas(SIMD_float) float ys[SIMD_LANE_SIZE]; SIMD_float::store(ys, colour.y);
+			alignas(SIMD_float) float zs[SIMD_LANE_SIZE]; SIMD_float::store(zs, colour.z);
 
 #if (SIMD_LANE_SIZE == 4) 
 			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));

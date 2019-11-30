@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <immintrin.h>
 
 #include "Vector3.h"
@@ -19,6 +20,8 @@ struct SIMD_float4 {
 	}
 
 	inline static void store(float * memory, SIMD_float4 floats) {
+		assert(unsigned long long(memory) % alignof(__m128) == 0);
+
 		_mm_store_ps(memory, floats.data);
 	}
 
@@ -88,6 +91,8 @@ struct SIMD_float8 {
 	}
 
 	inline static void store(float * memory, SIMD_float8 floats) {
+		assert(unsigned long long(memory) % alignof(__m256) == 0);
+
 		_mm256_store_ps(memory, floats.data);
 	}
 
