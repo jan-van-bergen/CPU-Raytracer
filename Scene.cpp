@@ -23,7 +23,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.5f;
 
-	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	
@@ -94,25 +94,24 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 	alignas(SIMD_float) float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
 	alignas(SIMD_float) float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
 	
-#if SIMD_LANE_SIZE == 4
-	SIMD_Vector3 material_diffuse(
-		closest_hit.material[3] ? closest_hit.material[3]->get_colour(us[3], vs[3]) : Vector3(0.0f),
-		closest_hit.material[2] ? closest_hit.material[2]->get_colour(us[2], vs[2]) : Vector3(0.0f),
-		closest_hit.material[1] ? closest_hit.material[1]->get_colour(us[1], vs[1]) : Vector3(0.0f),
-		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
-	);
-#elif SIMD_LANE_SIZE == 8
-	SIMD_Vector3 material_diffuse(
-		closest_hit.material[7] ? closest_hit.material[7]->get_colour(us[7], vs[7]) : Vector3(0.0f),
-		closest_hit.material[6] ? closest_hit.material[6]->get_colour(us[6], vs[6]) : Vector3(0.0f),
-		closest_hit.material[5] ? closest_hit.material[5]->get_colour(us[5], vs[5]) : Vector3(0.0f),
-		closest_hit.material[4] ? closest_hit.material[4]->get_colour(us[4], vs[4]) : Vector3(0.0f),
-		closest_hit.material[3] ? closest_hit.material[3]->get_colour(us[3], vs[3]) : Vector3(0.0f),
-		closest_hit.material[2] ? closest_hit.material[2]->get_colour(us[2], vs[2]) : Vector3(0.0f),
-		closest_hit.material[1] ? closest_hit.material[1]->get_colour(us[1], vs[1]) : Vector3(0.0f),
-		closest_hit.material[0] ? closest_hit.material[0]->get_colour(us[0], vs[0]) : Vector3(0.0f)
-	);
-#endif
+	SIMD_Vector3 material_diffuse;
+
+	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
+		if (hit_mask & (1 << i)) {
+			Vector3 diffuse = closest_hit.material[i]->get_colour(us[i], vs[i]);
+
+			material_diffuse.x[i] = diffuse.x;
+			material_diffuse.y[i] = diffuse.y;
+			material_diffuse.z[i] = diffuse.z;
+		} else {
+			closest_hit.material[i] = &DEFAULT_MATERIAL;
+
+			material_diffuse.x[i] = 0.0f;
+			material_diffuse.y[i] = 0.0f;
+			material_diffuse.z[i] = 0.0f;
+		}
+	}
+
 	SIMD_float mask_diffuse = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
 	if (!SIMD_float::all_false(mask_diffuse)) {
@@ -168,24 +167,41 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 #if SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_reflection(
-			closest_hit.material[3] ? closest_hit.material[3]->reflection : Vector3(0.0f),
-			closest_hit.material[2] ? closest_hit.material[2]->reflection : Vector3(0.0f),
-			closest_hit.material[1] ? closest_hit.material[1]->reflection : Vector3(0.0f),
-			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
+			closest_hit.material[3]->reflection,
+			closest_hit.material[2]->reflection,
+			closest_hit.material[1]->reflection,
+			closest_hit.material[0]->reflection
+		);
+		SIMD_Vector3 material_transmittance(
+			closest_hit.material[3]->transmittance, 
+			closest_hit.material[2]->transmittance, 
+			closest_hit.material[1]->transmittance, 
+			closest_hit.material[0]->transmittance
 		);
 #elif SIMD_LANE_SIZE == 8
 		SIMD_Vector3 material_reflection(
-			closest_hit.material[7] ? closest_hit.material[7]->reflection : Vector3(0.0f),
-			closest_hit.material[6] ? closest_hit.material[6]->reflection : Vector3(0.0f),
-			closest_hit.material[5] ? closest_hit.material[5]->reflection : Vector3(0.0f),
-			closest_hit.material[4] ? closest_hit.material[4]->reflection : Vector3(0.0f),
-			closest_hit.material[3] ? closest_hit.material[3]->reflection : Vector3(0.0f),
-			closest_hit.material[2] ? closest_hit.material[2]->reflection : Vector3(0.0f),
-			closest_hit.material[1] ? closest_hit.material[1]->reflection : Vector3(0.0f),
-			closest_hit.material[0] ? closest_hit.material[0]->reflection : Vector3(0.0f)
+			closest_hit.material[7]->reflection,
+			closest_hit.material[6]->reflection,
+			closest_hit.material[5]->reflection,
+			closest_hit.material[4]->reflection,
+			closest_hit.material[3]->reflection,
+			closest_hit.material[2]->reflection,
+			closest_hit.material[1]->reflection,
+			closest_hit.material[0]->reflection
+		);
+		SIMD_Vector3 material_transmittance(
+			closest_hit.material[7]->transmittance,
+			closest_hit.material[6]->transmittance,
+			closest_hit.material[5]->transmittance,
+			closest_hit.material[4]->transmittance,
+			closest_hit.material[3]->transmittance,
+			closest_hit.material[2]->transmittance,
+			closest_hit.material[1]->transmittance,
+			closest_hit.material[0]->transmittance
 		);
 #endif
-		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection) > zero;
+		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection)    > zero;
+		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > zero;
 
 		if (!SIMD_float::all_false(reflection_mask)) {
 			Ray reflected_ray;
@@ -196,27 +212,6 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance) * material_diffuse;
 		}
 
-#if SIMD_LANE_SIZE == 4
-		SIMD_Vector3 material_transmittance(
-			closest_hit.material[3] ? closest_hit.material[3]->transmittance : Vector3(0.0f),
-			closest_hit.material[2] ? closest_hit.material[2]->transmittance : Vector3(0.0f),
-			closest_hit.material[1] ? closest_hit.material[1]->transmittance : Vector3(0.0f),
-			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
-		);
-#elif SIMD_LANE_SIZE == 8
-		SIMD_Vector3 material_transmittance(
-			closest_hit.material[7] ? closest_hit.material[7]->transmittance : Vector3(0.0f),
-			closest_hit.material[6] ? closest_hit.material[6]->transmittance : Vector3(0.0f),
-			closest_hit.material[5] ? closest_hit.material[5]->transmittance : Vector3(0.0f),
-			closest_hit.material[4] ? closest_hit.material[4]->transmittance : Vector3(0.0f),
-			closest_hit.material[3] ? closest_hit.material[3]->transmittance : Vector3(0.0f),
-			closest_hit.material[2] ? closest_hit.material[2]->transmittance : Vector3(0.0f),
-			closest_hit.material[1] ? closest_hit.material[1]->transmittance : Vector3(0.0f),
-			closest_hit.material[0] ? closest_hit.material[0]->transmittance : Vector3(0.0f)
-		);
-#endif
-		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > zero;
-
 		if (!SIMD_float::all_false(refraction_mask)) {		
 			SIMD_float dot      = SIMD_Vector3::dot(ray.direction, closest_hit.normal);
 			SIMD_float dot_mask = dot < zero;
@@ -224,21 +219,21 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			SIMD_float air(Material::AIR_INDEX_OF_REFRACTION);
 #if SIMD_LANE_SIZE == 4
 			SIMD_float ior(
-				closest_hit.material[3] ? closest_hit.material[3]->index_of_refraction : 0.0f,
-				closest_hit.material[2] ? closest_hit.material[2]->index_of_refraction : 0.0f,
-				closest_hit.material[1] ? closest_hit.material[1]->index_of_refraction : 0.0f,
-				closest_hit.material[0] ? closest_hit.material[0]->index_of_refraction : 0.0f
+				closest_hit.material[3]->index_of_refraction,
+				closest_hit.material[2]->index_of_refraction,
+				closest_hit.material[1]->index_of_refraction,
+				closest_hit.material[0]->index_of_refraction
 			);
 #elif SIMD_LANE_SIZE == 8
 			SIMD_float ior(
-				closest_hit.material[7] ? closest_hit.material[7]->index_of_refraction : 0.0f,
-				closest_hit.material[6] ? closest_hit.material[6]->index_of_refraction : 0.0f,
-				closest_hit.material[5] ? closest_hit.material[5]->index_of_refraction : 0.0f,
-				closest_hit.material[4] ? closest_hit.material[4]->index_of_refraction : 0.0f,
-				closest_hit.material[3] ? closest_hit.material[3]->index_of_refraction : 0.0f,
-				closest_hit.material[2] ? closest_hit.material[2]->index_of_refraction : 0.0f,
-				closest_hit.material[1] ? closest_hit.material[1]->index_of_refraction : 0.0f,
-				closest_hit.material[0] ? closest_hit.material[0]->index_of_refraction : 0.0f
+				closest_hit.material[7]->index_of_refraction,
+				closest_hit.material[6]->index_of_refraction,
+				closest_hit.material[5]->index_of_refraction,
+				closest_hit.material[4]->index_of_refraction,
+				closest_hit.material[3]->index_of_refraction,
+				closest_hit.material[2]->index_of_refraction,
+				closest_hit.material[1]->index_of_refraction,
+				closest_hit.material[0]->index_of_refraction
 			);
 #endif
 			

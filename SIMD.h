@@ -6,7 +6,7 @@
 
 // Represents 4 floats
 struct SIMD_float4 {
-	__m128 data;
+	union { __m128 data; float floats[4]; };
 
 	inline SIMD_float4() { /* leave uninitialized */ }
 
@@ -53,6 +53,8 @@ struct SIMD_float4 {
 	inline static bool all_true (SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0xf; }
 
 	inline static int mask(SIMD_float4 floats) { return _mm_movemask_ps(floats.data); }
+
+	inline float & operator[](int index) { return floats[index]; }
 };
 
 inline SIMD_float4 operator-(SIMD_float4 floats) { 
@@ -77,7 +79,7 @@ inline SIMD_float4 operator!=(SIMD_float4 left, SIMD_float4 right) { return SIMD
 
 // Represents 8 floats
 struct SIMD_float8 {
-	__m256 data;
+	union { __m256 data; float floats[8]; };
 
 	inline SIMD_float8() { /* leave uninitialized */ }
 
@@ -124,6 +126,8 @@ struct SIMD_float8 {
 	inline static bool all_true (SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0xff; }
 
 	inline static int mask(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data); }
+	
+	inline float & operator[](int index) { return floats[index]; }
 };
 
 inline SIMD_float8 operator-(SIMD_float8 floats) { 

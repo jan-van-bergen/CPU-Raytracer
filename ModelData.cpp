@@ -49,7 +49,6 @@ const ModelData * ModelData::load(const char * file_path) {
 		if (material_id != -1) {
 			tinyobj::material_t material = materials[material_id];
 
-			mesh_data->material.ambient = Vector3(material.ambient[0], material.ambient[1], material.ambient[2]);
 			mesh_data->material.diffuse = Vector3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
 
 			if (material.diffuse_texname.length() > 0) {
