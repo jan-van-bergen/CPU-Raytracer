@@ -10,7 +10,7 @@
 
 #include "Camera.h"
 
-#include "Skybox.h"
+#include "Sky.h"
 
 #include "Window.h"
 
@@ -32,7 +32,7 @@ private:
 
 	Vector3 ambient_lighting = Vector3(0.1f);
 	
-	Skybox skybox;
+	Sky skybox;
 
 	void       trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
 	SIMD_float intersect_primitives(const Ray & ray, SIMD_float max_distance) const;

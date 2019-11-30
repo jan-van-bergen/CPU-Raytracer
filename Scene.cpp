@@ -4,7 +4,7 @@
 
 #define NUMBER_OF_BOUNCES 2
 
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("rnl_probe.float"), 900, 900) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -70,24 +70,22 @@ SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance)
 
 SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & distance) const {
 	SIMD_Vector3 result;
+	
+	const SIMD_float zero(0.0f);
+	const SIMD_float one (1.0f);
+	const SIMD_float inf (INFINITY);
 
 	RayHit closest_hit;
 	trace_primitives(ray, closest_hit);
 
-	int hit_mask = SIMD_float::mask(closest_hit.hit);
-
 	// If any of the Rays did not hit
 	if (!SIMD_float::all_true(closest_hit.hit)) {
-		//result   = skybox.sample(ray.direction);
-		distance = SIMD_float(INFINITY);
+		result   = SIMD_Vector3::blend(skybox.sample(ray.direction), result, closest_hit.hit);
+		distance = inf;
 
 		// If none of the Rays hit, early out
 		if (SIMD_float::all_false(closest_hit.hit)) return result;
 	}
-
-	const SIMD_float zero(0.0f);
-	const SIMD_float one (1.0f);
-	const SIMD_float inf (INFINITY);
 
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
@@ -95,7 +93,9 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 	alignas(SIMD_float) float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
 	
 	SIMD_Vector3 material_diffuse;
-
+	
+	int hit_mask = SIMD_float::mask(closest_hit.hit);
+	
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
 			Vector3 diffuse = closest_hit.material[i]->get_colour(us[i], vs[i]);
@@ -112,9 +112,9 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		}
 	}
 
-	SIMD_float mask_diffuse = SIMD_Vector3::length_squared(material_diffuse) > zero;
+	SIMD_float diffuse_mask = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
-	if (!SIMD_float::all_false(mask_diffuse)) {
+	if (!SIMD_float::all_false(diffuse_mask)) {
 		SIMD_Vector3 diffuse = SIMD_Vector3(ambient_lighting);
 
 		// Secondary Ray starts at hit location
@@ -202,7 +202,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 #endif
 		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection)    > zero;
 		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > zero;
-
+			
 		if (!SIMD_float::all_false(reflection_mask)) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
@@ -236,7 +236,6 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 				closest_hit.material[0]->index_of_refraction
 			);
 #endif
-			
 			SIMD_float n_1 = SIMD_float::blend(ior, air, dot_mask);
 			SIMD_float n_2 = SIMD_float::blend(air, ior, dot_mask);
 
@@ -305,7 +304,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 			SIMD_float F_r = r_0 + ((one - r_0) * one_minus_cos_squared) * (one_minus_cos_squared * one_minus_cos); // r_0 + (1 - r_0) * (1 - cos)^5
 			SIMD_float F_t = one - F_r;
-			
+
 			SIMD_Vector3 blend = SIMD_Vector3::blend(F_r * colour_reflection + F_t * colour_refraction, colour_reflection, tir_mask);
 
 			return SIMD_Vector3::blend(result, result + blend, refraction_mask);
@@ -320,7 +319,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 void Scene::update(float delta) {
 	camera.update(delta, SDL_GetKeyboardState(0));
 
-	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+	//meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
 
 	spheres.update();
 	planes.update();
@@ -354,7 +353,7 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 				+ is * camera_x_axis_rotated
 				+ js * camera_y_axis_rotated
 			);
-
+			
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 

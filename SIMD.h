@@ -51,6 +51,11 @@ struct SIMD_float4 {
 
 	inline static bool all_false(SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float4 floats) { return _mm_movemask_ps(floats.data) == 0xf; }
+	
+	// Computes (not a) and b
+	inline static SIMD_float4 andnot(SIMD_float4 a, SIMD_float4 b) {
+		return SIMD_float4(_mm_andnot_ps(a.data, b.data));
+	}
 
 	inline static int mask(SIMD_float4 floats) { return _mm_movemask_ps(floats.data); }
 
@@ -67,6 +72,7 @@ inline SIMD_float4 operator*(SIMD_float4 left, SIMD_float4 right) { return SIMD_
 inline SIMD_float4 operator/(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_div_ps(left.data, right.data)); }
 
 inline SIMD_float4 operator|(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_or_ps (left.data, right.data)); }
+inline SIMD_float4 operator^(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_xor_ps(left.data, right.data)); }
 inline SIMD_float4 operator&(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_and_ps(left.data, right.data)); }
 
 inline SIMD_float4 operator> (SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmpgt_ps(left.data, right.data)); }
@@ -125,6 +131,11 @@ struct SIMD_float8 {
 	inline static bool all_false(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0x0; }
 	inline static bool all_true (SIMD_float8 floats) { return _mm256_movemask_ps(floats.data) == 0xff; }
 
+	// Computes (not a) and b
+	inline static SIMD_float8 andnot(SIMD_float8 a, SIMD_float8 b) {
+		return SIMD_float8(_mm256_andnot_ps(a.data, b.data));
+	}
+
 	inline static int mask(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data); }
 	
 	inline float & operator[](int index) { return floats[index]; }
@@ -140,6 +151,7 @@ inline SIMD_float8 operator*(SIMD_float8 left, SIMD_float8 right) { return SIMD_
 inline SIMD_float8 operator/(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_div_ps(left.data, right.data)); }
 
 inline SIMD_float8 operator|(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_or_ps (left.data, right.data)); }
+inline SIMD_float8 operator^(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_xor_ps(left.data, right.data)); }
 inline SIMD_float8 operator&(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_and_ps(left.data, right.data)); }
 
 inline SIMD_float8 operator> (SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_GT_OQ)); }

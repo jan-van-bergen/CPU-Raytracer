@@ -23,7 +23,7 @@ struct Material {
 };
 
 inline Material DEFAULT_MATERIAL = {
-	Vector3(1.0f, 0.0f, 1.0f),
+	Vector3(0.0f),
 	nullptr,
 	Vector3(0.0f),
 	Vector3(0.0f),
