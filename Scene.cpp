@@ -4,7 +4,7 @@
 
 #define NUMBER_OF_BOUNCES 2
 
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("rnl_probe.float"), 900, 900) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float"), 900, 900) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
