@@ -14,7 +14,6 @@ float timings[TOTAL_TIMING_COUNT];
 int   current_frame = 0;
 
 int main(int argument_count, char ** arguments) {
-	char title[64];
 	Window window(SCREEN_WIDTH, SCREEN_HEIGHT, "Raytracer");
 
 #if _DEBUG
@@ -51,11 +50,6 @@ int main(int argument_count, char ** arguments) {
 		WorkerThreads::wait_on_worker_threads();
 		
 		window.update();
-
-		//int x, y;
-		//SDL_GetMouseState(&x, &y);
-		//sprintf_s(title, "Raytracer - x: %i, y: %i", x, y);
-		//window.set_title(title);
 
 		// Perform frame timing
 		now = SDL_GetPerformanceCounter();
