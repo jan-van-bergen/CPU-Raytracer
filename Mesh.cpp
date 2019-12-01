@@ -20,6 +20,9 @@ void Mesh::update(const Matrix4 & world_matrix) {
 void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
+	
+	const SIMD_float pos_epsilon( Ray::EPSILON);
+	const SIMD_float neg_epsilon(-Ray::EPSILON);
 
 	// Iterate over all Triangles in the Mesh
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
@@ -31,7 +34,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 		// If the ray is parallel to the plane formed by 
 		// the triangle no intersection is possible
-		SIMD_float mask = (a < -Ray::EPSILON) | (a > Ray::EPSILON);
+		SIMD_float mask = (a < neg_epsilon) | (a > pos_epsilon);
 		if (SIMD_float::all_false(mask)) continue;
 
 		SIMD_float   f = SIMD_float::rcp(a);
@@ -56,7 +59,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
 
 		// Check if we are in the right distance range
-		mask = mask & (t > Ray::EPSILON);
+		mask = mask & (t > pos_epsilon);
 		mask = mask & (t < ray_hit.distance);
 
 		int int_mask = SIMD_float::mask(mask);
@@ -94,6 +97,9 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 
+	const SIMD_float pos_epsilon( Ray::EPSILON);
+	const SIMD_float neg_epsilon(-Ray::EPSILON);
+
 	SIMD_float result = zero != zero;
 
 	// Iterate over all Triangles in the Mesh
@@ -106,7 +112,7 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 
 		// If the ray is parallel to the plane formed by 
 		// the triangle no intersection is possible
-		SIMD_float mask = (a < -Ray::EPSILON) | (a > Ray::EPSILON);
+		SIMD_float mask = (a < neg_epsilon) | (a > pos_epsilon);
 		if (SIMD_float::all_false(mask)) continue;
 
 		SIMD_float   f = SIMD_float::rcp(a);
@@ -131,7 +137,7 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 		SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
 
 		// Check if we are in the right distance range
-		mask = mask & (t > Ray::EPSILON);
+		mask = mask & (t > pos_epsilon);
 		mask = mask & (t < max_distance);
 
 		int int_mask = SIMD_float::mask(mask);

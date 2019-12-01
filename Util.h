@@ -17,4 +17,6 @@
 #define MEGA_BYTE(value) (value) * 1024 * 1024
 #define GIGA_BYTE(value) (value) * 1024 * 1024 * 1024
 
+#define FORCEINLINE __forceinline
+
 const char * get_path(const char * file_path);
