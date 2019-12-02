@@ -5,6 +5,9 @@
 #include "Util.h"
 #include "Vector3.h"
 
+struct SIMD_int4;
+struct SIMD_int8;
+
 // Represents 4 floats
 struct SIMD_float4 {
 	union { __m128 data; float floats[4]; };
@@ -165,12 +168,82 @@ inline FORCEINLINE SIMD_float8 operator<=(SIMD_float8 left, SIMD_float8 right) {
 inline FORCEINLINE SIMD_float8 operator==(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
 inline FORCEINLINE SIMD_float8 operator!=(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
 
+// Represents 4 ints
+struct SIMD_int4 {
+	union { __m128i data; int ints[4]; };
+
+	inline SIMD_int4() { /* leave uninitialized */ }
+
+	inline explicit SIMD_int4(__m128i data) : data(data) { }
+
+	inline explicit SIMD_int4(int f) : data(_mm_set1_epi32(f)) { }
+	inline explicit SIMD_int4(int a, int b, int c, int d) : data(_mm_set_epi32(a, b, c, d)) { }
+
+	inline static FORCEINLINE SIMD_int4 min(SIMD_int4 a, SIMD_int4 b) { return SIMD_int4(_mm_min_epi32(a.data, b.data)); }
+	inline static FORCEINLINE SIMD_int4 max(SIMD_int4 a, SIMD_int4 b) { return SIMD_int4(_mm_max_epi32(a.data, b.data)); }
+	
+	inline FORCEINLINE int & operator[](int index) { return ints[index]; }
+};
+
+inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 floats) { 
+	return SIMD_int4(_mm_sub_epi32(_mm_set1_epi32(0.0f), floats.data)); 
+}
+
+inline FORCEINLINE SIMD_int4 operator+(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_add_epi32  (left.data, right.data)); }
+inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_sub_epi32  (left.data, right.data)); }
+inline FORCEINLINE SIMD_int4 operator*(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_mullo_epi32(left.data, right.data)); }
+inline FORCEINLINE SIMD_int4 operator/(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_div_epi32  (left.data, right.data)); }
+
+inline FORCEINLINE SIMD_int4 operator> (SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_cmpgt_epi32(left.data, right.data)); }
+inline FORCEINLINE SIMD_int4 operator< (SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_cmplt_epi32(left.data, right.data)); }
+
+inline FORCEINLINE SIMD_int4 operator==(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_cmpeq_epi32 (left.data, right.data)); }
+
+// Represents 8 ints
+struct SIMD_int8 {
+	union { __m256i data; int ints[8]; };
+
+	inline SIMD_int8() { /* leave uninitialized */ }
+
+	inline explicit SIMD_int8(__m256i data) : data(data) { }
+
+	inline explicit SIMD_int8(int f) : data(_mm256_set1_epi32(f)) { }
+	inline explicit SIMD_int8(int a, int b, int c, int d, int e, int f, int g, int h) : data(_mm256_set_epi32(a, b, c, d, e, f, g, h)) { }
+
+	inline static FORCEINLINE SIMD_int8 min(SIMD_int8 a, SIMD_int8 b) { return SIMD_int8(_mm256_min_epi32(a.data, b.data)); }
+	inline static FORCEINLINE SIMD_int8 max(SIMD_int8 a, SIMD_int8 b) { return SIMD_int8(_mm256_max_epi32(a.data, b.data)); }
+	
+	inline FORCEINLINE int & operator[](int index) { return ints[index]; }
+};
+
+inline FORCEINLINE SIMD_int8 operator-(SIMD_int8 floats) { 
+	return SIMD_int8(_mm256_sub_epi32(_mm256_set1_epi32(0), floats.data)); 
+}
+
+inline FORCEINLINE SIMD_int8 operator+(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_add_epi32  (left.data, right.data)); }
+inline FORCEINLINE SIMD_int8 operator-(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_sub_epi32  (left.data, right.data)); }
+inline FORCEINLINE SIMD_int8 operator*(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_mullo_epi32(left.data, right.data)); }
+inline FORCEINLINE SIMD_int8 operator/(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_div_epi32  (left.data, right.data)); }
+
+inline FORCEINLINE SIMD_int8 operator> (SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_cmpgt_epi32(left.data, right.data)); }
+//inline FORCEINLINE SIMD_int8 operator< (SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_cmplt_epi32(left.data, right.data)); }
+
+inline FORCEINLINE SIMD_int8 operator==(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_cmpeq_epi32 (left.data, right.data)); }
+
 #define SIMD_LANE_SIZE 4
 
 #if SIMD_LANE_SIZE == 4
 typedef SIMD_float4 SIMD_float;
+typedef SIMD_int4   SIMD_int;
+
+inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (_mm_cvtps_epi32(floats.data)); }
+inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(_mm_cvtepi32_ps(ints.data)); }
 #elif SIMD_LANE_SIZE == 8
 typedef SIMD_float8 SIMD_float;
+typedef SIMD_int8   SIMD_int;
+
+inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (_mm256_cvtps_epi32(floats.data)); }
+inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(_mm256_cvtepi32_ps(ints.data)); }
 #else
 static_assert(false, "Unsupported Lane Size!");
 #endif

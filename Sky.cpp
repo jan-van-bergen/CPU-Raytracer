@@ -27,39 +27,30 @@ SIMD_Vector3 Sky::sample(const SIMD_Vector3 & direction) const {
 	SIMD_float u = SIMD_float::madd(direction.x, r, half);
 	SIMD_float v = SIMD_float::madd(direction.y, r, half);
 
+	SIMD_int x = SIMD_float_to_int(u * data_width);
+	SIMD_int y = SIMD_float_to_int(v * data_height);
+
+	SIMD_int index = y * SIMD_int(height) + x;
+	index = SIMD_int::max(index, SIMD_int(0));
+	index = SIMD_int::min(index, SIMD_int(width * height));
+
 #if SIMD_LANE_SIZE == 4
-	__m128i x = _mm_cvtps_epi32((u * data_width).data);
-	__m128i y = _mm_cvtps_epi32((v * data_height).data);
-
-	union { __m128i index; int indices[4]; };
-	index = _mm_add_epi32(_mm_mullo_epi32(y, _mm_set1_epi32(height)), x);
-	index = _mm_max_epi32(index, _mm_set1_epi32(0));
-	index = _mm_min_epi32(index, _mm_set1_epi32(width * height));
-
 	return one_over_pi * SIMD_Vector3(
-		data[indices[3]],
-		data[indices[2]],
-		data[indices[1]],
-		data[indices[0]]
+		data[index[3]],
+		data[index[2]],
+		data[index[1]],
+		data[index[0]]
 	);
 #elif SIMD_LANE_SIZE == 8
-	__m256i x = _mm256_cvtps_epi32((u * data_width).data);
-	__m256i y = _mm256_cvtps_epi32((v * data_height).data);
-
-	union { __m256i index; int indices[8]; };
-	index = _mm256_add_epi32(_mm256_mullo_epi32(y, _mm256_set1_epi32(height)), x);
-	index = _mm256_max_epi32(index, _mm256_set1_epi32(0));
-	index = _mm256_min_epi32(index, _mm256_set1_epi32(width * height));
-
 	return one_over_pi * SIMD_Vector3(
-		data[indices[7]],
-		data[indices[6]],
-		data[indices[5]],
-		data[indices[4]],
-		data[indices[3]],
-		data[indices[2]],
-		data[indices[1]],
-		data[indices[0]]
+		data[index[7]],
+		data[index[6]],
+		data[index[5]],
+		data[index[4]],
+		data[index[3]],
+		data[index[2]],
+		data[index[1]],
+		data[index[0]]
 	);
 #endif
 }
