@@ -29,6 +29,9 @@ struct SIMD_float4 {
 	inline static FORCEINLINE SIMD_float4 blend(SIMD_float4 case_false, SIMD_float4 case_true, SIMD_float4 mask) {
 		return SIMD_float4(_mm_blendv_ps(case_false.data, case_true.data, mask.data));
 	}
+	
+	inline static FORCEINLINE SIMD_float4 min(SIMD_float4 a, SIMD_float4 b) { return SIMD_float4(_mm_min_ps(a.data, b.data)); }
+	inline static FORCEINLINE SIMD_float4 max(SIMD_float4 a, SIMD_float4 b) { return SIMD_float4(_mm_max_ps(a.data, b.data)); }
 
 	inline static FORCEINLINE SIMD_float4 rcp(SIMD_float4 floats) {
 		return SIMD_float4(_mm_rcp_ps(floats.data));
@@ -106,6 +109,9 @@ struct SIMD_float8 {
 	inline static FORCEINLINE SIMD_float8 blend(SIMD_float8 case_false, SIMD_float8 case_true, SIMD_float8 mask) {
 		return SIMD_float8(_mm256_blendv_ps(case_false.data, case_true.data, mask.data));
 	}
+
+	inline static FORCEINLINE SIMD_float8 min(SIMD_float8 a, SIMD_float8 b) { return SIMD_float8(_mm256_min_ps(a.data, b.data)); }
+	inline static FORCEINLINE SIMD_float8 max(SIMD_float8 a, SIMD_float8 b) { return SIMD_float8(_mm256_max_ps(a.data, b.data)); }
 
 	inline static FORCEINLINE SIMD_float8 rcp(SIMD_float8 floats) {
 		return SIMD_float8(_mm256_rcp_ps(floats.data));
