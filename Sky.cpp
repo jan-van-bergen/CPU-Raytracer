@@ -27,6 +27,7 @@ SIMD_Vector3 Sky::sample(const SIMD_Vector3 & direction) const {
 	SIMD_float u = SIMD_float::madd(direction.x, r, half);
 	SIMD_float v = SIMD_float::madd(direction.y, r, half);
 
+	// Convert to pixel coordinates
 	SIMD_int x = SIMD_float_to_int(u * data_width);
 	SIMD_int y = SIMD_float_to_int(v * data_height);
 

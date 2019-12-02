@@ -13,6 +13,8 @@ struct Material {
 
 	inline static const float AIR_INDEX_OF_REFRACTION = 1.0f;
 
+	static Material default_material;
+
 	inline Vector3 get_colour(float u, float v) const {
 		if (texture) {
 			return diffuse * texture->sample_bilinear(u, v);
@@ -22,7 +24,7 @@ struct Material {
 	}
 };
 
-inline Material DEFAULT_MATERIAL = {
+inline Material Material::default_material = {
 	Vector3(0.0f),
 	nullptr,
 	Vector3(0.0f),

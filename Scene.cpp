@@ -104,7 +104,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			material_diffuse.y[i] = diffuse.y;
 			material_diffuse.z[i] = diffuse.z;
 		} else {
-			closest_hit.material[i] = &DEFAULT_MATERIAL;
+			closest_hit.material[i] = &Material::default_material;
 
 			material_diffuse.x[i] = 0.0f;
 			material_diffuse.y[i] = 0.0f;
@@ -202,7 +202,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 #endif
 		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection)    > zero;
 		SIMD_float refraction_mask = SIMD_Vector3::length_squared(material_transmittance) > zero;
-			
+		
 		if (!SIMD_float::all_false(reflection_mask)) {
 			Ray reflected_ray;
 			reflected_ray.origin    = closest_hit.point;
