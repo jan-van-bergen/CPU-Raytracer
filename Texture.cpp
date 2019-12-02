@@ -27,7 +27,7 @@ const Texture * Texture::load(const char * file_path) {
 	return texture;
 }
 
-Vector3 Texture::get_texel(int x, int y) const {
+Vector3 Texture::fetch_texel(int x, int y) const {
 	assert(x >= 0 && x < width);
 	assert(y >= 0 && y < height);
 
@@ -46,7 +46,7 @@ Vector3 Texture::sample(float u, float v) const {
 	int x = Math::mod(int(u * width_f  + 0.5f), width);
 	int y = Math::mod(int(v * height_f + 0.5f), height);
 
-	return get_texel(x, y);
+	return fetch_texel(x, y);
 }
 
 Vector3 Texture::sample_bilinear(float u, float v) const {
@@ -77,8 +77,8 @@ Vector3 Texture::sample_bilinear(float u, float v) const {
 
 	// Blend everything together using the weights
 	return 
-		w0 * get_texel(u0_i, v0_i) +
-		w1 * get_texel(u1_i, v0_i) +
-		w2 * get_texel(u0_i, v1_i) +
-		w3 * get_texel(u1_i, v1_i);
+		w0 * fetch_texel(u0_i, v0_i) +
+		w1 * fetch_texel(u1_i, v0_i) +
+		w2 * fetch_texel(u0_i, v1_i) +
+		w3 * fetch_texel(u1_i, v1_i);
 }
