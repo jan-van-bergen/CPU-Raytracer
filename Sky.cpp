@@ -1,18 +1,18 @@
 #include "Sky.h"
 
-#include <cassert>
-#include <fstream>
-#include <algorithm>
+#include <cstdio>
+#include <stdlib.h>
 
 #include "Util.h"
 
 Sky::Sky(const char * file_path, int width, int height) : width(width), height(height) {
-	std::ifstream file(file_path, std::ios::in | std::ios::binary); 
-	if (!file.is_open()) abort();
+	FILE * file; fopen_s(&file, file_path, "rb");
+
+	if (!file) abort();
 
 	data = new Vector3[width * height];
-	file.read(reinterpret_cast<char *>(data), width * height * sizeof(Vector3));
-	file.close();
+	fread(reinterpret_cast<char *>(data), sizeof(Vector3), width * height, file);
+	fclose(file);
 }
 
 SIMD_Vector3 Sky::sample(const SIMD_Vector3 & direction) const {
