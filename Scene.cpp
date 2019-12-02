@@ -216,7 +216,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			SIMD_float dot      = SIMD_Vector3::dot(ray.direction, closest_hit.normal);
 			SIMD_float dot_mask = dot < zero;
 
-			SIMD_float air(Material::AIR_INDEX_OF_REFRACTION);
+			SIMD_float air(Material::air_index_of_refraction);
 #if SIMD_LANE_SIZE == 4
 			SIMD_float ior(
 				closest_hit.material[3]->index_of_refraction,

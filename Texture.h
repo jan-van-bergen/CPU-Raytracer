@@ -3,12 +3,12 @@
 
 struct Texture {
 private:
-	unsigned * data;
+	unsigned * data = nullptr;
 
 	int   width,   height;
 	float width_f, height_f;
 
-	Vector3 get_texel(int x, int y) const;
+	Vector3 fetch_texel(int x, int y) const;
 
 public:
 	Vector3 sample         (float u, float v) const;
