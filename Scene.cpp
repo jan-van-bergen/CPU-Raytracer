@@ -13,8 +13,8 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 	spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
 	spheres[0].material.reflection = 0.2f;
 	spheres[1].material.reflection = 0.2f;
-	spheres[0].material.transmittance = 0.0f;
-	spheres[1].material.transmittance = 0.0f;
+	spheres[0].material.transmittance = 0.6f;
+	spheres[1].material.transmittance = 0.6f;
 	spheres[0].material.index_of_refraction = 1.33f;
 	spheres[1].material.index_of_refraction = 1.68f;
 
