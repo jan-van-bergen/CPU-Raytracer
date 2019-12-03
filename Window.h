@@ -22,7 +22,7 @@ private:
 	SDL_Window *  window;
 	SDL_GLContext context;
 	
-	unsigned * frame_buffer; // CacheLine aligned
+	unsigned * frame_buffer;
 	GLuint     frame_buffer_handle;
 
 public:
