@@ -29,14 +29,13 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.5f;
 
-	meshes[0].init(DATA_PATH("Diamond.obj"));
+	meshes[0].init(DATA_PATH("Cube.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	
-	point_light_count = 0;
-	/*point_lights = new PointLight[point_light_count = 1] {
-		PointLight(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 8.0f))
-	};*/
+	point_lights = new PointLight[point_light_count = 1] {
+		PointLight(Vector3(10.0f, 0.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
+	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
 		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)

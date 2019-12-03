@@ -37,6 +37,8 @@ struct SIMD_float4 {
 	inline static FORCEINLINE SIMD_float4 ceil (SIMD_float4 floats) { return SIMD_float4(_mm_ceil_ps (floats.data)); }
 
 	static FORCEINLINE SIMD_float4 mod(SIMD_float4 v, SIMD_float4 m);
+	
+	static FORCEINLINE SIMD_float4 clamp(SIMD_float4 val, SIMD_float4 min, SIMD_float4 max);
 
 	inline static FORCEINLINE SIMD_float4 rcp(SIMD_float4 floats) { return SIMD_float4(_mm_rcp_ps(floats.data)); }
 
@@ -120,6 +122,8 @@ struct SIMD_float8 {
 	inline static FORCEINLINE SIMD_float8 ceil (SIMD_float8 floats) { return SIMD_float8(_mm256_ceil_ps (floats.data)); }
 	
 	static FORCEINLINE SIMD_float8 mod(SIMD_float8 v, SIMD_float8 m);
+
+	static FORCEINLINE SIMD_float8 clamp(SIMD_float8 val, SIMD_float8 min, SIMD_float8 max);
 
 	inline static FORCEINLINE SIMD_float8 rcp(SIMD_float8 floats) { return SIMD_float8(_mm256_rcp_ps(floats.data)); }
 
@@ -252,6 +256,8 @@ static_assert(false, "Unsupported Lane Size!");
 #endif
 
 inline FORCEINLINE SIMD_float SIMD_float::mod(SIMD_float v, SIMD_float m) { return SIMD_float(v - m * SIMD_float::floor(v / m)); }
+
+inline FORCEINLINE SIMD_float SIMD_float::clamp(SIMD_float val, SIMD_float min, SIMD_float max) { return SIMD_float::min(SIMD_float::max(val, min), max); }
 
 // Represents SIMD_LANE_SIZE Vector3s
 struct SIMD_Vector3 {

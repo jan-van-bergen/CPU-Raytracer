@@ -27,8 +27,8 @@ namespace Test {
 		SIMD_float dot_1 = SIMD_Vector3::dot(-direction_in,   normal);
 		SIMD_float dot_2 = SIMD_Vector3::dot( direction_out, -normal);
 		
-		SIMD_float theta_1(SIMD_float::acos(dot_1));
-		SIMD_float theta_2(SIMD_float::acos(dot_2));
+		SIMD_float theta_1(SIMD_float::acos(SIMD_float::clamp(dot_1, -one, one)));
+		SIMD_float theta_2(SIMD_float::acos(SIMD_float::clamp(dot_2, -one, one)));
 
 		SIMD_float lhs = SIMD_float::blend(zero, n_1 * SIMD_float::sin(theta_1), mask);
 		SIMD_float rhs = SIMD_float::blend(zero, n_2 * SIMD_float::sin(theta_2), mask);
