@@ -7,11 +7,6 @@ using namespace WorkerThreads;
 
 #define THREAD_COUNT 8
 
-int threads_per_processor;
-
-int   processor_count = 0;	         // Number of Physical Processors
-ULONG processor_masks[THREAD_COUNT]; // Stores the mask of each Physical Processor
-
 HANDLE go_signal  [THREAD_COUNT];
 HANDLE done_signal[THREAD_COUNT];
 
@@ -36,7 +31,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 	
 	// Set the Thread Affinity to two logical cores that belong to the same physical core
 	if (THREAD_COUNT > 1) {
-		DWORD_PTR thread_affinity_mask     = processor_masks[params.thread_id / threads_per_processor];
+		DWORD_PTR thread_affinity_mask     = 1 << params.thread_id;
 		DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
 
 		// Check validity of Thread Affinity
@@ -60,7 +55,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 				
 				params.scene->render_tile(*params.window, x * params.window->tile_width, y * params.window->tile_height);
 
-				//printf("Task %i done\n", task);
+				printf("Task %i done\n", task);
 			} 
 		}
 		
@@ -70,20 +65,6 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 }
 
 void WorkerThreads::init(const Scene & scene, const Window & window) {
-	// Get logical and physical core count on this machine
-	SYSTEM_LOGICAL_PROCESSOR_INFORMATION info[64];
-	DWORD buffer_length = 64 * sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
-	GetLogicalProcessorInformation(info, &buffer_length);
-	
-	// Count the number of physical cores and store their thread masks
-	for (int i = 0; i < buffer_length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
-		if (info[i].Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationProcessorCore) {
-			processor_masks[processor_count++] = info[i].ProcessorMask;
-		}
-	}
-
-	threads_per_processor = THREAD_COUNT / processor_count;
-
 	// Spawn the appropriate number of Worker Threads.
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
