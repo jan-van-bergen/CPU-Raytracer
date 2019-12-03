@@ -5,9 +5,6 @@
 #include "Util.h"
 #include "Vector3.h"
 
-struct SIMD_int4;
-struct SIMD_int8;
-
 // Represents 4 floats
 struct SIMD_float4 {
 	union { __m128 data; float floats[4]; };
