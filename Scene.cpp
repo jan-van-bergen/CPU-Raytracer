@@ -56,7 +56,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_P
 	spheres[0].material.index_of_refraction = 1.0f;
 
 	spheres[1].init(1.0f);
-	spheres[1].transform.position = Vector3(+2.0f, 2.0f, -2.0f);
+	spheres[1].transform.position = Vector3(+2.0f, 1.0f, -2.0f);
 	spheres[1].material.diffuse = 0.0f;
 	spheres[1].material.reflection = 0.1f;
 	spheres[1].material.transmittance = 0.9f;
