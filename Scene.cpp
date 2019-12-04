@@ -10,7 +10,7 @@
 #define CURRENT_SCENE SCENE_WHITTED
 
 #if CURRENT_SCENE == SCENE_TEST
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -27,14 +27,14 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
-	planes[0].material.reflection = 0.5f;
+	planes[0].material.reflection = 0.25f;
 
-	meshes[0].init(DATA_PATH("Cube.obj"));
+	meshes[0].init(DATA_PATH("Diamond.obj"));
 	meshes[0].transform.position.y = 2.0f;
 	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	
 	point_lights = new PointLight[point_light_count = 1] {
-		PointLight(Vector3(10.0f, 0.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
+		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
 	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
@@ -61,10 +61,6 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_P
 	spheres[1].material.reflection = 0.1f;
 	spheres[1].material.transmittance = 0.9f;
 	spheres[1].material.index_of_refraction = 1.5f;
-
-	//planes[0].transform.position.y = -1.0f;
-	//planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
-	//planes[0].material.reflection = 0.2f;
 
 	meshes[0].init(DATA_PATH("Plane.obj"));
 	meshes[0].transform.position.y = -1.0f;
@@ -356,7 +352,10 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 void Scene::update(float delta) {
 	camera.update(delta, SDL_GetKeyboardState(0));
 
-	//meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+#if CURRENT_SCENE == SCENE_TEST
+	// In the Test Scene, rotate the Diamond
+	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+#endif
 
 	spheres.update();
 	planes.update();
