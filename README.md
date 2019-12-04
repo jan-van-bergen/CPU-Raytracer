@@ -22,6 +22,12 @@ The project uses a somewhat data-oriented design. I took data layout into consid
 - [x] Optimized Renderer: Triangle/Ray intersection makes use of SIMD.
 - [x] Skydome using HDR light probes (https://www.pauldebevec.com/Probes/).
 
+## Dependencies
+- OpenGL is used to render a texture to screen.
+- SDL is used to create a window.
+- stb_image is used to load images.
+- tiny_obj_loader is used to load `.obj` and `.mtl` files.
+
 ## Code Attribution
 - Ray-Triangle intersection was based on code from [Wikipedia](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm). 
 - Multithreading code was based on various code samples from the INFOMOV slides on multithreading.
