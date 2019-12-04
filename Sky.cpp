@@ -17,7 +17,7 @@ Sky::Sky(const char * file_path) {
 
 	// The image is square, so take a square root to obtain the side lengths
 	size = int(sqrtf(size_squared));
-	assert(size * size == file_size);
+	assert(size * size == size_squared);
 
 	// Allocate data and copy it over from the file
 	data = new Vector3[size_squared];
