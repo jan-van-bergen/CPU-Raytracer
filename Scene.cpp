@@ -10,7 +10,7 @@
 #define CURRENT_SCENE SCENE_WHITTED
 
 #if CURRENT_SCENE == SCENE_TEST
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float"), 900, 900) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -47,7 +47,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 
 	camera.position = Vector3(0.0f, 2.0f, -2.0f);
 #elif CURRENT_SCENE == SCENE_WHITTED
-Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float"), 900, 900) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[0].transform.position = Vector3(0.0f, 0.0f, 0.0f);
 	spheres[0].material.diffuse = 1.0f;
@@ -60,7 +60,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_P
 	spheres[1].material.diffuse = 0.0f;
 	spheres[1].material.reflection = 0.1f;
 	spheres[1].material.transmittance = 0.9f;
-	spheres[1].material.index_of_refraction = 1.1f;
+	spheres[1].material.index_of_refraction = 1.5f;
 
 	//planes[0].transform.position.y = -1.0f;
 	//planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));

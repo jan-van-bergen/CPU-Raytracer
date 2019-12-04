@@ -6,12 +6,11 @@
 
 struct Sky {
 private:
-	int width;
-	int height;
+	int size;
 	Vector3 * data;
 
 public:
-	Sky(const char * file_name, int width, int height);
+	Sky(const char * file_name);
 
 	SIMD_Vector3 sample(const SIMD_Vector3 & direction) const;
 };
