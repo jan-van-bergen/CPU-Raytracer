@@ -28,7 +28,7 @@ Sky::Sky(const char * file_path) {
 SIMD_Vector3 Sky::sample(const SIMD_Vector3 & direction) const {
 	const SIMD_float one_over_pi(ONE_OVER_PI);
 	const SIMD_float half(0.5f);
-	const SIMD_float data_size(size);
+	const SIMD_float data_size((float)size);
 
 	// Formula as described on https://www.pauldebevec.com/Probes/
     SIMD_float r = half * one_over_pi * SIMD_float::acos(direction.z) * SIMD_float::inv_sqrt(direction.x*direction.x + direction.y*direction.y);
@@ -44,7 +44,9 @@ SIMD_Vector3 Sky::sample(const SIMD_Vector3 & direction) const {
 	index = SIMD_int::max(index, SIMD_int(0));
 	index = SIMD_int::min(index, SIMD_int(size * size));
 
-#if SIMD_LANE_SIZE == 4
+#if SIMD_LANE_SIZE == 1
+	return one_over_pi * SIMD_Vector3(data[index[0]]);
+#elif SIMD_LANE_SIZE == 4
 	return one_over_pi * SIMD_Vector3(
 		data[index[3]],
 		data[index[2]],

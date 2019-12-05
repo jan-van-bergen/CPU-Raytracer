@@ -1,9 +1,93 @@
 #pragma once
+#include <string>
 #include <cassert>
 #include <immintrin.h>
 
 #include "Util.h"
 #include "Vector3.h"
+
+// Represents 1 float
+struct SIMD_float1 {
+	union { float data; int data_mask; };
+
+	inline SIMD_float1() { /* leave uninitialized */ }
+
+	inline explicit SIMD_float1(float f) : data(f) { }
+	inline explicit SIMD_float1(int i) : data_mask(i) { }
+
+	inline static FORCEINLINE SIMD_float1 load(const float * memory) {
+		SIMD_float1 result;
+		memcpy(&result.data, memory, sizeof(float));
+		return result;
+	}
+
+	inline static FORCEINLINE void store(float * memory, SIMD_float1 floats) {
+		memcpy(memory, &floats.data, sizeof(float));
+	}
+
+	inline static FORCEINLINE SIMD_float1 blend(SIMD_float1 case_false, SIMD_float1 case_true, SIMD_float1 mask) {
+		return SIMD_float1(mask.data_mask ? case_true.data : case_false.data);
+	}
+	
+	inline static FORCEINLINE SIMD_float1 min(SIMD_float1 a, SIMD_float1 b) { return SIMD_float1(a.data < b.data ? a.data : b.data); }
+	inline static FORCEINLINE SIMD_float1 max(SIMD_float1 a, SIMD_float1 b) { return SIMD_float1(a.data > b.data ? a.data : b.data); }
+	
+	inline static FORCEINLINE SIMD_float1 floor(SIMD_float1 floats) { return SIMD_float1(floorf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 ceil (SIMD_float1 floats) { return SIMD_float1(ceilf (floats.data)); }
+
+	static FORCEINLINE SIMD_float1 mod(SIMD_float1 v, SIMD_float1 m);
+	
+	static FORCEINLINE SIMD_float1 clamp(SIMD_float1 val, SIMD_float1 min, SIMD_float1 max);
+
+	inline static FORCEINLINE SIMD_float1 rcp(SIMD_float1 floats) { return SIMD_float1(1.0f / floats.data); }
+
+	inline static FORCEINLINE SIMD_float1 sqrt    (SIMD_float1 floats) { return SIMD_float1(       sqrtf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 inv_sqrt(SIMD_float1 floats) { return SIMD_float1(1.0f / sqrtf(floats.data)); }
+	
+	inline static FORCEINLINE SIMD_float1 madd(SIMD_float1 a, SIMD_float1 b, SIMD_float1 c) { return SIMD_float1(a.data * b.data + c.data); }
+	inline static FORCEINLINE SIMD_float1 msub(SIMD_float1 a, SIMD_float1 b, SIMD_float1 c) { return SIMD_float1(a.data * b.data - c.data); }
+	
+	inline static FORCEINLINE SIMD_float1 sin(SIMD_float1 floats) { return SIMD_float1(sinf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 cos(SIMD_float1 floats) { return SIMD_float1(cosf(floats.data)); }
+	
+	inline static FORCEINLINE SIMD_float1 atan2(SIMD_float1 y, SIMD_float1 x) { return SIMD_float1(atan2f(y.data, x.data)); }
+	inline static FORCEINLINE SIMD_float1 acos (SIMD_float1 floats)           { return SIMD_float1(acosf(floats.data)); }
+
+	inline static FORCEINLINE SIMD_float1 exp(SIMD_float1 floats) { return SIMD_float1(expf(floats.data)); }
+
+	inline static FORCEINLINE bool all_false(SIMD_float1 floats) { return floats.data_mask == 0x0; }
+	inline static FORCEINLINE bool all_true (SIMD_float1 floats) { return floats.data_mask == 0x1; }
+	
+	// Computes (not a) and b
+	inline static FORCEINLINE SIMD_float1 andnot(SIMD_float1 a, SIMD_float1 b) {
+		return SIMD_float1((~a.data_mask) & b.data_mask);
+	}
+
+	inline static FORCEINLINE int mask(SIMD_float1 floats) { return floats.data_mask; }
+
+	inline FORCEINLINE float & operator[](int index) { return data; }
+};
+
+inline FORCEINLINE SIMD_float1 operator-(SIMD_float1 floats) { 
+	return SIMD_float1(-floats.data); 
+}
+
+inline FORCEINLINE SIMD_float1 operator+(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data + right.data); }
+inline FORCEINLINE SIMD_float1 operator-(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data - right.data); }
+inline FORCEINLINE SIMD_float1 operator*(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data * right.data); }
+inline FORCEINLINE SIMD_float1 operator/(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data / right.data); }
+
+inline FORCEINLINE SIMD_float1 operator|(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data_mask | right.data_mask); }
+inline FORCEINLINE SIMD_float1 operator^(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data_mask ^ right.data_mask); }
+inline FORCEINLINE SIMD_float1 operator&(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data_mask & right.data_mask); }
+
+inline FORCEINLINE SIMD_float1 operator> (SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data >  right.data); }
+inline FORCEINLINE SIMD_float1 operator>=(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data >= right.data); }
+inline FORCEINLINE SIMD_float1 operator< (SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data <  right.data); }
+inline FORCEINLINE SIMD_float1 operator<=(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data <= right.data); }
+
+inline FORCEINLINE SIMD_float1 operator==(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data == right.data); }
+inline FORCEINLINE SIMD_float1 operator!=(SIMD_float1 left, SIMD_float1 right) { return SIMD_float1(left.data != right.data); }
 
 // Represents 4 floats
 struct SIMD_float4 {
@@ -175,6 +259,34 @@ inline FORCEINLINE SIMD_float8 operator<=(SIMD_float8 left, SIMD_float8 right) {
 inline FORCEINLINE SIMD_float8 operator==(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
 inline FORCEINLINE SIMD_float8 operator!=(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
 
+// Represents 1 int
+struct SIMD_int1 {
+	int data;
+
+	inline SIMD_int1() { /* leave uninitialized */ }
+
+	inline explicit SIMD_int1(int f) : data(f) { }
+
+	inline static FORCEINLINE SIMD_int1 min(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data < b.data ? a.data : b.data); }
+	inline static FORCEINLINE SIMD_int1 max(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data > b.data ? a.data : b.data); }
+	
+	inline FORCEINLINE int & operator[](int index) { return data; }
+};
+
+inline FORCEINLINE SIMD_int1 operator-(SIMD_int1 floats) { 
+	return SIMD_int1(-floats.data); 
+}
+
+inline FORCEINLINE SIMD_int1 operator+(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data + right.data); }
+inline FORCEINLINE SIMD_int1 operator-(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data - right.data); }
+inline FORCEINLINE SIMD_int1 operator*(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data * right.data); }
+inline FORCEINLINE SIMD_int1 operator/(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data / right.data); }
+
+inline FORCEINLINE SIMD_int1 operator> (SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data < right.data); }
+inline FORCEINLINE SIMD_int1 operator< (SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data > right.data); }
+
+inline FORCEINLINE SIMD_int1 operator==(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data == right.data); }
+
 // Represents 4 ints
 struct SIMD_int4 {
 	union { __m128i data; int ints[4]; };
@@ -193,7 +305,7 @@ struct SIMD_int4 {
 };
 
 inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 floats) { 
-	return SIMD_int4(_mm_sub_epi32(_mm_set1_epi32(0.0f), floats.data)); 
+	return SIMD_int4(_mm_sub_epi32(_mm_set1_epi32(0), floats.data)); 
 }
 
 inline FORCEINLINE SIMD_int4 operator+(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_add_epi32  (left.data, right.data)); }
@@ -239,7 +351,13 @@ inline FORCEINLINE SIMD_int8 operator==(SIMD_int8 left, SIMD_int8 right) { retur
 
 #define SIMD_LANE_SIZE 4
 
-#if SIMD_LANE_SIZE == 4
+#if SIMD_LANE_SIZE == 1
+typedef SIMD_float1 SIMD_float;
+typedef SIMD_int1   SIMD_int;
+
+inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (floats.data); }
+inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(ints.data); }
+#elif SIMD_LANE_SIZE == 4
 typedef SIMD_float4 SIMD_float;
 typedef SIMD_int4   SIMD_int;
 

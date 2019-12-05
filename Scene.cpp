@@ -113,7 +113,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	// If any of the Rays did not hit
 	if (!SIMD_float::all_true(closest_hit.hit)) {
-		result   = SIMD_Vector3::blend(skybox.sample(ray.direction), result, closest_hit.hit);
+		result = SIMD_Vector3::blend(skybox.sample(ray.direction), result, closest_hit.hit);
 		distance = inf;
 
 		// If none of the Rays hit, early out
@@ -198,7 +198,10 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		SIMD_Vector3 colour_reflection;
 		SIMD_Vector3 colour_refraction;
 
-#if SIMD_LANE_SIZE == 4
+#if SIMD_LANE_SIZE == 1
+		SIMD_Vector3 material_reflection   (closest_hit.material[0]->reflection);
+		SIMD_Vector3 material_transmittance(closest_hit.material[0]->transmittance);
+#elif SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_reflection(
 			closest_hit.material[3]->reflection,
 			closest_hit.material[2]->reflection,
@@ -250,7 +253,10 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			SIMD_float dot_mask = dot < zero;
 
 			SIMD_float air(Material::air_index_of_refraction);
-#if SIMD_LANE_SIZE == 4
+			
+#if SIMD_LANE_SIZE == 1
+			SIMD_float ior(closest_hit.material[0]->index_of_refraction);
+#elif SIMD_LANE_SIZE == 4
 			SIMD_float ior(
 				closest_hit.material[3]->index_of_refraction,
 				closest_hit.material[2]->index_of_refraction,
@@ -296,15 +302,17 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
 
 			// Apply Beer's Law
-#if SIMD_LANE_SIZE == 4
-			SIMD_Vector3 material_transmittance(
+#if SIMD_LANE_SIZE == 1
+			SIMD_Vector3 material_absorption(closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f));
+#elif SIMD_LANE_SIZE == 4
+			SIMD_Vector3 material_absorption(
 				closest_hit.material[3] ? closest_hit.material[3]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[2] ? closest_hit.material[2]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[1] ? closest_hit.material[1]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
 			);
 #elif SIMD_LANE_SIZE == 8
-			SIMD_Vector3 material_transmittance(
+			SIMD_Vector3 material_absorption(
 				closest_hit.material[7] ? closest_hit.material[7]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[6] ? closest_hit.material[6]->transmittance - Vector3(1.0f) : Vector3(0.0f),
 				closest_hit.material[5] ? closest_hit.material[5]->transmittance - Vector3(1.0f) : Vector3(0.0f),
@@ -315,9 +323,9 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 				closest_hit.material[0] ? closest_hit.material[0]->transmittance - Vector3(1.0f) : Vector3(0.0f)
 			);
 #endif
-			SIMD_float beer_x = SIMD_float::exp(material_transmittance.x * refraction_distance);
-			SIMD_float beer_y = SIMD_float::exp(material_transmittance.y * refraction_distance);
-			SIMD_float beer_z = SIMD_float::exp(material_transmittance.z * refraction_distance);
+			SIMD_float beer_x = SIMD_float::exp(material_absorption.x * refraction_distance);
+			SIMD_float beer_y = SIMD_float::exp(material_absorption.y * refraction_distance);
+			SIMD_float beer_z = SIMD_float::exp(material_absorption.z * refraction_distance);
 			
 			colour_refraction.x = SIMD_float::blend(colour_refraction.x, colour_refraction.x * beer_x, dot_mask);
 			colour_refraction.y = SIMD_float::blend(colour_refraction.y, colour_refraction.y * beer_y, dot_mask);
@@ -369,18 +377,31 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 	ray.origin.z = SIMD_float(camera.position.z);
 
 	SIMD_Vector3 camera_top_left_corner_rotated(camera.top_left_corner_rotated);
-	SIMD_Vector3 camera_x_axis_rotated         (camera.x_axis_rotated);
-	SIMD_Vector3 camera_y_axis_rotated         (camera.y_axis_rotated);
-
-	for (int j = y; j < y + window.tile_height; j += 2) {
-		for (int i = x; i < x + window.tile_width; i += SIMD_LANE_SIZE / 2) {
+	SIMD_Vector3 camera_x_axis_rotated(camera.x_axis_rotated);
+	SIMD_Vector3 camera_y_axis_rotated(camera.y_axis_rotated);
+	
+#if SIMD_LANE_SIZE == 1
+	int step_y = 1;
+	int step_x = 1;
+#elif SIMD_LANE_SIZE == 4
+	int step_y = 2;
+	int step_x = 2;
+#elif SIMD_LANE_SIZE == 8
+	int step_y = 2;
+	int step_x = 4;
+#endif
+	for (int j = y; j < y + window.tile_height; j += step_y) {
+		for (int i = x; i < x + window.tile_width; i += step_x) {
 			float i_f = float(i);
 			float j_f = float(j);
 
-#if (SIMD_LANE_SIZE == 4) 
+#if SIMD_LANE_SIZE == 1
+			SIMD_float is(i_f);
+			SIMD_float js(j_f);
+#elif SIMD_LANE_SIZE == 4
 			SIMD_float is(i_f, i_f + 1.0f, i_f,        i_f + 1.0f);
 			SIMD_float js(j_f, j_f,        j_f + 1.0f, j_f + 1.0f);
-#elif (SIMD_LANE_SIZE == 8)
+#elif SIMD_LANE_SIZE == 8
 			SIMD_float is(i_f, i_f + 1.0f, i_f + 2.0f, i_f + 3.0f, i_f,        i_f + 1.0f, i_f + 2.0f, i_f + 3.0f);
 			SIMD_float js(j_f, j_f,        j_f,        j_f,        j_f + 1.0f, j_f + 1.0f, j_f + 1.0f, j_f + 1.0f);
 #endif
@@ -397,12 +418,14 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 			alignas(SIMD_float) float ys[SIMD_LANE_SIZE]; SIMD_float::store(ys, colour.y);
 			alignas(SIMD_float) float zs[SIMD_LANE_SIZE]; SIMD_float::store(zs, colour.z);
 
-#if (SIMD_LANE_SIZE == 4) 
+#if SIMD_LANE_SIZE == 1
+			window.plot(i, j, Vector3(xs[0], ys[0], zs[0]));
+#elif SIMD_LANE_SIZE == 4
 			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));
 			window.plot(i + 1, j,     Vector3(xs[2], ys[2], zs[2]));
 			window.plot(i,     j + 1, Vector3(xs[1], ys[1], zs[1]));
 			window.plot(i + 1, j + 1, Vector3(xs[0], ys[0], zs[0]));
-#elif (SIMD_LANE_SIZE == 8)
+#elif SIMD_LANE_SIZE == 8
 			window.plot(i,     j,     Vector3(xs[7], ys[7], zs[7]));
 			window.plot(i + 1, j,     Vector3(xs[6], ys[6], zs[6]));
 			window.plot(i + 2, j,     Vector3(xs[5], ys[5], zs[5]));
