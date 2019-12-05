@@ -9,8 +9,8 @@ private:
 	Vector3 world_normal;
 	float   world_distance;
 	
-    Vector3 u_axis;
-    Vector3 v_axis;
+	Vector3 u_axis;
+	Vector3 v_axis;
 
 public:
 	void update();
