@@ -19,6 +19,9 @@
     <Filter Include="Util">
       <UniqueIdentifier>{a27660bb-3206-476a-9396-8955fb30501c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Raytracing\BVH">
+      <UniqueIdentifier>{fc757026-834f-48ab-978c-e1661f1f89c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -50,6 +53,9 @@
     <ClCompile Include="WorkerThread.cpp" />
     <ClCompile Include="Sky.cpp">
       <Filter>Raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="AABB.cpp">
+      <Filter>Raytracing\BVH</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -135,6 +141,9 @@
     </ClInclude>
     <ClInclude Include="Sky.h">
       <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="AABB.h">
+      <Filter>Raytracing\BVH</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

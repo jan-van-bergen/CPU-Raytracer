@@ -436,6 +436,30 @@ struct SIMD_Vector3 {
 		);
 	}
 
+	inline static FORCEINLINE SIMD_Vector3 rcp(const SIMD_Vector3 & vector) {
+		return SIMD_Vector3(
+			SIMD_float::rcp(vector.x),
+			SIMD_float::rcp(vector.y),
+			SIMD_float::rcp(vector.z)
+		);
+	}
+
+	inline static FORCEINLINE SIMD_Vector3 min(const SIMD_Vector3 & left, const SIMD_Vector3 & right) {
+		return SIMD_Vector3(
+			SIMD_float::min(left.x, right.x),
+			SIMD_float::min(left.y, right.y),
+			SIMD_float::min(left.z, right.z)
+		);
+	}
+
+	inline static FORCEINLINE SIMD_Vector3 max(const SIMD_Vector3 & left, const SIMD_Vector3 & right) {
+		return SIMD_Vector3(
+			SIMD_float::max(left.x, right.x),
+			SIMD_float::max(left.y, right.y),
+			SIMD_float::max(left.z, right.z)
+		);
+	}
+
 	inline static FORCEINLINE SIMD_Vector3 blend(const SIMD_Vector3 & left, const SIMD_Vector3 & right, SIMD_float mask) {
 		return SIMD_Vector3(
 			SIMD_float::blend(left.x, right.x, mask),
