@@ -29,7 +29,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 	wsprintfW(thread_name, L"WorkerThread_%d", params.thread_id);
 	SetThreadDescription(thread, thread_name);
 	
-	// Set the Thread Affinity to two logical cores that belong to the same physical core
+	// Set the Thread Affinity to pin it to 1 logical core
 	if (THREAD_COUNT > 1) {
 		DWORD_PTR thread_affinity_mask     = 1 << params.thread_id;
 		DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
