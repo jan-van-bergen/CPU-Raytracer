@@ -25,9 +25,11 @@ void AABB::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	SIMD_Vector3 zero(0.0f);
 
+	// NOTE: These values are rubbish! This method should only be used for debuggin purposes
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  zero, mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, zero, mask);
-
+	
+	// NOTE: These values are rubbish! This method should only be used for debuggin purposes
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float(0.0f), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float(0.0f), mask);
 
