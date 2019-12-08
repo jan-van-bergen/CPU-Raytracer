@@ -6,11 +6,6 @@ struct AABB {
 	Vector3 min;
 	Vector3 max;
 
-	inline void init(const Vector3 & min_bound, const Vector3 & max_bound) {
-		min = min_bound;
-		max = max_bound;
-	}
-	
 	inline float surface_area() {
 		Vector3 diff = max - min;
 
