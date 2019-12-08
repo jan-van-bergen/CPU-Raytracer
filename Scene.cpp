@@ -30,15 +30,15 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 	planes[0].material.reflection = 0.25f;
 
 	bvh_models.primitives[0].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[1].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[2].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[3].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[4].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[0].transform.position = Vector3(0.0f, 2.0f, 0.0f);
+	bvh_models.primitives[1].init(DATA_PATH("Cube.obj"));
+	bvh_models.primitives[2].init(DATA_PATH("icosphere.obj"));
+	bvh_models.primitives[3].init(DATA_PATH("Rock.obj"));
+	bvh_models.primitives[4].init(DATA_PATH("Torus.obj"));
+	bvh_models.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);
 	bvh_models.primitives[1].transform.position = Vector3(4.0f, 2.0f, 0.0f);
-	bvh_models.primitives[2].transform.position = Vector3(0.0f, 2.0f, 4.0f);
-	bvh_models.primitives[3].transform.position = Vector3(4.0f, 2.0f, 4.0f);
-	bvh_models.primitives[4].transform.position = Vector3(0.0f, 2.0f, 8.0f);
+	bvh_models.primitives[2].transform.position = Vector3(0.0f, 3.0f, 4.0f);
+	bvh_models.primitives[3].transform.position = Vector3(4.0f, 4.0f, 4.0f);
+	bvh_models.primitives[4].transform.position = Vector3(0.0f, 5.0f, 8.0f);
 
 	bvh_models.update();
 	bvh_models.init();
