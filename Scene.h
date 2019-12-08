@@ -1,7 +1,7 @@
 #pragma once
 #include "Sphere.h"
 #include "Plane.h"
-#include "Model.h"
+#include "Mesh.h"
 #include "PrimitiveList.h"
 
 #include "BVH.h"
@@ -21,7 +21,7 @@ private:
 	PrimitiveList<Sphere> spheres;
 	PrimitiveList<Plane>  planes;
 
-	BVH<Model> bvh_models;
+	BVH<Mesh> bvh_meshes;
 
 	// Lights
 	PointLight * point_lights      = nullptr;

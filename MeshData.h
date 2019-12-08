@@ -7,14 +7,10 @@ struct MeshData {
 	Vector3 * positions;
 	Vector2 * tex_coords;
 	Vector3 * normals;
+	int     * material_ids;
 	int       vertex_count;
 
-	Material material;
-};
+	Material * materials;
 
-struct ModelData {
-	const MeshData * mesh_data       = nullptr;
-	int              mesh_data_count = 0;
-
-	static const ModelData * load(const char * file_path);
+	static const MeshData * load(const char * file_path);
 };

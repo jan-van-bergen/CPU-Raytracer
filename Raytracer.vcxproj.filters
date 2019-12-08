@@ -47,15 +47,15 @@
     <ClCompile Include="Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="ModelData.cpp">
-      <Filter>Assets</Filter>
-    </ClCompile>
     <ClCompile Include="WorkerThread.cpp" />
     <ClCompile Include="Sky.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
     <ClCompile Include="AABB.cpp">
       <Filter>Raytracing\BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshData.cpp">
+      <Filter>Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -123,12 +123,6 @@
     <ClInclude Include="Test.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Raytracing\Primitives</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelData.h">
-      <Filter>Assets</Filter>
-    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Assets</Filter>
     </ClInclude>
@@ -150,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="ScopedTimer.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshData.h">
+      <Filter>Assets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

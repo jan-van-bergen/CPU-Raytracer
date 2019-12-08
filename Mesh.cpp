@@ -4,16 +4,18 @@
 
 #include "Math.h"
 
-void Mesh::update(const Matrix4 & world_matrix) {
+void Mesh::update() {
+	transform.calc_world_matrix();
+
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
 		// For every three Vertices, the first Vector is an actual vertex position, the two Vectors after that are the Triangle edges
-		world_positions[i]   = Matrix4::transform_position(world_matrix, mesh_data->positions[i]);
-		world_positions[i+1] = Matrix4::transform_position(world_matrix, mesh_data->positions[i+1]);
-		world_positions[i+2] = Matrix4::transform_position(world_matrix, mesh_data->positions[i+2]);
+		world_positions[i]   = Matrix4::transform_position(transform.world_matrix, mesh_data->positions[i]);
+		world_positions[i+1] = Matrix4::transform_position(transform.world_matrix, mesh_data->positions[i+1]);
+		world_positions[i+2] = Matrix4::transform_position(transform.world_matrix, mesh_data->positions[i+2]);
 
-		world_normals[i]   = Matrix4::transform_direction(world_matrix, mesh_data->normals[i]);
-		world_normals[i+1] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+1]);
-		world_normals[i+2] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+2]);
+		world_normals[i]   = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i]);
+		world_normals[i+1] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+1]);
+		world_normals[i+2] = Matrix4::transform_direction(transform.world_matrix, mesh_data->normals[i+2]);
 	}
 }
 
@@ -85,9 +87,9 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 		ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 		ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 		
-		for (int i = 0; i < SIMD_LANE_SIZE; i++) {
-			if (int_mask & (1 << i)) {
-				ray_hit.material[i] = &mesh_data->material;
+		for (int j = 0; j < SIMD_LANE_SIZE; j++) {
+			if (int_mask & (1 << j)) {
+				ray_hit.material[j] = &mesh_data->materials[mesh_data->material_ids[i / 3]];
 			}
 		}
 	}

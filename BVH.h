@@ -18,7 +18,7 @@ template<typename PrimitiveType>
 inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last);
 
 template<>
-inline AABB calculate_bounds(const Model * primitives, const int * indices, int first, int last) {
+inline AABB calculate_bounds(const Mesh * primitives, const int * indices, int first, int last) {
 	AABB aabb;
 	aabb.min = Vector3(+INFINITY);
 	aabb.max = Vector3(-INFINITY);
@@ -27,17 +27,14 @@ inline AABB calculate_bounds(const Model * primitives, const int * indices, int 
 	for (int i = first; i < last; i++) {
 		int index = indices[i];
 
-		// Iterate over sub-Meshes of the current Model
-		for (int m = 0; m < primitives[index].mesh_count; m++) {
-			// Iterate over Triangles of current sub-Mesh
-			for (int t = 0; t < primitives[index].meshes[m].mesh_data->vertex_count; t += 3) {
-				Vector3 position0 = primitives[index].meshes[m].world_positions[t];
-				Vector3 position1 = primitives[index].meshes[m].world_positions[t+1];
-				Vector3 position2 = primitives[index].meshes[m].world_positions[t+2];
+		// Iterate over Triangles of current sub-Mesh
+		for (int t = 0; t < primitives[index].mesh_data->vertex_count; t += 3) {
+			Vector3 position0 = primitives[index].world_positions[t];
+			Vector3 position1 = primitives[index].world_positions[t+1];
+			Vector3 position2 = primitives[index].world_positions[t+2];
 				
- 				aabb.min = Vector3::min(Vector3::min(aabb.min, position0), Vector3::min(position1, position2));
-				aabb.max = Vector3::max(Vector3::max(aabb.max, position0), Vector3::max(position1, position2));
-			}
+ 			aabb.min = Vector3::min(Vector3::min(aabb.min, position0), Vector3::min(position1, position2));
+			aabb.max = Vector3::max(Vector3::max(aabb.max, position0), Vector3::max(position1, position2));
 		}
 	}
 

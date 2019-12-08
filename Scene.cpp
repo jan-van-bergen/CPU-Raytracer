@@ -10,7 +10,7 @@
 #define CURRENT_SCENE SCENE_TEST
 
 #if CURRENT_SCENE == SCENE_TEST
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_meshes(5), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -29,25 +29,23 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 
-	bvh_models.primitives[0].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[1].init(DATA_PATH("Monkey.obj"));
-	bvh_models.primitives[2].init(DATA_PATH("icosphere.obj"));
-	bvh_models.primitives[3].init(DATA_PATH("Rock.obj"));
-	bvh_models.primitives[4].init(DATA_PATH("Torus.obj"));
-	bvh_models.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);
-	bvh_models.primitives[1].transform.position = Vector3(4.0f, 2.0f, 0.0f);
-	bvh_models.primitives[2].transform.position = Vector3(0.0f, 3.0f, 4.0f);
-	bvh_models.primitives[3].transform.position = Vector3(4.0f, 4.0f, 4.0f);
-	bvh_models.primitives[4].transform.position = Vector3(0.0f, 5.0f, 8.0f);
+	bvh_meshes.primitives[0].init(DATA_PATH("Diamond.obj"));
+	bvh_meshes.primitives[1].init(DATA_PATH("Monkey.obj"));
+	bvh_meshes.primitives[2].init(DATA_PATH("icosphere.obj"));
+	bvh_meshes.primitives[3].init(DATA_PATH("Rock.obj"));
+	bvh_meshes.primitives[4].init(DATA_PATH("Torus.obj"));
+	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);
+	bvh_meshes.primitives[1].transform.position = Vector3(4.0f, 2.0f, 0.0f);
+	bvh_meshes.primitives[2].transform.position = Vector3(0.0f, 3.0f, 4.0f);
+	bvh_meshes.primitives[3].transform.position = Vector3(4.0f, 4.0f, 4.0f);
+	bvh_meshes.primitives[4].transform.position = Vector3(0.0f, 5.0f, 8.0f);
 
-	bvh_models.update();
-	bvh_models.init();
+	bvh_meshes.update();
+	bvh_meshes.init();
 
 	int triangle_count = 0;
-	for (int p = 0; p < bvh_models.primitive_count; p++) {
-		for (int m = 0; m < bvh_models.primitives[p].mesh_count; m++) {
-			triangle_count += bvh_models.primitives[p].meshes[m].mesh_data->vertex_count / 3;
-		}
+	for (int p = 0; p < bvh_meshes.primitive_count; p++) {
+		triangle_count += bvh_meshes.primitives[p].mesh_data->vertex_count / 3;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
@@ -105,7 +103,7 @@ Scene::~Scene() {
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	spheres.trace(ray, ray_hit);
 	planes.trace(ray, ray_hit);
-	bvh_models.trace(ray, ray_hit);
+	bvh_meshes.trace(ray, ray_hit);
 }
 
 SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
@@ -117,7 +115,7 @@ SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance)
 	result = result | planes.intersect(ray, max_distance);
 	if (SIMD_float::all_true(result)) return result;
 
-	result = result | bvh_models.intersect(ray, max_distance);
+	result = result | bvh_meshes.intersect(ray, max_distance);
 	return result;
 }
 
@@ -387,7 +385,7 @@ void Scene::update(float delta) {
 
 	spheres.update();
 	planes.update();
-	bvh_models.update();
+	bvh_meshes.update();
 }
 
 void Scene::render_tile(const Window & window, int x, int y) const {
