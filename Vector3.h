@@ -69,7 +69,8 @@ struct Vector3 {
 	inline Vector3 operator*=(float scalar) {                                   x *= scalar;     y *= scalar;     z *= scalar;     return *this; }
 	inline Vector3 operator/=(float scalar) { float inv_scalar = 1.0f / scalar; x *= inv_scalar; y *= inv_scalar; z *= inv_scalar; return *this; }
 
-	inline float & operator[](int index) { assert(index >= 0 && index < 3); return data[index]; }
+	inline       float & operator[](int index)       { assert(index >= 0 && index < 3); return data[index]; }
+	inline const float & operator[](int index) const { assert(index >= 0 && index < 3); return data[index]; }
 };
 
 inline Vector3 operator-(const Vector3 & vector) { return Vector3(-vector.x, -vector.y, -vector.z); }

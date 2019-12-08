@@ -40,7 +40,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 	bvh_models.primitives[3].transform.position = Vector3(4.0f, 2.0f, 4.0f);
 	bvh_models.primitives[4].transform.position = Vector3(0.0f, 2.0f, 8.0f);
 
-	bvh_models.primitives.update();
+	bvh_models.update();
 	bvh_models.init();
 
 	point_lights = new PointLight[point_light_count = 1] {
@@ -379,7 +379,7 @@ void Scene::update(float delta) {
 
 	spheres.update();
 	planes.update();
-	bvh_models.primitives.update();
+	bvh_models.update();
 }
 
 void Scene::render_tile(const Window & window, int x, int y) const {

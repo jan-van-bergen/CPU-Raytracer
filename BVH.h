@@ -7,10 +7,10 @@
 #include "PrimitiveList.h"
 
 template<typename PrimitiveType>
-inline AABB calculate_bounds(const PrimitiveList<PrimitiveType> & primitives, const int * indices, int first, int last);
+inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last);
 
 template<>
-inline AABB calculate_bounds(const PrimitiveList<Model> & primitives, const int * indices, int first, int last) {
+inline AABB calculate_bounds(const Model * primitives, const int * indices, int first, int last) {
 	AABB aabb;
 	aabb.min = Vector3(+INFINITY);
 	aabb.max = Vector3(-INFINITY);
@@ -45,7 +45,7 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveList<PrimitiveType> & primitives, int * indices, int first_index, int index_count, float parent_cost) {
+	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost) {
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
@@ -88,7 +88,7 @@ struct BVHNode {
 		return min_split_index;
 	}
 
-	inline void subdivide(const PrimitiveList<PrimitiveType> & primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count) {
+	inline void subdivide(const PrimitiveType * primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count) {
 		aabb = calculate_bounds(primitives, indices, first_index, first_index + index_count);
 		
 		if (index_count < 3) {
@@ -124,7 +124,7 @@ struct BVHNode {
 		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right);
 	}
 
-	inline void trace(const PrimitiveList<PrimitiveType> & primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit) const {
+	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit) const {
 		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
 		if (SIMD_float::all_false(mask)) return;
 
@@ -139,7 +139,7 @@ struct BVHNode {
 		}
 	}
 
-	inline SIMD_float intersect(const PrimitiveList<PrimitiveType> & primitives, const int * indices, const BVHNode nodes[], const Ray & ray, SIMD_float max_distance) const {
+	inline SIMD_float intersect(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, SIMD_float max_distance) const {
 		SIMD_float mask = aabb.intersect(ray, max_distance);
 		if (SIMD_float::all_false(mask)) return mask;
 
@@ -166,28 +166,39 @@ struct BVHNode {
 
 template<typename PrimitiveType>
 struct BVH {
-	PrimitiveList<PrimitiveType> primitives;
+	PrimitiveType * primitives;
+	int             primitive_count;
 
 	int * indices;
 
 	BVHNode<PrimitiveType> * nodes;
 
-	inline BVH(int primitive_count) : primitives(primitive_count) { }
+	inline BVH(int primitive_count) : primitive_count(primitive_count) {
+		if (primitive_count > 0) {
+			primitives = new PrimitiveType[primitive_count];
+		}
+	}
 
 	inline void init() {
 		// Construct index array
-		indices = new int[primitives.primitive_count];
-		for (int i = 0; i < primitives.primitive_count; i++) {
+		indices = new int[primitive_count];
+		for (int i = 0; i < primitive_count; i++) {
 			indices[i] = i;
 		}
 
 		// Construct Node pool
-		nodes = reinterpret_cast<BVHNode<PrimitiveType> *>(ALLIGNED_MALLOC(2 * primitives.primitive_count * sizeof(BVHNode<PrimitiveType>), 64));
+		nodes = reinterpret_cast<BVHNode<PrimitiveType> *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode<PrimitiveType>), 64));
 		
 		assert((unsigned long long)nodes % 64 == 0);
 
 		int node_index = 2;
-		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitives.primitive_count);
+		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count);
+	}
+	
+	inline void update() const {
+		for (int i = 0; i < primitive_count; i++) {
+			primitives[i].update();
+		}
 	}
 
 	inline void trace(const Ray & ray, RayHit & ray_hit) const {
