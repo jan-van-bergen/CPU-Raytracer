@@ -148,5 +148,8 @@
     <ClInclude Include="BVH.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
+    <ClInclude Include="ScopedTimer.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

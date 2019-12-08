@@ -30,7 +30,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 	planes[0].material.reflection = 0.25f;
 
 	bvh_models.primitives[0].init(DATA_PATH("Diamond.obj"));
-	bvh_models.primitives[1].init(DATA_PATH("Cube.obj"));
+	bvh_models.primitives[1].init(DATA_PATH("Monkey.obj"));
 	bvh_models.primitives[2].init(DATA_PATH("icosphere.obj"));
 	bvh_models.primitives[3].init(DATA_PATH("Rock.obj"));
 	bvh_models.primitives[4].init(DATA_PATH("Torus.obj"));
@@ -42,6 +42,14 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 
 	bvh_models.update();
 	bvh_models.init();
+
+	int triangle_count = 0;
+	for (int p = 0; p < bvh_models.primitive_count; p++) {
+		for (int m = 0; m < bvh_models.primitives[p].mesh_count; m++) {
+			triangle_count += bvh_models.primitives[p].meshes[m].mesh_data->vertex_count / 3;
+		}
+	}
+	printf("Scene contains %i triangles.\n", triangle_count);
 
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
@@ -55,7 +63,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DA
 		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 
-	camera.position = Vector3(0.0f, 2.0f, -2.0f);
+	camera.position = Vector3(2.0f, 4.0f, -2.0f);
 #elif CURRENT_SCENE == SCENE_WHITTED
 Scene::Scene() : camera(110.0f), spheres(2), planes(0), bvh_models(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
 	spheres[0].init(1.0f);

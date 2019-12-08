@@ -6,6 +6,8 @@
 
 #include "PrimitiveList.h"
 
+#include "ScopedTimer.h"
+
 template<typename PrimitiveType>
 inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last);
 
@@ -81,6 +83,7 @@ struct BVHNode {
 		// Check SAH termination condition
 		if (min_cost >= parent_cost) return -1;
 
+		// Sort indices so that they are sorted along the dimension that we want to split in
 		std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
 			return primitives[a].transform.position[min_split_dimension] < primitives[b].transform.position[min_split_dimension];	
 		});
@@ -173,6 +176,8 @@ struct BVH {
 
 	BVHNode<PrimitiveType> * nodes;
 
+	static_assert(sizeof(BVHNode<PrimitiveType>) == 32);
+
 	inline BVH(int primitive_count) : primitive_count(primitive_count) {
 		assert(primitive_count > 0);
 
@@ -190,6 +195,8 @@ struct BVH {
 	}
 
 	inline void init() {
+		ScopedTimer timer("BVH Construction");
+
 		int node_index = 2;
 		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count);
 
