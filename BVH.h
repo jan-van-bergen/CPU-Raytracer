@@ -8,6 +8,12 @@
 
 #include "ScopedTimer.h"
 
+#define TRAVERSE_BRUTE_FORCE 0
+#define TRAVERSE_TREE_NAIVE  1
+#define TRAVERSE_ORDERED     2
+
+#define TRAVERSAL_STRATEGY TRAVERSE_TREE_NAIVE
+
 template<typename PrimitiveType>
 inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last);
 
@@ -210,10 +216,28 @@ struct BVH {
 	}
 
 	inline void trace(const Ray & ray, RayHit & ray_hit) const {
+#if TRAVERSAL_STRATEGY == TRAVERSE_BRUTE_FORCE
+		for (int i = 0; i < primitive_count; i++) {
+			primitives[i].trace(ray, ray_hit);
+		}
+#else
 		nodes[0].trace(primitives, indices, nodes, ray, ray_hit);
+#endif
 	}
 
 	inline SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
+#if TRAVERSAL_STRATEGY == TRAVERSE_BRUTE_FORCE
+		SIMD_float result(0.0f);
+
+		for (int i = 0; i < primitive_count; i++) {
+			result = result | primitives[i].intersect(ray, max_distance);
+
+			if (SIMD_float::all_true(result)) break;
+		}
+
+		return result;
+#else
 		return nodes[0].intersect(primitives, indices, nodes, ray, max_distance);
+#endif
 	}
 };
