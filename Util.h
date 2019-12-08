@@ -19,4 +19,7 @@
 
 #define FORCEINLINE __forceinline
 
+#define ALLIGNED_MALLOC(size, align) _aligned_malloc(size, align)
+#define ALLIGNED_FREE(ptr)           _aligned_free(ptr)
+
 const char * get_path(const char * file_path);

@@ -145,5 +145,8 @@
     <ClInclude Include="AABB.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
+    <ClInclude Include="BVH.h">
+      <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

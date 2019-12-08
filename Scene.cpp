@@ -7,10 +7,10 @@
 #define SCENE_TEST    0
 #define SCENE_WHITTED 1
 
-#define CURRENT_SCENE SCENE_WHITTED
+#define CURRENT_SCENE SCENE_TEST
 
 #if CURRENT_SCENE == SCENE_TEST
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), bvh_models(5), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -29,10 +29,20 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 
-	meshes[0].init(DATA_PATH("Diamond.obj"));
-	meshes[0].transform.position.y = 2.0f;
-	meshes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	
+	bvh_models.primitives[0].init(DATA_PATH("Diamond.obj"));
+	bvh_models.primitives[1].init(DATA_PATH("Diamond.obj"));
+	bvh_models.primitives[2].init(DATA_PATH("Diamond.obj"));
+	bvh_models.primitives[3].init(DATA_PATH("Diamond.obj"));
+	bvh_models.primitives[4].init(DATA_PATH("Diamond.obj"));
+	bvh_models.primitives[0].transform.position = Vector3(0.0f, 2.0f, 0.0f);
+	bvh_models.primitives[1].transform.position = Vector3(4.0f, 2.0f, 0.0f);
+	bvh_models.primitives[2].transform.position = Vector3(0.0f, 2.0f, 4.0f);
+	bvh_models.primitives[3].transform.position = Vector3(4.0f, 2.0f, 4.0f);
+	bvh_models.primitives[4].transform.position = Vector3(0.0f, 2.0f, 8.0f);
+
+	bvh_models.primitives.update();
+	bvh_models.init();
+
 	point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
 	};
@@ -42,12 +52,12 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), meshes(1), skybox(DATA_P
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 1.0f)))
+		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 
 	camera.position = Vector3(0.0f, 2.0f, -2.0f);
 #elif CURRENT_SCENE == SCENE_WHITTED
-Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(0), bvh_models(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[0].transform.position = Vector3(0.0f, 0.0f, 0.0f);
 	spheres[0].material.diffuse = 1.0f;
@@ -62,8 +72,10 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(0), meshes(1), skybox(DATA_P
 	spheres[1].material.transmittance = 0.9f;
 	spheres[1].material.index_of_refraction = 1.5f;
 
-	meshes[0].init(DATA_PATH("Plane.obj"));
-	meshes[0].transform.position.y = -1.0f;
+	bvh_models.primitives[0].init(DATA_PATH("Plane.obj"));
+	bvh_models.primitives[0].transform.position.y = -1.0f;
+
+	bvh_models.init();
 
 	point_light_count = 0;
 	spot_light_count  = 0;
@@ -84,8 +96,8 @@ Scene::~Scene() {
 
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	spheres.trace(ray, ray_hit);
-	planes.trace (ray, ray_hit);
-	meshes.trace (ray, ray_hit);
+	planes.trace(ray, ray_hit);
+	bvh_models.trace(ray, ray_hit);
 }
 
 SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
@@ -94,10 +106,10 @@ SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance)
 	result = spheres.intersect(ray, max_distance);
 	if (SIMD_float::all_true(result)) return result;
 
-	result = result | planes.intersect (ray, max_distance);
+	result = result | planes.intersect(ray, max_distance);
 	if (SIMD_float::all_true(result)) return result;
 
-	result = result | meshes.intersect (ray, max_distance);
+	result = result | bvh_models.intersect(ray, max_distance);
 	return result;
 }
 
@@ -362,12 +374,12 @@ void Scene::update(float delta) {
 
 #if CURRENT_SCENE == SCENE_TEST
 	// In the Test Scene, rotate the Diamond
-	meshes[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * meshes[0].transform.rotation;
+	//bvh_models.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * bvh_models.primitives[0].transform.rotation;
 #endif
 
 	spheres.update();
 	planes.update();
-	meshes.update();
+	bvh_models.primitives.update();
 }
 
 void Scene::render_tile(const Window & window, int x, int y) const {

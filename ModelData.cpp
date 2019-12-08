@@ -96,11 +96,6 @@ const ModelData * ModelData::load(const char * file_path) {
 			}
 		}
 
-		for (int i = 0; i < vertex_count; i += 3) {
-			mesh_data->positions[i+1] -= mesh_data->positions[i];
-			mesh_data->positions[i+2] -= mesh_data->positions[i];
-		}
-
 		printf("Loaded Mesh %s from disk, consisting of %u vertices.\n", file_path, model_data->mesh_data[m].vertex_count);
 	}
 	

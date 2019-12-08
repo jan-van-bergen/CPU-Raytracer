@@ -1,9 +1,15 @@
 #pragma once
 #include <math.h>
+#include <cassert>
 
 struct Vector3 {
-	float x, y, z;
-	
+	union {
+		struct {
+			float x, y, z;
+		};
+		float data[3];
+	};
+
 	inline Vector3() : x(0.0f), y(0.0f), z(0.0f) { }
 	inline Vector3(float f) : x(f), y(f), z(f) {}
 	inline Vector3(float x, float y, float z) : x(x), y(y), z(z) { }
@@ -37,6 +43,22 @@ struct Vector3 {
 		);
 	}
 
+	inline static Vector3 min(const Vector3 & left, const Vector3 & right) {
+		return Vector3(
+			left.x < right.x ? left.x : right.x,
+			left.y < right.y ? left.y : right.y,
+			left.z < right.z ? left.z : right.z
+		);
+	}
+	
+	inline static Vector3 max(const Vector3 & left, const Vector3 & right) {
+		return Vector3(
+			left.x > right.x ? left.x : right.x,
+			left.y > right.y ? left.y : right.y,
+			left.z > right.z ? left.z : right.z
+		);
+	}
+
 	inline Vector3 operator+=(const Vector3 & vector) { x += vector.x; y += vector.y; z += vector.z; return *this; }
 	inline Vector3 operator-=(const Vector3 & vector) { x -= vector.x; y -= vector.y; z -= vector.z; return *this; }
 	inline Vector3 operator*=(const Vector3 & vector) { x *= vector.x; y *= vector.y; z *= vector.z; return *this; }
@@ -46,6 +68,8 @@ struct Vector3 {
 	inline Vector3 operator-=(float scalar) {                                   x -= scalar;     y -= scalar;     z -= scalar;     return *this; }
 	inline Vector3 operator*=(float scalar) {                                   x *= scalar;     y *= scalar;     z *= scalar;     return *this; }
 	inline Vector3 operator/=(float scalar) { float inv_scalar = 1.0f / scalar; x *= inv_scalar; y *= inv_scalar; z *= inv_scalar; return *this; }
+
+	inline float & operator[](int index) { assert(index >= 0 && index < 3); return data[index]; }
 };
 
 inline Vector3 operator-(const Vector3 & vector) { return Vector3(-vector.x, -vector.y, -vector.z); }

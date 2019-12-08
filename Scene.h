@@ -4,6 +4,8 @@
 #include "Model.h"
 #include "PrimitiveList.h"
 
+#include "BVH.h"
+
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "DirectionalLight.h"
@@ -18,8 +20,9 @@ struct Scene {
 private:
 	PrimitiveList<Sphere> spheres;
 	PrimitiveList<Plane>  planes;
-	PrimitiveList<Model>  meshes;
-	
+
+	BVH<Model> bvh_models;
+
 	// Lights
 	PointLight * point_lights      = nullptr;
 	int          point_light_count = 0;

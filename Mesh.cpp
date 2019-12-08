@@ -7,9 +7,9 @@
 void Mesh::update(const Matrix4 & world_matrix) {
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
 		// For every three Vertices, the first Vector is an actual vertex position, the two Vectors after that are the Triangle edges
-		world_positions[i]   = Matrix4::transform_position (world_matrix, mesh_data->positions[i]);
-		world_positions[i+1] = Matrix4::transform_direction(world_matrix, mesh_data->positions[i+1]);
-		world_positions[i+2] = Matrix4::transform_direction(world_matrix, mesh_data->positions[i+2]);
+		world_positions[i]   = Matrix4::transform_position(world_matrix, mesh_data->positions[i]);
+		world_positions[i+1] = Matrix4::transform_position(world_matrix, mesh_data->positions[i+1]);
+		world_positions[i+2] = Matrix4::transform_position(world_matrix, mesh_data->positions[i+2]);
 
 		world_normals[i]   = Matrix4::transform_direction(world_matrix, mesh_data->normals[i]);
 		world_normals[i+1] = Matrix4::transform_direction(world_matrix, mesh_data->normals[i+1]);
@@ -26,8 +26,8 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	// Iterate over all Triangles in the Mesh
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
-		SIMD_Vector3 edge0(world_positions[i+1]);
-		SIMD_Vector3 edge1(world_positions[i+2]);
+		SIMD_Vector3 edge0(world_positions[i+1] - world_positions[i]);
+		SIMD_Vector3 edge1(world_positions[i+2] - world_positions[i]);
 
 		SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 		SIMD_float   a = SIMD_Vector3::dot(edge0, h);
@@ -104,8 +104,8 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 
 	// Iterate over all Triangles in the Mesh
 	for (int i = 0; i < mesh_data->vertex_count; i += 3) {
-		SIMD_Vector3 edge0(world_positions[i+1]);
-		SIMD_Vector3 edge1(world_positions[i+2]);
+		SIMD_Vector3 edge0(world_positions[i+1] - world_positions[i]);
+		SIMD_Vector3 edge1(world_positions[i+2] - world_positions[i]);
 
 		SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 		SIMD_float   a = SIMD_Vector3::dot(edge0, h);

@@ -44,7 +44,7 @@ struct PrimitiveList {
 		return result;
 	}
 
-	inline PrimitiveType & operator[](int index) { 
+	inline PrimitiveType & operator[](int index) const { 
 		assert(index >= 0 && index < primitive_count);
 		return primitives[index]; 
 	}
