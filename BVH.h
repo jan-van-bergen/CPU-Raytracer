@@ -174,12 +174,10 @@ struct BVH {
 	BVHNode<PrimitiveType> * nodes;
 
 	inline BVH(int primitive_count) : primitive_count(primitive_count) {
-		if (primitive_count > 0) {
-			primitives = new PrimitiveType[primitive_count];
-		}
-	}
+		assert(primitive_count > 0);
 
-	inline void init() {
+		primitives = new PrimitiveType[primitive_count];
+
 		// Construct index array
 		indices = new int[primitive_count];
 		for (int i = 0; i < primitive_count; i++) {
@@ -188,11 +186,14 @@ struct BVH {
 
 		// Construct Node pool
 		nodes = reinterpret_cast<BVHNode<PrimitiveType> *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode<PrimitiveType>), 64));
-		
 		assert((unsigned long long)nodes % 64 == 0);
+	}
 
+	inline void init() {
 		int node_index = 2;
 		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count);
+
+		assert(node_index < 2 * primitive_count);
 	}
 	
 	inline void update() const {
