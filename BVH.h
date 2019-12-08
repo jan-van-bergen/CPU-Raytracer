@@ -7,10 +7,10 @@
 #include "PrimitiveList.h"
 
 template<typename PrimitiveType>
-inline AABB calculate_bounds(const PrimitiveList<PrimitiveType> & primitives, int * indices, int first, int last);
+inline AABB calculate_bounds(const PrimitiveList<PrimitiveType> & primitives, const int * indices, int first, int last);
 
 template<>
-inline AABB calculate_bounds(const PrimitiveList<Model> & primitives, int * indices, int first, int last) {
+inline AABB calculate_bounds(const PrimitiveList<Model> & primitives, const int * indices, int first, int last) {
 	AABB aabb;
 	aabb.min = Vector3(+INFINITY);
 	aabb.max = Vector3(-INFINITY);
@@ -45,7 +45,7 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveList<PrimitiveType> & primitives, int * indices, int first_index, int index_count) {
+	inline int partition(const PrimitiveList<PrimitiveType> & primitives, int * indices, int first_index, int index_count, float parent_cost) {
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
@@ -78,6 +78,9 @@ struct BVHNode {
 		
 		if (min_split_index == -1) abort();
 
+		// Check SAH termination condition
+		if (min_cost >= parent_cost) return -1;
+
 		std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
 			return primitives[a].transform.position[min_split_dimension] < primitives[b].transform.position[min_split_dimension];	
 		});
@@ -87,7 +90,7 @@ struct BVHNode {
 
 	inline void subdivide(const PrimitiveList<PrimitiveType> & primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count) {
 		aabb = calculate_bounds(primitives, indices, first_index, first_index + index_count);
-
+		
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
 			first = first_index;
@@ -101,7 +104,18 @@ struct BVHNode {
 		
 		count = 0;
 
-		int split_index = partition(primitives, indices, first_index, index_count);
+		// Calculate cost of the current Node, used to determine termination
+		float cost = aabb.surface_area() * float(index_count); 
+
+		int split_index = partition(primitives, indices, first_index, index_count, cost);
+		
+		if (split_index == -1) {
+			// Leaf Node, terminate recursion
+			first = first_index;
+			count = index_count;
+
+			return;
+		}
 
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
