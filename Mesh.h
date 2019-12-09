@@ -31,7 +31,6 @@ struct Mesh {
 
 		update();
 
-		triangle_bvh.update();
 		triangle_bvh.build();
 	}
 
