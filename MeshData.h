@@ -1,14 +1,10 @@
 #pragma once
-#include "Vector2.h"
-#include "Vector3.h"
+#include "Triangle.h"
 #include "Material.h"
 
 struct MeshData {
-	Vector3 * positions;
-	Vector2 * tex_coords;
-	Vector3 * normals;
-	int     * material_ids;
-	int       vertex_count;
+	int        triangle_count;
+	Triangle * triangles;
 
 	Material * materials;
 

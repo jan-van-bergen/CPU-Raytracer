@@ -7,30 +7,47 @@
 #include "Ray.h"
 #include "RayHit.h"
 
+#include "BVH.h"
+
 struct Mesh {
 	Transform transform;
 
 	const MeshData * mesh_data = nullptr;
 
-	Vector3 * world_positions = nullptr;
-	Vector3 * world_normals   = nullptr;
+	BVH<Triangle> triangle_bvh;
 
 	inline void init(const char * file_path)  {
-		assert(world_positions == nullptr);
-		assert(world_normals   == nullptr);
-
 		mesh_data = MeshData::load(file_path);
-		world_positions = new Vector3[mesh_data->vertex_count];
-		world_normals   = new Vector3[mesh_data->vertex_count];
-	}
+		triangle_bvh.init(mesh_data->triangle_count);
+		
+		// Copy Texture Coordinates
+		for (int i = 0; i < mesh_data->triangle_count; i++) {
+			triangle_bvh.primitives[i].tex_coord0 = mesh_data->triangles[i].tex_coord0;
+			triangle_bvh.primitives[i].tex_coord1 = mesh_data->triangles[i].tex_coord1;
+			triangle_bvh.primitives[i].tex_coord2 = mesh_data->triangles[i].tex_coord2;
 
-	inline ~Mesh() {
-		delete[] world_positions;
-		delete[] world_normals;
+			triangle_bvh.primitives[i].material = mesh_data->triangles[i].material;
+		}
+
+		update();
+
+		triangle_bvh.update();
+		triangle_bvh.build();
 	}
 
 	void update();
 
 	void       trace    (const Ray & ray, RayHit & ray_hit) const;
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
+
+	inline void expand(AABB & aabb) const {
+		// Iterate over Triangles
+		for (int t = 0; t < mesh_data->triangle_count; t++) {
+			triangle_bvh.primitives[t].expand(aabb);
+		}
+	}
+
+	inline Vector3 get_position() const {
+		return transform.position;
+	}
 };

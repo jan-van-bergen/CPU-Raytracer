@@ -15,27 +15,14 @@
 #define TRAVERSAL_STRATEGY TRAVERSE_TREE_NAIVE
 
 template<typename PrimitiveType>
-inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last);
-
-template<>
-inline AABB calculate_bounds(const Mesh * primitives, const int * indices, int first, int last) {
+inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last) {
 	AABB aabb;
 	aabb.min = Vector3(+INFINITY);
 	aabb.max = Vector3(-INFINITY);
 
 	// Iterate over relevant Primitives
 	for (int i = first; i < last; i++) {
-		int index = indices[i];
-
-		// Iterate over Triangles of current sub-Mesh
-		for (int t = 0; t < primitives[index].mesh_data->vertex_count; t += 3) {
-			Vector3 position0 = primitives[index].world_positions[t];
-			Vector3 position1 = primitives[index].world_positions[t+1];
-			Vector3 position2 = primitives[index].world_positions[t+2];
-				
- 			aabb.min = Vector3::min(Vector3::min(aabb.min, position0), Vector3::min(position1, position2));
-			aabb.max = Vector3::max(Vector3::max(aabb.max, position0), Vector3::max(position1, position2));
-		}
+		primitives[indices[i]].expand(aabb);
 	}
 
 	return aabb;
@@ -59,7 +46,7 @@ struct BVHNode {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			// Sort along current dimension
 			std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
-				return primitives[a].transform.position[dimension] < primitives[b].transform.position[dimension];	
+				return primitives[a].get_position()[dimension] < primitives[b].get_position()[dimension];	
 			});
 
 			for (int i = first_index + 1; i < first_index + index_count; i++) {
@@ -88,7 +75,7 @@ struct BVHNode {
 
 		// Sort indices so that they are sorted along the dimension that we want to split in
 		std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
-			return primitives[a].transform.position[min_split_dimension] < primitives[b].transform.position[min_split_dimension];	
+			return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
 		});
 
 		return min_split_index;
@@ -181,9 +168,10 @@ struct BVH {
 
 	static_assert(sizeof(BVHNode<PrimitiveType>) == 32);
 
-	inline BVH(int primitive_count) : primitive_count(primitive_count) {
-		assert(primitive_count > 0);
+	inline void init(int count) {
+		assert(count > 0);
 
+		primitive_count = count; 
 		primitives = new PrimitiveType[primitive_count];
 
 		// Construct index array
@@ -197,13 +185,13 @@ struct BVH {
 		assert((unsigned long long)nodes % 64 == 0);
 	}
 
-	inline void init() {
+	inline void build() {
 		ScopedTimer timer("BVH Construction");
 
 		int node_index = 2;
 		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count);
 
-		assert(node_index < 2 * primitive_count);
+		assert(node_index <= 2 * primitive_count);
 	}
 	
 	inline void update() const {

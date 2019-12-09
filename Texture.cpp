@@ -21,6 +21,8 @@ const Texture * Texture::load(const char * file_path) {
 	int channels;
 	texture->data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
 
+	if (texture->width == 0 || texture->height == 0) abort();
+
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
 

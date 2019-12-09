@@ -57,6 +57,9 @@
     <ClCompile Include="MeshData.cpp">
       <Filter>Assets</Filter>
     </ClCompile>
+    <ClCompile Include="Triangle.cpp">
+      <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -147,6 +150,9 @@
     </ClInclude>
     <ClInclude Include="MeshData.h">
       <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
