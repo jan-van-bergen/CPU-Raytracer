@@ -18,11 +18,3 @@ void Mesh::update() {
 		triangle_bvh.primitives[i].normal2 = Matrix4::transform_direction(transform.world_matrix, mesh_data->triangles[i].normal2);
 	}
 }
-
-void Mesh::trace(const Ray & ray, RayHit & ray_hit) const {
-	triangle_bvh.trace(ray, ray_hit);
-}
-
-SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {	
-	return triangle_bvh.intersect(ray, max_distance);
-}

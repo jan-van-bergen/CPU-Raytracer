@@ -36,8 +36,13 @@ struct Mesh {
 
 	void update();
 
-	void       trace    (const Ray & ray, RayHit & ray_hit) const;
-	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
+	void trace(const Ray & ray, RayHit & ray_hit) const {
+		triangle_bvh.trace(ray, ray_hit);
+	}
+
+	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
+		return triangle_bvh.intersect(ray, max_distance);
+	}
 
 	inline void expand(AABB & aabb) const {
 		// Iterate over Triangles
