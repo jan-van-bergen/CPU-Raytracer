@@ -25,6 +25,13 @@ inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indic
 		primitives[indices[i]].expand(aabb);
 	}
 
+	// Make sure the AABB is non-zero along every dimension
+	for (int d = 0; d < 3; d++) {
+		if (aabb.max[d] - aabb.min[d] == 0.0f) {
+			aabb.max[d] += 0.005f;
+		}
+	}
+
 	return aabb;
 } 
 

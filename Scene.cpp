@@ -44,7 +44,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #else
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, 0.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("MonkeyDetailed.obj"));
+	bvh_meshes.primitives[0].init(DATA_PATH("lpshead/head2.obj"));
 #endif
 
 	bvh_meshes.update();

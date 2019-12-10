@@ -89,8 +89,8 @@ const MeshData * MeshData::load(const char * file_path) {
 			}
 			if (tex_coord_index != INVALID) {
 				tex_coords[v] = Vector2(
-					attrib.texcoords[2*tex_coord_index    ], 
-					attrib.texcoords[2*tex_coord_index + 1]
+					      attrib.texcoords[2*tex_coord_index    ], 
+					1.0f -attrib.texcoords[2*tex_coord_index + 1] // Flip uv along y
 				);
 			}
 			if (normal_index != INVALID) {
