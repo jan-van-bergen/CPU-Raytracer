@@ -43,7 +43,8 @@ struct Mesh {
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
 		return triangle_bvh.intersect(ray, max_distance);
 	}
-
+	
+	// BVH Related methods
 	inline void expand(AABB & aabb) const {
 		// Iterate over Triangles
 		for (int t = 0; t < mesh_data->triangle_count; t++) {
