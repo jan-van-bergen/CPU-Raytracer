@@ -56,23 +56,31 @@ const MeshData * MeshData::load(const char * file_path) {
 	}
 	
 	// Load Meshes
-	int triangle_count = 0;
-	int triangle_offset = 0;
+	int total_vertex_count = 0;
+	int max_vertex_count = -1;
 
+	// Count total amount of vertices over all Shapes
 	for (int s = 0; s < shapes.size(); s++) {
-		triangle_count += shapes[s].mesh.indices.size() / 3;
+		int vertex_count = shapes[s].mesh.indices.size();
+		total_vertex_count += vertex_count;
+
+		if (vertex_count > max_vertex_count) {
+			max_vertex_count = vertex_count;
+		}
 	}
 	
-	mesh_data->triangle_count = triangle_count;
-	mesh_data->triangles = new Triangle[triangle_count];
+	mesh_data->triangle_count = total_vertex_count / 3;
+	mesh_data->triangles = new Triangle[mesh_data->triangle_count];
+	
+	Vector3 * positions  = new Vector3[max_vertex_count];
+	Vector2 * tex_coords = new Vector2[max_vertex_count];
+	Vector3 * normals    = new Vector3[max_vertex_count];
+
+	int triangle_offset = 0;
 
 	for (int s = 0; s < shapes.size(); s++) {
 		int vertex_count = shapes[s].mesh.indices.size();
 		assert(vertex_count % 3 == 0);
-
-		Vector3 * positions    = new Vector3[vertex_count];
-		Vector2 * tex_coords   = new Vector2[vertex_count];
-		Vector3 * normals      = new Vector3[vertex_count];
 
 		// Iterate over vertices and assign attributes
 		for (int v = 0; v < vertex_count; v++) {
@@ -120,16 +128,16 @@ const MeshData * MeshData::load(const char * file_path) {
 			mesh_data->triangles[triangle_offset + v].material = &mesh_data->materials[material_id == INVALID ? 0 : material_id];
 		}
 		
-		delete [] positions;
-		delete [] tex_coords;
-		delete [] normals;
-
 		triangle_offset += vertex_count / 3;
 	}
 
 	assert(triangle_offset == mesh_data->triangle_count);
 
 	printf("Loaded Mesh %s from disk, consisting of %u triangles.\n", file_path, mesh_data->triangle_count);
+	
+	delete [] positions;
+	delete [] tex_coords;
+	delete [] normals;
 
 	delete [] path;
 
