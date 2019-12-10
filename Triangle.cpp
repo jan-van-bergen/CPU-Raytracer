@@ -15,19 +15,13 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit) const {
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
 
-	// If the ray is parallel to the plane formed by 
-	// the triangle no intersection is possible
-	SIMD_float mask = (a < neg_epsilon) | (a > pos_epsilon);
-	if (SIMD_float::all_false(mask)) return;
-
 	SIMD_float   f = SIMD_float::rcp(a);
 	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
 	// is outside the interval [0, 1] we know no intersection is possible
-	mask = mask & (u > zero);
-	mask = mask & (u < one);
+	SIMD_float mask = (u > zero) & (u < one);
 	if (SIMD_float::all_false(mask)) return;
 
 	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
@@ -88,19 +82,13 @@ SIMD_float Triangle::intersect(const Ray & ray, SIMD_float max_distance) const {
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
 
-	// If the ray is parallel to the plane formed by 
-	// the triangle no intersection is possible
-	SIMD_float mask = (a < neg_epsilon) | (a > pos_epsilon);
-	if (SIMD_float::all_false(mask)) return mask;
-
 	SIMD_float   f = SIMD_float::rcp(a);
 	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
 	// is outside the interval [0, 1] we know no intersection is possible
-	mask = mask & (u > zero);
-	mask = mask & (u < one);
+	SIMD_float mask = (u > zero) & (u < one);
 	if (SIMD_float::all_false(mask)) return mask;
 
 	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
