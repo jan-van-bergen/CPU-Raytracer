@@ -44,8 +44,7 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost) const {
-		float * sah = new float[index_count];
+	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost, float * sah) const {
 
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
@@ -86,8 +85,6 @@ struct BVHNode {
 			}
 		}
 
-		delete [] sah;
-		
 		if (min_split_index == -1) abort();
 
 		// Check SAH termination condition
@@ -101,7 +98,7 @@ struct BVHNode {
 		return min_split_index;
 	}
 
-	inline void subdivide(const PrimitiveType * primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count) {
+	inline void subdivide(const PrimitiveType * primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah) {
 		aabb = calculate_bounds(primitives, indices, first_index, first_index + index_count);
 		
 		if (index_count < 3) {
@@ -120,7 +117,7 @@ struct BVHNode {
 		// Calculate cost of the current Node, used to determine termination
 		float cost = aabb.surface_area() * float(index_count); 
 
-		int split_index = partition(primitives, indices, first_index, index_count, cost);
+		int split_index = partition(primitives, indices, first_index, index_count, cost, sah);
 
 		if (split_index == -1) {
 			// Leaf Node, terminate recursion
@@ -133,8 +130,8 @@ struct BVHNode {
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
 
-		nodes[left    ].subdivide(primitives, indices, nodes, node_index, first_index,          n_left);
-		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right);
+		nodes[left    ].subdivide(primitives, indices, nodes, node_index, first_index,          n_left,  sah);
+		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right, sah);
 	}
 
 	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit) const {
@@ -208,10 +205,14 @@ struct BVH {
 	inline void build() {
 		ScopedTimer timer("BVH Construction");
 
+		float * sah = new float[primitive_count];
+
 		int node_index = 2;
-		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count);
+		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah);
 
 		assert(node_index <= 2 * primitive_count);
+
+		delete [] sah;
 	}
 	
 	inline void update() const {
