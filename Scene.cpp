@@ -387,7 +387,7 @@ void Scene::update(float delta) {
 
 #if CURRENT_SCENE == SCENE_TEST
 	// In the Test Scene, rotate the Diamond
-	//bvh_models.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * bvh_models.primitives[0].transform.rotation;
+	//bvh_meshes.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * bvh_meshes.primitives[0].transform.rotation;
 #endif
 
 	spheres.update();

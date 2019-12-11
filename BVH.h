@@ -44,7 +44,9 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost) {
+	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost) const {
+		float * sah = new float[index_count];
+
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
@@ -56,24 +58,35 @@ struct BVHNode {
 				return primitives[a].get_position()[dimension] < primitives[b].get_position()[dimension];	
 			});
 
-			for (int i = first_index + 1; i < first_index + index_count; i++) {
-				AABB aabb_left  = calculate_bounds(primitives, indices, first_index, i);
-				AABB aabb_right = calculate_bounds(primitives, indices, i, first_index + index_count);
+			AABB aabb_left;
+			aabb_left.min = Vector3(+INFINITY);
+			aabb_left.max = Vector3(-INFINITY);
+			for (int i = 0; i < index_count - 1; i++) {
+				primitives[indices[first_index + i]].expand(aabb_left);
 
-				float area_left  = aabb_left.surface_area();
-				float area_right = aabb_right.surface_area();
+				sah[i] = aabb_left.surface_area() * float(i + 1);
+			}
 
-				int n_left  = i - first_index;
-				int n_right = first_index + index_count - i;
+			AABB aabb_right;
+			aabb_right.min = Vector3(+INFINITY);
+			aabb_right.max = Vector3(-INFINITY);
+			for (int i = index_count - 1; i > 0; i--) {
+				primitives[indices[first_index + i]].expand(aabb_right);
 
-				float cost = area_left * float(n_left) + area_right * float(n_right);
+				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
+			}
+
+			for (int i = 0; i < index_count - 1; i++) {
+				float cost = sah[i];
 				if (cost < min_cost) {
 					min_cost = cost;
-					min_split_index = i;
+					min_split_index = first_index + i + 1;
 					min_split_dimension = dimension;
 				}
 			}
 		}
+
+		delete [] sah;
 		
 		if (min_split_index == -1) abort();
 
@@ -108,7 +121,7 @@ struct BVHNode {
 		float cost = aabb.surface_area() * float(index_count); 
 
 		int split_index = partition(primitives, indices, first_index, index_count, cost);
-		
+
 		if (split_index == -1) {
 			// Leaf Node, terminate recursion
 			first = first_index;
@@ -116,7 +129,7 @@ struct BVHNode {
 
 			return;
 		}
-
+		
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
 
