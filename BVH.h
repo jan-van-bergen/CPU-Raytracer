@@ -45,7 +45,6 @@ struct BVHNode {
 	int count;
 
 	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost, float * sah) const {
-
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
