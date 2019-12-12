@@ -90,9 +90,12 @@ struct BVHNode {
 		if (min_cost >= parent_cost) return -1;
 
 		// Sort indices so that they are sorted along the dimension that we want to split in
-		std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
-			return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
-		});
+		// This is only required if we didn't split along z
+		if (min_split_dimension != 2) {
+			std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
+				return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
+			});
+		}
 
 		return min_split_index;
 	}
