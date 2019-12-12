@@ -44,7 +44,39 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost, float * sah) const {
+	inline int partition_median(const PrimitiveType * primitives, int * indices, int first_index, int index_count) const {
+		float max_axis_length = -INFINITY;
+		int min_split_dimension = -1;
+
+		// Check splits along all 3 dimensions
+		for (int dimension = 0; dimension < 3; dimension++) {
+			// Sort along current dimension
+			std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
+				return primitives[a].get_position()[dimension] < primitives[b].get_position()[dimension];	
+			});
+
+			float min = primitives[indices[first_index                  ]].get_position()[dimension];
+			float max = primitives[indices[first_index + index_count - 1]].get_position()[dimension];
+
+			float axis_length = max - min;
+			if (axis_length > max_axis_length) {
+				max_axis_length = axis_length;
+				min_split_dimension = dimension;
+			}
+		}
+		
+		// Sort indices so that they are sorted along the dimension that we want to split in
+		// This is only required if we didn't split along z
+		if (min_split_dimension != 2) {
+			std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
+				return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
+			});
+		}
+
+		return first_index + (index_count >> 1);
+	}
+
+	inline int partition_sah(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost, float * sah) const {
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
@@ -119,7 +151,8 @@ struct BVHNode {
 		// Calculate cost of the current Node, used to determine termination
 		float cost = aabb.surface_area() * float(index_count); 
 
-		int split_index = partition(primitives, indices, first_index, index_count, cost, sah);
+		int split_index = partition_sah(primitives, indices, first_index, index_count, cost, sah);
+		//int split_index = partition_median(primitives, indices, first_index, index_count);
 
 		if (split_index == -1) {
 			// Leaf Node, terminate recursion
@@ -184,8 +217,6 @@ struct BVH {
 	int * indices;
 
 	BVHNode<PrimitiveType> * nodes;
-
-	static_assert(sizeof(BVHNode<PrimitiveType>) == 32);
 
 	inline void init(int count) {
 		assert(count > 0);
