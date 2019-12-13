@@ -27,9 +27,6 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Raytracing</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Plane.cpp">
@@ -48,9 +45,6 @@
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="WorkerThread.cpp" />
-    <ClCompile Include="Sky.cpp">
-      <Filter>Raytracing</Filter>
-    </ClCompile>
     <ClCompile Include="AABB.cpp">
       <Filter>Raytracing\BVH</Filter>
     </ClCompile>
@@ -59,6 +53,12 @@
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
       <Filter>Raytracing\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="Sky.cpp">
+      <Filter>Raytracing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,9 +78,6 @@
       <Filter>Raytracing</Filter>
     </ClInclude>
     <ClInclude Include="Ray.h">
-      <Filter>Raytracing</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
     <ClInclude Include="Window.h" />
@@ -136,9 +133,6 @@
     <ClInclude Include="SIMD.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Sky.h">
-      <Filter>Raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="AABB.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
@@ -153,6 +147,12 @@
     </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Raytracing\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Raytracing</Filter>
+    </ClInclude>
+    <ClInclude Include="Sky.h">
+      <Filter>Raytracing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
