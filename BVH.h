@@ -83,6 +83,7 @@ struct BVHNode {
 
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
+			// First traverse left to right along the current dimension to evaluate first half of the SAH
 			AABB aabb_left;
 			aabb_left.min = Vector3(+INFINITY);
 			aabb_left.max = Vector3(-INFINITY);
@@ -92,6 +93,7 @@ struct BVHNode {
 				sah[i] = aabb_left.surface_area() * float(i + 1);
 			}
 
+			// Then traverse right to left along the current dimension to evaluate second half of the SAH
 			AABB aabb_right;
 			aabb_right.min = Vector3(+INFINITY);
 			aabb_right.max = Vector3(-INFINITY);
@@ -101,16 +103,13 @@ struct BVHNode {
 				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
 			}
 
-			float split = -INFINITY;
-
+			// Find the minimum of the SAH
 			for (int i = 0; i < index_count - 1; i++) {
 				float cost = sah[i];
 				if (cost < min_cost) {
 					min_cost = cost;
 					min_split_index = first_index + i + 1;
 					min_split_dimension = dimension;
-
-					split = primitives[indices[dimension][first_index + i]].get_position()[dimension];
 				}
 			}
 		}
