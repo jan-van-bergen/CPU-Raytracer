@@ -265,7 +265,7 @@ struct SIMD_int1 {
 
 	inline SIMD_int1() { /* leave uninitialized */ }
 
-	inline explicit SIMD_int1(int f) : data(f) { }
+	inline explicit SIMD_int1(int i) : data(i) { }
 
 	inline static FORCEINLINE SIMD_int1 min(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data < b.data ? a.data : b.data); }
 	inline static FORCEINLINE SIMD_int1 max(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data > b.data ? a.data : b.data); }
@@ -273,8 +273,8 @@ struct SIMD_int1 {
 	inline FORCEINLINE int & operator[](int index) { return data; }
 };
 
-inline FORCEINLINE SIMD_int1 operator-(SIMD_int1 floats) { 
-	return SIMD_int1(-floats.data); 
+inline FORCEINLINE SIMD_int1 operator-(SIMD_int1 ints) { 
+	return SIMD_int1(-ints.data); 
 }
 
 inline FORCEINLINE SIMD_int1 operator+(SIMD_int1 left, SIMD_int1 right) { return SIMD_int1(left.data + right.data); }
