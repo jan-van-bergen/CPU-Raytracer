@@ -2,7 +2,7 @@
 
 #include "Math.h"
 
-void Triangle::trace(const Ray & ray, RayHit & ray_hit) const {
+void Triangle::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 	
@@ -62,6 +62,8 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 		
+	ray_hit.bvh_steps = SIMD_float::blend(ray_hit.bvh_steps, SIMD_float(bvh_step), mask);
+
 	for (int j = 0; j < SIMD_LANE_SIZE; j++) {
 		if (int_mask & (1 << j)) {
 			ray_hit.material[j] = material;

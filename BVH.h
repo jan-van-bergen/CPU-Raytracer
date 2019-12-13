@@ -204,18 +204,18 @@ struct BVHNode {
 		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right, sah, temp);
 	}
 
-	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit) const {
+	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, int step) const {
 		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
 		if (SIMD_float::all_false(mask)) return;
 
 		// Check if the current Node is a leaf
 		if (count > 0) {
 			for (int i = first; i < first + count; i++) {
-				primitives[indices[i]].trace(ray, ray_hit);
+				primitives[indices[i]].trace(ray, ray_hit, step + count);
 			}
 		} else {
-			nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit);
-			nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit);
+			nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
 		}
 	}
 
@@ -312,7 +312,7 @@ struct BVH {
 			primitives[i].trace(ray, ray_hit);
 		}
 #else
-		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit);
+		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);
 #endif
 	}
 

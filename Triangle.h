@@ -24,7 +24,7 @@ struct Triangle {
 
 	inline void update() { }
 
-	void       trace    (const Ray & ray, RayHit & ray_hit) const;
+	void       trace    (const Ray & ray, RayHit & ray_hit, int bvh_step) const;
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 
 	// BVH Related methods

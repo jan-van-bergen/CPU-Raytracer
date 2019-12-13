@@ -45,6 +45,8 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
 	bvh_meshes.primitives[0].init(DATA_PATH("MonkeyDetailed.obj"));
+	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
+	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 #endif
 
 	bvh_meshes.update();
@@ -102,9 +104,9 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(0), bvh_models(1), skybox(DA
 }
 
 Scene::~Scene() {
-	delete[] point_lights;
-	delete[] spot_lights;
-	delete[] directional_lights;
+	delete [] point_lights;
+	delete [] spot_lights;
+	delete [] directional_lights;
 }
 
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
@@ -135,6 +137,16 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	RayHit closest_hit;
 	trace_primitives(ray, closest_hit);
+
+	/*SIMD_Vector3 debug;
+	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
+		Vector3 colour = Test::heat_palette->sample(Math::clamp(closest_hit.bvh_steps[i] / 32, 0.0f, 1.0f), 0.0f);
+
+		debug.x[i] = colour.x;
+		debug.y[i] = colour.y;
+		debug.z[i] = colour.z;
+	}
+	return debug;*/
 
 	// If any of the Rays did not hit
 	if (!SIMD_float::all_true(closest_hit.hit)) {

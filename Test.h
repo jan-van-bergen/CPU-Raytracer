@@ -2,8 +2,11 @@
 #include <cassert>
 
 #include "Vector3.h"
+#include "Texture.h"
 
 namespace Test {
+	inline const Texture * heat_palette;
+
 	inline bool approx_equal(SIMD_float a, SIMD_float b) {
 		const SIMD_float epsilon(0.01f);
 

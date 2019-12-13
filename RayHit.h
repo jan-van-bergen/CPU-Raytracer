@@ -12,8 +12,12 @@ struct RayHit {
 	const Material * material[SIMD_LANE_SIZE] = { nullptr };
 	SIMD_float u, v;
 
+	SIMD_float bvh_steps;
+
 	inline RayHit() {
 		hit      = SIMD_float(0.0f);
 		distance = SIMD_float(INFINITY);
+
+		bvh_steps = SIMD_float(0);
 	}
 };

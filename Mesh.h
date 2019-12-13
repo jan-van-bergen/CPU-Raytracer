@@ -20,7 +20,7 @@ struct Mesh {
 		mesh_data = MeshData::load(file_path);
 		triangle_bvh.init(mesh_data->triangle_count);
 		
-		// Copy Texture Coordinates
+		// Copy Texture Coordinates and Material
 		for (int i = 0; i < mesh_data->triangle_count; i++) {
 			triangle_bvh.primitives[i].tex_coord0 = mesh_data->triangles[i].tex_coord0;
 			triangle_bvh.primitives[i].tex_coord1 = mesh_data->triangles[i].tex_coord1;
@@ -36,7 +36,7 @@ struct Mesh {
 
 	void update();
 
-	void trace(const Ray & ray, RayHit & ray_hit) const {
+	void trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 		triangle_bvh.trace(ray, ray_hit);
 	}
 

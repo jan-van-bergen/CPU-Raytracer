@@ -4,6 +4,8 @@
 #include "Window.h"
 #include "Scene.h"
 
+#include "Test.h"
+
 #include "WorkerThread.h"
 
 // Forces NVIDIA driver to be used 
@@ -20,6 +22,8 @@ int main(int argument_count, char ** arguments) {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(glMessageCallback, NULL);
 #endif
+
+	Test::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
 
 	// Initialize timing stuff
 	Uint64 now  = 0;
