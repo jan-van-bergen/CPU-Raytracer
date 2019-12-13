@@ -44,10 +44,9 @@ struct BVHNode {
 	};
 	int count;
 
-	inline int partition(const PrimitiveType * primitives, int * indices, int first_index, int index_count, float parent_cost, float * sah) const {
-		float min_cost = INFINITY;
-		int   min_split_index     = -1;
-		int   min_split_dimension = -1;
+	inline int partition_median(const PrimitiveType * primitives, int * indices, int first_index, int index_count) const {
+		float max_axis_length = -INFINITY;
+		int min_split_dimension = -1;
 
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
@@ -56,24 +55,55 @@ struct BVHNode {
 				return primitives[a].get_position()[dimension] < primitives[b].get_position()[dimension];	
 			});
 
+			float min = primitives[indices[first_index                  ]].get_position()[dimension];
+			float max = primitives[indices[first_index + index_count - 1]].get_position()[dimension];
+
+			float axis_length = max - min;
+			if (axis_length > max_axis_length) {
+				max_axis_length = axis_length;
+				min_split_dimension = dimension;
+			}
+		}
+		
+		// Sort indices so that they are sorted along the dimension that we want to split in
+		// This is only required if we didn't split along z
+		if (min_split_dimension != 2) {
+			std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
+				return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
+			});
+		}
+
+		return first_index + (index_count >> 1);
+	}
+
+	inline int partition_sah(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, float parent_cost, float * sah, int * temp) const {
+		float min_cost = INFINITY;
+		int   min_split_index     = -1;
+		int   min_split_dimension = -1;
+
+		// Check splits along all 3 dimensions
+		for (int dimension = 0; dimension < 3; dimension++) {
+			// First traverse left to right along the current dimension to evaluate first half of the SAH
 			AABB aabb_left;
 			aabb_left.min = Vector3(+INFINITY);
 			aabb_left.max = Vector3(-INFINITY);
 			for (int i = 0; i < index_count - 1; i++) {
-				primitives[indices[first_index + i]].expand(aabb_left);
+				primitives[indices[dimension][first_index + i]].expand(aabb_left);
 
 				sah[i] = aabb_left.surface_area() * float(i + 1);
 			}
 
+			// Then traverse right to left along the current dimension to evaluate second half of the SAH
 			AABB aabb_right;
 			aabb_right.min = Vector3(+INFINITY);
 			aabb_right.max = Vector3(-INFINITY);
 			for (int i = index_count - 1; i > 0; i--) {
-				primitives[indices[first_index + i]].expand(aabb_right);
+				primitives[indices[dimension][first_index + i]].expand(aabb_right);
 
 				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
 			}
 
+			// Find the minimum of the SAH
 			for (int i = 0; i < index_count - 1; i++) {
 				float cost = sah[i];
 				if (cost < min_cost) {
@@ -89,16 +119,56 @@ struct BVHNode {
 		// Check SAH termination condition
 		if (min_cost >= parent_cost) return -1;
 
-		// Sort indices so that they are sorted along the dimension that we want to split in
-		std::sort(indices + first_index, indices + first_index + index_count, [&](int a, int b) {
-			return primitives[a].get_position()[min_split_dimension] < primitives[b].get_position()[min_split_dimension];	
-		});
+		float split = primitives[indices[min_split_dimension][min_split_index]].get_position()[min_split_dimension];
 
+		// Sort indices so that they are sorted along the dimension that we want to split in
+		// This is only required if we didn't split along z
+		for (int dimension = 0; dimension < 3; dimension++) {
+			if (dimension != min_split_dimension) {
+				int left  = first_index;
+				int right = min_split_index;
+
+				for (int i = first_index; i < first_index + index_count; i++) {
+					bool goes_left = primitives[indices[dimension][i]].get_position()[min_split_dimension] < split;
+
+					if (primitives[indices[dimension][i]].get_position()[min_split_dimension] == split) {
+						// In case the current primitive has the same coordianate as the one we split on along the split dimension,
+						// We don't know whether the primitive should go left or right.
+						// In this case check all primitive indices on the left side of the split that 
+						// have the same split coordinate for equality with the current primitive index i
+
+						int j = min_split_index - 1;
+						// While we can go left and the left primitive has the same coordinate along the split dimension as the split itself
+						while (j >= 0 && primitives[indices[min_split_dimension][j]].get_position()[min_split_dimension] == split) {
+							if (indices[min_split_dimension][j] == indices[dimension][i]) {
+								goes_left = true;
+
+								break;
+							}
+
+							j--;
+						}
+					}
+
+					if (goes_left) {					
+						temp[left++]  = indices[dimension][i];
+					} else {
+						temp[right++] = indices[dimension][i];
+					}
+				}
+
+				assert(left  == min_split_index);
+				assert(right == first_index + index_count);
+
+				memcpy(indices[dimension] + first_index, temp + first_index, index_count * sizeof(int));
+			}
+		}
+		
 		return min_split_index;
 	}
 
-	inline void subdivide(const PrimitiveType * primitives, int * indices, BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah) {
-		aabb = calculate_bounds(primitives, indices, first_index, first_index + index_count);
+	inline void subdivide(const PrimitiveType * primitives, int ** indices, BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
+		aabb = calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
 		
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
@@ -116,7 +186,8 @@ struct BVHNode {
 		// Calculate cost of the current Node, used to determine termination
 		float cost = aabb.surface_area() * float(index_count); 
 
-		int split_index = partition(primitives, indices, first_index, index_count, cost, sah);
+		int split_index = partition_sah(primitives, indices, first_index, index_count, cost, sah, temp);
+		//int split_index = partition_median(primitives, indices, first_index, index_count);
 
 		if (split_index == -1) {
 			// Leaf Node, terminate recursion
@@ -129,8 +200,8 @@ struct BVHNode {
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
 
-		nodes[left    ].subdivide(primitives, indices, nodes, node_index, first_index,          n_left,  sah);
-		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right, sah);
+		nodes[left    ].subdivide(primitives, indices, nodes, node_index, first_index,          n_left,  sah, temp);
+		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right, sah, temp);
 	}
 
 	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit) const {
@@ -178,11 +249,11 @@ struct BVH {
 	PrimitiveType * primitives;
 	int             primitive_count;
 
-	int * indices;
+	int * indices_x;
+	int * indices_y;
+	int * indices_z;
 
 	BVHNode<PrimitiveType> * nodes;
-
-	static_assert(sizeof(BVHNode<PrimitiveType>) == 32);
 
 	inline void init(int count) {
 		assert(count > 0);
@@ -191,9 +262,15 @@ struct BVH {
 		primitives = new PrimitiveType[primitive_count];
 
 		// Construct index array
-		indices = new int[primitive_count];
+		int * all_indices  = new int[3 * primitive_count];
+		indices_x = all_indices;
+		indices_y = all_indices + primitive_count;
+		indices_z = all_indices + primitive_count * 2;
+
 		for (int i = 0; i < primitive_count; i++) {
-			indices[i] = i;
+			indices_x[i] = i;
+			indices_y[i] = i;
+			indices_z[i] = i;
 		}
 
 		// Construct Node pool
@@ -205,12 +282,21 @@ struct BVH {
 		ScopedTimer timer("BVH Construction");
 
 		float * sah = new float[primitive_count];
+		
+		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
+		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
+		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
+		
+		int * indices[3] = { indices_x, indices_y, indices_z };
+
+		int * temp = new int[primitive_count];
 
 		int node_index = 2;
-		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah);
+		nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah, temp);
 
 		assert(node_index <= 2 * primitive_count);
 
+		delete [] temp;
 		delete [] sah;
 	}
 	
@@ -226,7 +312,7 @@ struct BVH {
 			primitives[i].trace(ray, ray_hit);
 		}
 #else
-		nodes[0].trace(primitives, indices, nodes, ray, ray_hit);
+		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit);
 #endif
 	}
 
@@ -242,7 +328,7 @@ struct BVH {
 
 		return result;
 #else
-		return nodes[0].intersect(primitives, indices, nodes, ray, max_distance);
+		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
 #endif
 	}
 };
