@@ -37,7 +37,7 @@ void Camera::update(float delta, const unsigned char * keys) {
 	if (keys[SDL_SCANCODE_RIGHT]) rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), +ROTATION_SPEED * delta) * rotation;
 
 	if (keys[SDL_SCANCODE_F]) {
-		printf("camera.position = Vector3(%ff, %ff, %ff);\n",        position.x, position.y, position.z);
+		printf("camera.position = Vector3(%ff, %ff, %ff);\n",         position.x, position.y, position.z);
 		printf("camera.rotation = Quaternion(%ff, %ff, %ff, %ff);\n", rotation.x, rotation.y, rotation.z, rotation.w);
 	}
 
