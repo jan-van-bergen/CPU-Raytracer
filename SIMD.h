@@ -295,7 +295,7 @@ struct SIMD_int4 {
 
 	inline explicit SIMD_int4(__m128i data) : data(data) { }
 
-	inline explicit SIMD_int4(int f) : data(_mm_set1_epi32(f)) { }
+	inline explicit SIMD_int4(int i) : data(_mm_set1_epi32(i)) { }
 	inline explicit SIMD_int4(int a, int b, int c, int d) : data(_mm_set_epi32(a, b, c, d)) { }
 
 	inline static FORCEINLINE SIMD_int4 min(SIMD_int4 a, SIMD_int4 b) { return SIMD_int4(_mm_min_epi32(a.data, b.data)); }
@@ -304,8 +304,8 @@ struct SIMD_int4 {
 	inline FORCEINLINE int & operator[](int index) { return ints[index]; }
 };
 
-inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 floats) { 
-	return SIMD_int4(_mm_sub_epi32(_mm_set1_epi32(0), floats.data)); 
+inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 ints) { 
+	return SIMD_int4(_mm_sub_epi32(_mm_set1_epi32(0), ints.data)); 
 }
 
 inline FORCEINLINE SIMD_int4 operator+(SIMD_int4 left, SIMD_int4 right) { return SIMD_int4(_mm_add_epi32  (left.data, right.data)); }
@@ -326,7 +326,7 @@ struct SIMD_int8 {
 
 	inline explicit SIMD_int8(__m256i data) : data(data) { }
 
-	inline explicit SIMD_int8(int f) : data(_mm256_set1_epi32(f)) { }
+	inline explicit SIMD_int8(int i) : data(_mm256_set1_epi32(i)) { }
 	inline explicit SIMD_int8(int a, int b, int c, int d, int e, int f, int g, int h) : data(_mm256_set_epi32(a, b, c, d, e, f, g, h)) { }
 
 	inline static FORCEINLINE SIMD_int8 min(SIMD_int8 a, SIMD_int8 b) { return SIMD_int8(_mm256_min_epi32(a.data, b.data)); }
@@ -335,8 +335,8 @@ struct SIMD_int8 {
 	inline FORCEINLINE int & operator[](int index) { return ints[index]; }
 };
 
-inline FORCEINLINE SIMD_int8 operator-(SIMD_int8 floats) { 
-	return SIMD_int8(_mm256_sub_epi32(_mm256_set1_epi32(0), floats.data)); 
+inline FORCEINLINE SIMD_int8 operator-(SIMD_int8 ints) { 
+	return SIMD_int8(_mm256_sub_epi32(_mm256_set1_epi32(0), ints.data)); 
 }
 
 inline FORCEINLINE SIMD_int8 operator+(SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_add_epi32  (left.data, right.data)); }
