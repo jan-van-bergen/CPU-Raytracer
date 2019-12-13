@@ -27,7 +27,7 @@ inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indic
 
 	// Make sure the AABB is non-zero along every dimension
 	for (int d = 0; d < 3; d++) {
-		if (aabb.max[d] - aabb.min[d] == 0.0f) {
+		if (aabb.max[d] - aabb.min[d] < 0.001f) {
 			aabb.max[d] += 0.005f;
 		}
 	}
@@ -309,7 +309,7 @@ struct BVH {
 	inline void trace(const Ray & ray, RayHit & ray_hit) const {
 #if TRAVERSAL_STRATEGY == TRAVERSE_BRUTE_FORCE
 		for (int i = 0; i < primitive_count; i++) {
-			primitives[i].trace(ray, ray_hit);
+			primitives[i].trace(ray, ray_hit, 0);
 		}
 #else
 		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);

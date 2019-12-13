@@ -33,10 +33,12 @@ const MeshData * MeshData::load(const char * file_path) {
 	mesh_data = new MeshData();
 	
 	// Load Materials
+	int material_count;
 	if (materials.size() > 0) {
-		mesh_data->materials = new Material[materials.size()];
+		material_count = materials.size();
+		mesh_data->materials = new Material[material_count];
 
-		for (int i = 0; i < materials.size(); i++) {
+		for (int i = 0; i < material_count; i++) {
 			const tinyobj::material_t & material = materials[i];
 
 			mesh_data->materials[i].diffuse = Vector3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
@@ -51,6 +53,8 @@ const MeshData * MeshData::load(const char * file_path) {
 			mesh_data->materials[i].index_of_refraction = material.ior;
 		}
 	} else {
+		material_count = 1;
+
 		mesh_data->materials = new Material();
 		mesh_data->materials->diffuse = Vector3(1.0f, 0.0f, 1.0f);
 	}
@@ -125,7 +129,11 @@ const MeshData * MeshData::load(const char * file_path) {
 			mesh_data->triangles[triangle_offset + v].normal2 = normals[3*v + 2];
 
 			int material_id = shapes[s].mesh.material_ids[v];
-			mesh_data->triangles[triangle_offset + v].material = &mesh_data->materials[material_id == INVALID ? 0 : material_id];
+			if (material_id == INVALID) material_id = 0;
+			
+			assert(material_id < material_count);
+
+			mesh_data->triangles[triangle_offset + v].material = &mesh_data->materials[material_id];
 		}
 		
 		triangle_offset += vertex_count / 3;

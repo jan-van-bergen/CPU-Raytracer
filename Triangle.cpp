@@ -15,6 +15,8 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
 
+
+
 	SIMD_float   f = SIMD_float::rcp(a);
 	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
