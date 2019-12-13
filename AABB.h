@@ -6,10 +6,15 @@ struct AABB {
 	Vector3 min;
 	Vector3 max;
 
-	inline float surface_area() {
+	inline float surface_area() const {
 		Vector3 diff = max - min;
 
 		return 2.0f * (diff.x * diff.y + diff.y * diff.z + diff.z * diff.x);
+	}
+
+	inline void expand(const AABB & aabb) {
+		min = Vector3::min(min, aabb.min);
+		max = Vector3::max(max, aabb.max);
 	}
 
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;

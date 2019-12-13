@@ -22,7 +22,7 @@ inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indic
 
 	// Iterate over relevant Primitives
 	for (int i = first; i < last; i++) {
-		primitives[indices[i]].expand(aabb);
+		aabb.expand(primitives[indices[i]].aabb);
 	}
 
 	// Make sure the AABB is non-zero along every dimension
@@ -88,8 +88,8 @@ struct BVHNode {
 			aabb_left.min = Vector3(+INFINITY);
 			aabb_left.max = Vector3(-INFINITY);
 			for (int i = 0; i < index_count - 1; i++) {
-				primitives[indices[dimension][first_index + i]].expand(aabb_left);
-
+				aabb_left.expand(primitives[indices[dimension][first_index + i]].aabb);
+				
 				sah[i] = aabb_left.surface_area() * float(i + 1);
 			}
 
@@ -98,7 +98,7 @@ struct BVHNode {
 			aabb_right.min = Vector3(+INFINITY);
 			aabb_right.max = Vector3(-INFINITY);
 			for (int i = index_count - 1; i > 0; i--) {
-				primitives[indices[dimension][first_index + i]].expand(aabb_right);
+				aabb_right.expand(primitives[indices[dimension][first_index + i]].aabb);
 
 				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
 			}

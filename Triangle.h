@@ -27,12 +27,9 @@ struct Triangle {
 	void       trace    (const Ray & ray, RayHit & ray_hit, int bvh_step) const;
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 
-	// BVH Related methods
-	inline void expand(AABB & aabb) const {
-		aabb.min = Vector3::min(Vector3::min(aabb.min, position0), Vector3::min(position1, position2));
-		aabb.max = Vector3::max(Vector3::max(aabb.max, position0), Vector3::max(position1, position2));
-	}
-
+	// BVH Related
+	AABB aabb;
+	
 	inline Vector3 get_position() const {
 		return (position0 + position1 + position2) / 3.0f;
 	}
