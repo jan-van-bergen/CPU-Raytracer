@@ -26,7 +26,7 @@ namespace BVHConstructors {
 
 	// Reorders indices arrays such that indices on the left side of the splitting dimension end up on the left partition in the other dimensions as well
 	template<typename PrimitiveType>
-	inline void split_indices(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, int * temp, int split_dimension, int split_index, float split) {
+	inline void split_indices(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, int * temp, int split_dimension, int split_index, float split) {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			if (dimension != split_dimension) {
 				int left  = first_index;
@@ -72,7 +72,7 @@ namespace BVHConstructors {
 
 	// Partitions object using the median Primitive along the longest axis
 	template<typename PrimitiveType>
-	inline int partition_median(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, int * temp, int & split_dimension) {
+	inline int partition_median(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, int * temp, int & split_dimension) {
 		float max_axis_length    = -INFINITY;
 		int   max_axis_dimension = -1;
 
@@ -100,7 +100,7 @@ namespace BVHConstructors {
 
 	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
-	inline int partition_object(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, float parent_cost, float * sah, int * temp, int & split_dimension) {
+	inline int partition_object(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float parent_cost, float * sah, int * temp, int & split_dimension) {
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;

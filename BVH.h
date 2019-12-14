@@ -33,7 +33,7 @@ struct BVHNode {
 	};
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
-	inline void subdivide(const PrimitiveType * primitives, int ** indices, BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
+	inline void subdivide(const PrimitiveType * primitives, int * indices[3], BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
 		aabb = BVHConstructors::calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
 		
 		if (index_count < 3) {
