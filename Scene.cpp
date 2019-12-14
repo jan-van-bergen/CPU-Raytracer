@@ -40,7 +40,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #else
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("Sponza/sponza.obj"));
+	bvh_meshes.primitives[0].init(DATA_PATH("100000.obj"));
 	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 #endif
@@ -201,8 +201,6 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 		result += diffuse * material_diffuse;
 	}
-
-	result = material_diffuse;
 
 	// If we have bounces left to do, recurse one level deeper
 	if (bounces_left > 0) {	
