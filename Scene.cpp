@@ -71,8 +71,10 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	};
 
 	//camera.position = Vector3(2.0f, 4.0f, -2.0f);
-	camera.position = Vector3(-1.304959f, 25.146471f, -1.983379f);
-	camera.rotation = Quaternion(0.131614f, 0.680243f, -0.709958f, 0.126105f);
+	/*camera.position = Vector3(3.981741f, 7.460717f, 0.421658f);
+	camera.rotation = Quaternion(0.060460f, -0.935293f, 0.196197f, 0.288221f);*/
+	camera.position = Vector3(-4.945156f, 7.383441f, 0.116548f);
+	camera.rotation = Quaternion(-0.070006f, -0.920038f, 0.192997f, -0.333725f);
 #elif CURRENT_SCENE == SCENE_WHITTED
 Scene::Scene() : camera(110.0f), spheres(2), planes(0), bvh_models(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
 	spheres[0].init(1.0f);

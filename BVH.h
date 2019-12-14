@@ -8,11 +8,18 @@
 
 #include "ScopedTimer.h"
 
-#define TRAVERSE_BRUTE_FORCE 0
-#define TRAVERSE_TREE_NAIVE  1
-#define TRAVERSE_ORDERED     2
+#define TRAVERSE_BRUTE_FORCE  0
+#define TRAVERSE_TREE_NAIVE   1
+#define TRAVERSE_TREE_ORDERED 2
 
-#define TRAVERSAL_STRATEGY TRAVERSE_TREE_NAIVE
+#define TRAVERSAL_STRATEGY TRAVERSE_TREE_ORDERED
+
+#define AXIS_X_BITS 0x40000000 // 01 00 zeroes...
+#define AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
+#define AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
+#define AXIS_MASK   0xc0000000 // 11 00 zeroes...
+
+inline static int dimension_bits[3] = { AXIS_X_BITS, AXIS_Y_BITS, AXIS_Z_BITS };
 
 template<typename PrimitiveType>
 inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last) {
@@ -76,7 +83,7 @@ struct BVHNode {
 		return first_index + (index_count >> 1);
 	}
 
-	inline int partition_sah(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, float parent_cost, float * sah, int * temp) const {
+	inline int partition_sah(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, float parent_cost, float * sah, int * temp, int & split_dimension) const {
 		float min_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
@@ -163,7 +170,9 @@ struct BVHNode {
 				memcpy(indices[dimension] + first_index, temp + first_index, index_count * sizeof(int));
 			}
 		}
-		
+
+		split_dimension = (min_split_dimension + 1) << 30;
+
 		return min_split_index;
 	}
 
@@ -181,12 +190,13 @@ struct BVHNode {
 		left = node_index;
 		node_index += 2;
 		
-		count = 0;
+		//count = 0;
 
 		// Calculate cost of the current Node, used to determine termination
 		float cost = aabb.surface_area() * float(index_count); 
 
-		int split_index = partition_sah(primitives, indices, first_index, index_count, cost, sah, temp);
+		int split_dimension;
+		int split_index = partition_sah(primitives, indices, first_index, index_count, cost, sah, temp, split_dimension);
 		//int split_index = partition_median(primitives, indices, first_index, index_count);
 
 		if (split_index == -1) {
@@ -197,6 +207,8 @@ struct BVHNode {
 			return;
 		}
 		
+		count = split_dimension;
+
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
 
@@ -204,18 +216,42 @@ struct BVHNode {
 		nodes[left + 1].subdivide(primitives, indices, nodes, node_index, first_index + n_left, n_right, sah, temp);
 	}
 
+	inline bool is_leaf() const {
+		return (count & (~AXIS_MASK)) > 0;
+	}
+
+	inline bool should_visit_left_first(const Ray & ray) const {
+#if TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE
+		return true;
+#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
+		switch (count & AXIS_MASK) {
+			case AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
+			case AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
+			case AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
+
+			default: abort();
+		}
+#endif
+	}
+
 	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, int step) const {
 		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
 		if (SIMD_float::all_false(mask)) return;
 
-		// Check if the current Node is a leaf
-		if (count > 0) {
+		if (is_leaf()) {
 			for (int i = first; i < first + count; i++) {
 				primitives[indices[i]].trace(ray, ray_hit, step + count);
 			}
 		} else {
-			nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-			nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			if (should_visit_left_first(ray)) {
+				// Visit left Node first, then visit right Node
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			} else {
+				// Visit right Node first, then visit left Node
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			}
 		}
 	}
 
@@ -223,8 +259,7 @@ struct BVHNode {
 		SIMD_float mask = aabb.intersect(ray, max_distance);
 		if (SIMD_float::all_false(mask)) return mask;
 
-		// Check if the current Node is a leaf
-		if (count > 0) {
+		if (is_leaf()) {
 			SIMD_float hit(0.0f);
 
 			for (int i = first; i < first + count; i++) {
@@ -235,11 +270,19 @@ struct BVHNode {
 
 			return hit;
 		} else {
-			SIMD_float hit = nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
+			if (should_visit_left_first(ray)) {
+				SIMD_float hit = nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
 
-			if (SIMD_float::all_true(hit)) return hit;
+				if (SIMD_float::all_true(hit)) return hit;
 
-			return hit | nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
+				return hit | nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
+			} else {
+				SIMD_float hit = nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
+
+				if (SIMD_float::all_true(hit)) return hit;
+
+				return hit | nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
+			}
 		}
 	}
 };
