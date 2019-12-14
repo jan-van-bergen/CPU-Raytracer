@@ -49,7 +49,7 @@ struct BVHNode {
 		int left;  // Left contains index of left child if the current Node is not a leaf Node
 		int first; // First constains index of first primtive if the current Node is a leaf Node
 	};
-	int count;
+	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
 	inline int partition_median(const PrimitiveType * primitives, int * indices, int first_index, int index_count) const {
 		float max_axis_length = -INFINITY;
@@ -158,7 +158,7 @@ struct BVHNode {
 					}
 
 					if (goes_left) {					
-						temp[left++]  = indices[dimension][i];
+						temp[left++] = indices[dimension][i];
 					} else {
 						temp[right++] = indices[dimension][i];
 					}
@@ -190,8 +190,6 @@ struct BVHNode {
 		left = node_index;
 		node_index += 2;
 		
-		//count = 0;
-
 		// Calculate cost of the current Node, used to determine termination
 		float cost = aabb.surface_area() * float(index_count); 
 
