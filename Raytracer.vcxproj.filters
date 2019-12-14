@@ -154,5 +154,8 @@
     <ClInclude Include="Sky.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
+    <ClInclude Include="BVHConstructors.h">
+      <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
