@@ -69,7 +69,7 @@ namespace BVHConstructors {
 
 	template<typename PrimitiveType>
 	inline int partition_median(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, int * temp, int & split_dimension) {
-		float max_axis_length = -INFINITY;
+		float max_axis_length    = -INFINITY;
 		int   max_axis_dimension = -1;
 
 		// Find longest dimension
@@ -132,8 +132,6 @@ namespace BVHConstructors {
 				}
 			}
 		}
-
-		if (min_split_index == -1) abort();
 
 		// Check SAH termination condition
 		if (min_cost >= parent_cost) return -1;
