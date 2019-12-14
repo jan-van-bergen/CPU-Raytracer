@@ -2,6 +2,7 @@
 #include "AABB.h"
 
 namespace BVHConstructors {
+	// Calculates the smallest enclosing AABB over the union of all AABB's of the primitives in the range defined by [first, last>
 	template<typename PrimitiveType>
 	inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last) {
 		AABB aabb;
@@ -23,6 +24,7 @@ namespace BVHConstructors {
 		return aabb;
 	} 
 
+	// Reorders indices arrays such that indices on the left side of the splitting dimension end up on the left partition in the other dimensions as well
 	template<typename PrimitiveType>
 	inline void split_indices(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, int * temp, int split_dimension, int split_index, float split) {
 		for (int dimension = 0; dimension < 3; dimension++) {
@@ -59,6 +61,7 @@ namespace BVHConstructors {
 					}
 				}
 
+				// If these conditions are not met the memcpy below is invalid
 				assert(left  == split_index);
 				assert(right == first_index + index_count);
 
@@ -67,6 +70,7 @@ namespace BVHConstructors {
 		}
 	}
 
+	// Partitions object using the median Primitive along the longest axis
 	template<typename PrimitiveType>
 	inline int partition_median(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, int * temp, int & split_dimension) {
 		float max_axis_length    = -INFINITY;
@@ -94,6 +98,7 @@ namespace BVHConstructors {
 		return median_index;
 	}
 
+	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
 	inline int partition_object(const PrimitiveType * primitives, int ** indices, int first_index, int index_count, float parent_cost, float * sah, int * temp, int & split_dimension) {
 		float min_cost = INFINITY;
