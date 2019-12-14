@@ -1,6 +1,8 @@
 #pragma once
 #include "AABB.h"
 
+#include "Test.h"
+
 namespace BVHConstructors {
 	// Calculates the smallest enclosing AABB over the union of all AABB's of the primitives in the range defined by [first, last>
 	template<typename PrimitiveType>
@@ -23,6 +25,21 @@ namespace BVHConstructors {
 
 		return aabb;
 	} 
+
+	// Used for debugging
+	template<typename PrimitiveType>
+	inline bool is_sorted(const PrimitiveType * primitives, int * indices[3], int first, int last) {
+		for (int dimension = 0; dimension < 3; dimension++) {
+			for (int i = first + 1; i < last; i++) {
+				float prev = primitives[indices[dimension][i-1]].get_position()[dimension];
+				float curr = primitives[indices[dimension][i  ]].get_position()[dimension];
+
+				if (prev > curr) return false;
+			}
+		}
+
+		return true;
+	}
 
 	// Reorders indices arrays such that indices on the left side of the splitting dimension end up on the left partition in the other dimensions as well
 	template<typename PrimitiveType>
@@ -66,6 +83,9 @@ namespace BVHConstructors {
 				assert(right == first_index + index_count);
 
 				memcpy(indices[dimension] + first_index, temp + first_index, index_count * sizeof(int));
+
+				assert(is_sorted(primitives, indices, first_index,        left ));
+				assert(is_sorted(primitives, indices, first_index + left, right));
 			}
 		}
 	}
@@ -78,6 +98,8 @@ namespace BVHConstructors {
 
 		// Find longest dimension
 		for (int dimension = 0; dimension < 3; dimension++) {
+			assert(is_sorted(primitives, indices, first_index, first_index + index_count));
+
 			float min = primitives[indices[dimension][first_index                  ]].get_position()[dimension];
 			float max = primitives[indices[dimension][first_index + index_count - 1]].get_position()[dimension];
 
@@ -107,6 +129,8 @@ namespace BVHConstructors {
 
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
+			assert(is_sorted(primitives, indices, first_index, index_count));
+
 			// First traverse left to right along the current dimension to evaluate first half of the SAH
 			AABB aabb_left;
 			aabb_left.min = Vector3(+INFINITY);
