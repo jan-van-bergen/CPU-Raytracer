@@ -8,9 +8,9 @@
 
 #include "ScopedTimer.h"
 
-#define TRAVERSE_BRUTE_FORCE  0
-#define TRAVERSE_TREE_NAIVE   1
-#define TRAVERSE_TREE_ORDERED 2
+#define TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
+#define TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
+#define TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
 
 #define TRAVERSAL_STRATEGY TRAVERSE_TREE_ORDERED
 
