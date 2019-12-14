@@ -212,7 +212,7 @@ struct BVH {
 		for (int i = 0; i < primitive_count; i++) {
 			primitives[i].trace(ray, ray_hit, 0);
 		}
-#else
+#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE || TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
 		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);
 #endif
 	}
@@ -228,7 +228,7 @@ struct BVH {
 		}
 
 		return result;
-#else
+#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE || TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
 		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
 #endif
 	}
