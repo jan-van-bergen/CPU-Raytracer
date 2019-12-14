@@ -4,13 +4,7 @@
 
 #define NUMBER_OF_BOUNCES 3
 
-#define SCENE_TEST    0
-#define SCENE_WHITTED 1
-
-#define CURRENT_SCENE SCENE_TEST
-
-#if CURRENT_SCENE == SCENE_TEST
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/grace_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -75,36 +69,6 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	camera.rotation = Quaternion(0.060460f, -0.935293f, 0.196197f, 0.288221f);*/
 	camera.position = Vector3(-4.945156f, 7.383441f, 0.116548f);
 	camera.rotation = Quaternion(-0.070006f, -0.920038f, 0.192997f, -0.333725f);
-#elif CURRENT_SCENE == SCENE_WHITTED
-Scene::Scene() : camera(110.0f), spheres(2), planes(0), bvh_models(1), skybox(DATA_PATH("Sky_Probes/stpeters_probe.float")) {
-	spheres[0].init(1.0f);
-	spheres[0].transform.position = Vector3(0.0f, 0.0f, 0.0f);
-	spheres[0].material.diffuse = 1.0f;
-	spheres[0].material.reflection = 1.0f;
-	spheres[0].material.transmittance = 0.0f;
-	spheres[0].material.index_of_refraction = 1.0f;
-
-	spheres[1].init(1.0f);
-	spheres[1].transform.position = Vector3(+2.0f, 1.0f, -2.0f);
-	spheres[1].material.diffuse = 0.0f;
-	spheres[1].material.reflection = 0.1f;
-	spheres[1].material.transmittance = 0.9f;
-	spheres[1].material.index_of_refraction = 1.5f;
-
-	bvh_models.primitives[0].init(DATA_PATH("Plane.obj"));
-	bvh_models.primitives[0].transform.position.y = -1.0f;
-
-	bvh_models.init();
-
-	point_light_count = 0;
-	spot_light_count  = 0;
-
-	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.3f), Vector3(0.0f, -1.0f, 0.0f))
-	};
-
-	camera.position = Vector3(1.0f, 2.0f, -6.0f);
-#endif
 }
 
 Scene::~Scene() {
