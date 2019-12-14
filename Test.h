@@ -36,8 +36,6 @@ namespace Test {
 		SIMD_float lhs = SIMD_float::blend(zero, n_1 * SIMD_float::sin(theta_1), mask);
 		SIMD_float rhs = SIMD_float::blend(zero, n_2 * SIMD_float::sin(theta_2), mask);
 		
-		bool temp = approx_equal(lhs, rhs);
-		if (!temp) __debugbreak();
-		return temp;
+		return approx_equal(lhs, rhs);
 	}
 }
