@@ -4,6 +4,8 @@
 
 #define NUMBER_OF_BOUNCES 3
 
+#define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
+
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
@@ -38,7 +40,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #else
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("100000.obj"));
+	bvh_meshes.primitives[0].init(DATA_PATH("Sponza/sponza.obj"));
 	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 #endif
@@ -106,7 +108,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 	RayHit closest_hit;
 	trace_primitives(ray, closest_hit);
 
-	/*SIMD_Vector3 debug;
+#if BVH_HEATMAP
+	SIMD_Vector3 debug;
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		Vector3 colour = Test::heat_palette->sample(Math::clamp(closest_hit.bvh_steps[i] / 32, 0.0f, 1.0f), 0.0f);
 
@@ -114,7 +117,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		debug.y[i] = colour.y;
 		debug.z[i] = colour.z;
 	}
-	return debug;*/
+	return debug;
+#endif
 
 	// If any of the Rays did not hit
 	if (!SIMD_float::all_true(closest_hit.hit)) {
@@ -197,6 +201,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 		result += diffuse * material_diffuse;
 	}
+
+	result = material_diffuse;
 
 	// If we have bounces left to do, recurse one level deeper
 	if (bounces_left > 0) {	
