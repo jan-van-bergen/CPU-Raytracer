@@ -25,27 +25,6 @@
 inline static int dimension_bits[3] = { AXIS_X_BITS, AXIS_Y_BITS, AXIS_Z_BITS };
 
 template<typename PrimitiveType>
-inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last) {
-	AABB aabb;
-	aabb.min = Vector3(+INFINITY);
-	aabb.max = Vector3(-INFINITY);
-
-	// Iterate over relevant Primitives
-	for (int i = first; i < last; i++) {
-		aabb.expand(primitives[indices[i]].aabb);
-	}
-
-	// Make sure the AABB is non-zero along every dimension
-	for (int d = 0; d < 3; d++) {
-		if (aabb.max[d] - aabb.min[d] < 0.001f) {
-			aabb.max[d] += 0.005f;
-		}
-	}
-
-	return aabb;
-} 
-
-template<typename PrimitiveType>
 struct BVHNode {
 	AABB aabb;
 	union {  // A Node can either be a leaf or have children. A leaf Node means count = 0
@@ -55,7 +34,7 @@ struct BVHNode {
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
 	inline void subdivide(const PrimitiveType * primitives, int ** indices, BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
-		aabb = calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
+		aabb = BVHConstructors::calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
 		
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
