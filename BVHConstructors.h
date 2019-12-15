@@ -110,20 +110,16 @@ namespace BVHConstructors {
 			}
 		}
 
+		split_dimension = max_axis_dimension;
+
 		int median_index = first_index + (index_count >> 1);
-		float split = primitives[indices[max_axis_dimension][median_index]].get_position()[max_axis_dimension];
-		
-		split_indices(primitives, indices, first_index, index_count, temp, max_axis_dimension, median_index, split);
-
-		split_dimension = (max_axis_dimension + 1) << 30;
-
 		return median_index;
 	}
 
 	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
-	inline int partition_object(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float parent_cost, float * sah, int * temp, int & split_dimension) {
-		float min_cost = INFINITY;
+	inline int partition_full_sah(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost) {
+		float min_split_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
 
@@ -154,22 +150,16 @@ namespace BVHConstructors {
 			// Find the minimum of the SAH
 			for (int i = 0; i < index_count - 1; i++) {
 				float cost = sah[i];
-				if (cost < min_cost) {
-					min_cost = cost;
+				if (cost < min_split_cost) {
+					min_split_cost = cost;
 					min_split_index = first_index + i + 1;
 					min_split_dimension = dimension;
 				}
 			}
 		}
-
-		// Check SAH termination condition
-		if (min_cost >= parent_cost) return -1;
-
-		float split = primitives[indices[min_split_dimension][min_split_index]].get_position()[min_split_dimension];
-
-		split_indices(primitives, indices, first_index, index_count, temp, min_split_dimension, min_split_index, split);
-
-		split_dimension = (min_split_dimension + 1) << 30;
+		
+		split_dimension = min_split_dimension;
+		split_cost      = min_split_cost;
 
 		return min_split_index;
 	}

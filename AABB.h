@@ -17,5 +17,14 @@ struct AABB {
 		max = Vector3::max(max, aabb.max);
 	}
 
+	inline static AABB overlap(const AABB & b1, const AABB & b2) {
+		AABB aabb;
+
+		aabb.max = Vector3::min(Vector3::max(b1.max, b2.min), Vector3::max(b1.min, b2.max));
+		aabb.min = Vector3::max(Vector3::min(b1.max, b2.min), Vector3::min(b1.min, b2.max));
+
+		return aabb;
+	}
+
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 };

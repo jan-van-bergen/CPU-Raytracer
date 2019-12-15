@@ -6,10 +6,10 @@
 
 #include "ScopedTimer.h"
 
-#define CONSTRUCT_MEDIAN 0 // Split using median Primitive along the longest axis
-#define CONSTRUCT_OBJECT 1 // Evaluate SAH for every Primtive to determine if we should split there
+#define CONSTRUCT_MEDIAN   0 // Split using median Primitive along the longest axis
+#define CONSTRUCT_FULL_SAH 1 // Evaluate SAH for every Primtive to determine if we should split there
 
-#define CONSTRUCTION_STRATEGY CONSTRUCT_OBJECT
+#define CONSTRUCTION_STRATEGY CONSTRUCT_FULL_SAH
 
 #define TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
 #define TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
@@ -47,25 +47,27 @@ struct BVHNode {
 		left = node_index;
 		node_index += 2;
 		
-		// Calculate cost of the current Node, used to determine termination
-		float cost = aabb.surface_area() * float(index_count); 
-
 		int split_dimension;
 #if CONSTRUCTION_STRATEGY == CONSTRUCT_MEDIAN
 		int split_index = BVHConstructors::partition_median(primitives, indices, first_index, index_count, temp, split_dimension);
-#elif CONSTRUCTION_STRATEGY == CONSTRUCT_OBJECT
-		int split_index = BVHConstructors::partition_object(primitives, indices, first_index, index_count, cost, sah, temp, split_dimension);
-#endif
+#elif CONSTRUCTION_STRATEGY == CONSTRUCT_FULL_SAH
+		float split_cost;
+		int split_index = BVHConstructors::partition_full_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
-		if (split_index == -1) {
-			// Leaf Node, terminate recursion
+		// Check SAH termination condition
+		float parent_cost = aabb.surface_area() * float(index_count); 
+		if (split_cost >= parent_cost) {
 			first = first_index;
 			count = index_count;
 
 			return;
 		}
+#endif
 		
-		count = split_dimension;
+		float split = primitives[indices[split_dimension][split_index]].get_position()[split_dimension];
+		BVHConstructors::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
+
+		count = (split_dimension + 1) << 30;
 
 		int n_left  = split_index - first_index;
 		int n_right = first_index + index_count - split_index;
