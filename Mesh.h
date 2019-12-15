@@ -41,6 +41,8 @@ struct Mesh {
 		}
 
 		triangle_bvh.build();
+
+		triangle_bvh.debug();
 	}
 
 	void update();

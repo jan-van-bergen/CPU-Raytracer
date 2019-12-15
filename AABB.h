@@ -22,7 +22,7 @@ struct AABB {
 		max = Vector3::max(max, aabb.max);
 	}
 
-	inline void debug(int index) const {
+	inline void debug(FILE * file, int index) const {
 		Vector3 vertices[8] = {
 			Vector3(min.x, min.y, min.z),
 			Vector3(min.x, min.y, max.z),
@@ -43,13 +43,13 @@ struct AABB {
 			5, 6, 7, 5, 7, 8
 		};
 
-		printf("o Debug_AABB%i\n", index);
+		fprintf(file, "o Debug_AABB_Level_%i\n", index);
 		for (int v = 0; v < 8; v++) {
-			printf("v %f %f %f\n", vertices[v].x, vertices[v].y, vertices[v].z);
+			fprintf(file, "v %f %f %f\n", vertices[v].x, vertices[v].y, vertices[v].z);
 		}
 
 		for (int f = 0; f < 36; f += 3) {
-			printf("f %i %i %i\n", 8*index + faces[f], 8*index + faces[f+1], 8*index + faces[f+2]);
+			fprintf(file, "f %i %i %i\n", 8*index + faces[f], 8*index + faces[f+1], 8*index + faces[f+2]);
 		}
 	}
 
