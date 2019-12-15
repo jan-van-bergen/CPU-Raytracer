@@ -120,9 +120,6 @@
     <ClInclude Include="PrimitiveList.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
-    <ClInclude Include="Test.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Assets</Filter>
     </ClInclude>
@@ -156,6 +153,12 @@
     </ClInclude>
     <ClInclude Include="BVHConstructors.h">
       <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="SBVH.h">
+      <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,13 +8,15 @@
 #include "RayHit.h"
 
 #include "BVH.h"
+#include "SBVH.h"
 
 struct Mesh {
 	Transform transform;
 
 	const MeshData * mesh_data = nullptr;
 
-	BVH<Triangle> triangle_bvh;
+	SBVH triangle_bvh;
+	//BVH<Triangle> triangle_bvh;
 
 	inline void init(const char * file_path)  {
 		mesh_data = MeshData::load(file_path);
@@ -22,8 +24,7 @@ struct Mesh {
 		
 		update();
 
-		aabb.min = Vector3(+INFINITY);
-		aabb.max = Vector3(-INFINITY);
+		aabb = AABB::create_empty();
 
 		// Copy Texture Coordinates and Material
 		for (int i = 0; i < mesh_data->triangle_count; i++) {

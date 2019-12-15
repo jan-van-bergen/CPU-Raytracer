@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include "Test.h"
+#include "Debug.h"
 
 #define NUMBER_OF_BOUNCES 3
 
@@ -25,6 +25,33 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 	
+	/*const MeshData * temp = MeshData::load(DATA_PATH("Monkey.obj"));
+
+	SBVH sbvh;
+	sbvh.init(temp->triangle_count);
+	
+	// Copy Texture Coordinates and Material
+	for (int i = 0; i < temp->triangle_count; i++) {
+		sbvh.triangles[i].position0 = temp->triangles[i].position0;
+		sbvh.triangles[i].position1 = temp->triangles[i].position1;
+		sbvh.triangles[i].position2 = temp->triangles[i].position2;
+
+		sbvh.triangles[i].tex_coord0 = temp->triangles[i].tex_coord0;
+		sbvh.triangles[i].tex_coord1 = temp->triangles[i].tex_coord1;
+		sbvh.triangles[i].tex_coord2 = temp->triangles[i].tex_coord2;
+
+		sbvh.triangles[i].normal0 = temp->triangles[i].normal0;
+		sbvh.triangles[i].normal1 = temp->triangles[i].normal1;
+		sbvh.triangles[i].normal2 = temp->triangles[i].normal2;
+
+		sbvh.triangles[i].material = temp->triangles[i].material;
+
+		sbvh.triangles[i].aabb.min = Vector3::min(sbvh.triangles[i].position0, Vector3::min(sbvh.triangles[i].position1, sbvh.triangles[i].position2));
+		sbvh.triangles[i].aabb.max = Vector3::max(sbvh.triangles[i].position0, Vector3::max(sbvh.triangles[i].position1, sbvh.triangles[i].position2));
+	}
+
+	sbvh.build();*/
+
 #if false
 	bvh_meshes.init(5);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);
@@ -40,7 +67,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #else
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("100000.obj"));
+	bvh_meshes.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 #endif
@@ -87,7 +114,7 @@ void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 
 SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
 	SIMD_float result(0.0f);
-
+	
 	result = spheres.intersect(ray, max_distance);
 	if (SIMD_float::all_true(result)) return result;
 
@@ -305,7 +332,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
 			// Make sure that Snell's Law is correctly obeyed
-			assert(Test::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
+			assert(Debug::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
 
 			SIMD_float refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);

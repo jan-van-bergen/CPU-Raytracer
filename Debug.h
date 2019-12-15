@@ -4,8 +4,13 @@
 #include "Vector3.h"
 #include "Texture.h"
 
-namespace Test {
+namespace Debug {
 	inline const Texture * heat_palette;
+
+	template<typename Float>
+	inline bool approx_equal(Float a, Float b, Float epsilon = static_cast<Float>(0.01)) {
+		return abs(a - b) > epsilon;
+	}
 
 	inline bool approx_equal(SIMD_float a, SIMD_float b) {
 		const SIMD_float epsilon(0.01f);

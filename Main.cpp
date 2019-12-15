@@ -4,7 +4,7 @@
 #include "Window.h"
 #include "Scene.h"
 
-#include "Test.h"
+#include "Debug.h"
 
 #include "WorkerThread.h"
 
@@ -23,7 +23,7 @@ int main(int argument_count, char ** arguments) {
 	glDebugMessageCallback(glMessageCallback, NULL);
 #endif
 
-	Test::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
+	Debug::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
 
 	// Initialize timing stuff
 	Uint64 now  = 0;

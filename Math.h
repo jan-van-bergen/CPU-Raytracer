@@ -19,6 +19,46 @@ namespace Math {
 	inline T barycentric(const T & a, const T & b, const T & c, Real u, Real v) {
         return a + (u * (b - a)) + (v * (c - a));
     }
+
+	enum class PlaneTriangleIntersection {
+		INTERSECTS = 0,
+		LEFT,
+		RIGHT
+	};
+
+	inline PlaneTriangleIntersection plane_triangle_intersection(const Vector3 & plane_normal, float plane_distance, const Vector3 & p0, const Vector3 & p1, const Vector3 & p2, Vector3 & i0, Vector3 & i1) {
+		// Calculate signed distance to the Plane for each endpoint of the Triangle
+		float dist_p0 = Vector3::dot(plane_normal, p0) + plane_distance;
+		float dist_p1 = Vector3::dot(plane_normal, p1) + plane_distance;
+		float dist_p2 = Vector3::dot(plane_normal, p2) + plane_distance;
+
+		// If all three points lie on the same side of the plane there is no intersection
+		if (dist_p0 <= 0.0f && dist_p1 <= 0.0f && dist_p2 <= 0.0f) return PlaneTriangleIntersection::LEFT;
+		if (dist_p0 >= 0.0f && dist_p1 >= 0.0f && dist_p2 >= 0.0f) return PlaneTriangleIntersection::RIGHT;
+
+		Vector3 edge10 = p1 - p0;
+		Vector3 edge20 = p2 - p0;
+		Vector3 edge21 = p2 - p1;
+
+		float t0 = -(Vector3::dot(plane_normal, p0) + plane_distance) / Vector3::dot(plane_normal, edge10);
+		float t1 = -(Vector3::dot(plane_normal, p0) + plane_distance) / Vector3::dot(plane_normal, edge20);
+		float t2 = -(Vector3::dot(plane_normal, p1) + plane_distance) / Vector3::dot(plane_normal, edge21);
+
+		if (t0 <= 0.0f || t0 >= 1.0f) {
+			i0 = p0 + t1 * edge20;
+			i1 = p1 + t2 * edge21;
+		} else if(t1 <= 0.0f || t1 >= 1.0f) {
+			i0 = p0 + t0 * edge10;
+			i1 = p1 + t2 * edge21;
+		} else { 
+			assert(t2 <= 0.0f || t2 >= 1.0f);
+
+			i0 = p0 + t0 * edge10;
+			i1 = p0 + t1 * edge20;
+		}
+
+		return PlaneTriangleIntersection::INTERSECTS;
+	}
 	
 	// Reflects the vector in the normal
 	// The sign of the normal is irrelevant, but it should be normalized

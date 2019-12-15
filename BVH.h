@@ -6,23 +6,21 @@
 
 #include "ScopedTimer.h"
 
-#define CONSTRUCT_MEDIAN   0 // Split using median Primitive along the longest axis
-#define CONSTRUCT_FULL_SAH 1 // Evaluate SAH for every Primtive to determine if we should split there
+#define BVH_CONSTRUCT_MEDIAN   0 // Split using median Primitive along the longest axis
+#define BVH_CONSTRUCT_FULL_SAH 1 // Evaluate SAH for every Primtive to determine if we should split there
 
-#define CONSTRUCTION_STRATEGY CONSTRUCT_FULL_SAH
+#define BVH_CONSTRUCTION_STRATEGY BVH_CONSTRUCT_FULL_SAH
 
-#define TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
-#define TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
-#define TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
+#define BVH_TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
+#define BVH_TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
+#define BVH_TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
 
-#define TRAVERSAL_STRATEGY TRAVERSE_TREE_ORDERED
+#define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_NAIVE
 
-#define AXIS_X_BITS 0x40000000 // 01 00 zeroes...
-#define AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
-#define AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
-#define AXIS_MASK   0xc0000000 // 11 00 zeroes...
-
-inline static int dimension_bits[3] = { AXIS_X_BITS, AXIS_Y_BITS, AXIS_Z_BITS };
+#define BVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
+#define BVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
+#define BVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
+#define BVH_AXIS_MASK   0xc0000000 // 11 00 zeroes...
 
 template<typename PrimitiveType>
 struct BVHNode {
@@ -48,9 +46,9 @@ struct BVHNode {
 		node_index += 2;
 		
 		int split_dimension;
-#if CONSTRUCTION_STRATEGY == CONSTRUCT_MEDIAN
+#if BVH_CONSTRUCTION_STRATEGY == BVH_CONSTRUCT_MEDIAN
 		int split_index = BVHConstructors::partition_median(primitives, indices, first_index, index_count, temp, split_dimension);
-#elif CONSTRUCTION_STRATEGY == CONSTRUCT_FULL_SAH
+#elif BVH_CONSTRUCTION_STRATEGY == BVH_CONSTRUCT_FULL_SAH
 		float split_cost;
 		int split_index = BVHConstructors::partition_full_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
@@ -63,7 +61,7 @@ struct BVHNode {
 			return;
 		}
 #endif
-		
+
 		float split = primitives[indices[split_dimension][split_index]].get_position()[split_dimension];
 		BVHConstructors::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
 
@@ -77,17 +75,17 @@ struct BVHNode {
 	}
 
 	inline bool is_leaf() const {
-		return (count & (~AXIS_MASK)) > 0;
+		return (count & (~BVH_AXIS_MASK)) > 0;
 	}
 
 	inline bool should_visit_left_first(const Ray & ray) const {
-#if TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE
+#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE
 		return true;
-#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
-		switch (count & AXIS_MASK) {
-			case AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
-			case AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
-			case AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
+#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
+		switch (count & BVH_AXIS_MASK) {
+			case BVH_AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
+			case BVH_AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
+			case BVH_AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
 
 			default: abort();
 		}
@@ -210,17 +208,17 @@ struct BVH {
 	}
 
 	inline void trace(const Ray & ray, RayHit & ray_hit) const {
-#if TRAVERSAL_STRATEGY == TRAVERSE_BRUTE_FORCE
+#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_BRUTE_FORCE
 		for (int i = 0; i < primitive_count; i++) {
 			primitives[i].trace(ray, ray_hit, 0);
 		}
-#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE || TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
+#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);
 #endif
 	}
 
 	inline SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
-#if TRAVERSAL_STRATEGY == TRAVERSE_BRUTE_FORCE
+#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_BRUTE_FORCE
 		SIMD_float result(0.0f);
 
 		for (int i = 0; i < primitive_count; i++) {
@@ -230,7 +228,7 @@ struct BVH {
 		}
 
 		return result;
-#elif TRAVERSAL_STRATEGY == TRAVERSE_TREE_NAIVE || TRAVERSAL_STRATEGY == TRAVERSE_TREE_ORDERED
+#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
 #endif
 	}
