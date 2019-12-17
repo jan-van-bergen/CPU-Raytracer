@@ -168,10 +168,21 @@ struct SBVHNode {
 					float dist_p2 = triangle.position2[spatial_split_dimension] + spatial_split_plane_distance;
 
 					const float epsilon = 0.0001f;
-					if (dist_p0 < -epsilon || dist_p1 < -epsilon || dist_p2 < -epsilon) {
+					bool goes_left  = dist_p0 < -epsilon || dist_p1 < -epsilon || dist_p2 < -epsilon;
+					bool goes_right = dist_p0 >  epsilon || dist_p1 >  epsilon || dist_p2 >  epsilon;
+
+					if (goes_left && goes_right) {
+						// B1 en B2 weet je op dit moment nog niet, die moet je dus WEL berekenen in parition_spatial
+						// Zelfde geldt voor N1 en N2
+
+						// @TODO: unsplitting
+					} 
+					
+					if (goes_left) {
 						children_left[dimension][children_left_count[dimension]++] = index;
 					} 
-					if (dist_p0 > epsilon || dist_p1 > epsilon || dist_p2 > epsilon) {
+					
+					if (goes_right) {
 						children_right[dimension][children_right_count[dimension]++] = index;
 					}
 				}

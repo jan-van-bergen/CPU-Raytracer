@@ -15,12 +15,9 @@ namespace BVHConstructors {
 			aabb.expand(primitives[indices[i]].aabb);
 		}
 
-		// Make sure the AABB is non-zero along every dimension
-		for (int d = 0; d < 3; d++) {
-			if (aabb.max[d] - aabb.min[d] < 0.001f) {
-				aabb.max[d] += 0.005f;
-			}
-		}
+		aabb.fix_if_needed();
+
+		assert(aabb.is_valid());
 
 		return aabb;
 	} 
@@ -239,7 +236,7 @@ namespace BVHConstructors {
 						bin.exit++;
 					}
 
-					const float epsilon = 0.001f;
+					const float epsilon = 0.01f;
 					assert(bin.aabb.min[dimension] > bounds_min +  b    * bounds_step - epsilon);
 					assert(bin.aabb.max[dimension] < bounds_min + (b+1) * bounds_step + epsilon);
 

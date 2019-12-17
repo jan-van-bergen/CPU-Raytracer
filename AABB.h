@@ -5,6 +5,19 @@
 struct AABB {
 	Vector3 min;
 	Vector3 max;
+	
+	inline bool is_valid() const {
+		return max.x > min.x && max.y > min.y && max.z > min.z;
+	}
+
+	// Make sure the AABB is non-zero along every dimension
+	inline void fix_if_needed() {
+		for (int dimension = 0; dimension < 3; dimension++) {
+			if (max[dimension] - min[dimension] < 0.001f) {
+				max[dimension] += 0.005f;
+			}
+		}
+	}
 
 	inline float surface_area() const {
 		Vector3 diff = max - min;
@@ -54,10 +67,19 @@ struct AABB {
 	}
 
 	inline static AABB overlap(const AABB & b1, const AABB & b2) {
+		assert(b1.is_valid());
+		assert(b2.is_valid());
+
 		AABB aabb;
 
-		aabb.max = Vector3::min(Vector3::max(b1.max, b2.min), Vector3::max(b1.min, b2.max));
-		aabb.min = Vector3::max(Vector3::min(b1.max, b2.min), Vector3::min(b1.min, b2.max));
+		if (b2.min.x > b1.max.x || b2.min.y > b1.max.y || b2.min.z > b1.max.z) return aabb; 
+		if (b1.min.x > b2.max.x || b1.min.y > b2.max.y || b1.min.z > b2.max.z) return aabb; 
+
+		aabb.min = Vector3::max(b1.min, b2.min);
+		aabb.max = Vector3::min(b1.max, b2.max);
+
+		aabb.fix_if_needed();
+		assert(aabb.is_valid());
 
 		return aabb;
 	}
@@ -77,6 +99,9 @@ struct AABB {
 			aabb.min = Vector3::min(aabb.min, points[i]);
 			aabb.max = Vector3::max(aabb.max, points[i]);
 		}
+
+		aabb.fix_if_needed();
+		assert(aabb.is_valid());
 
 		return aabb;
 	}
