@@ -47,18 +47,24 @@ struct SBVHNode {
 		int   full_sah_split_dimension = -1;
 		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, temp, full_sah_split_dimension, full_sah_split_cost);
 
-		AABB aabb_left  = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], first_index,          full_sah_split_index);
-		AABB aabb_right = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], full_sah_split_index, first_index + index_count);
+		AABB b1 = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], first_index,          full_sah_split_index);
+		AABB b2 = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], full_sah_split_index, first_index + index_count);
 
 		float spatial_split_cost = INFINITY;
 		int   spatial_split_dimension = -1;
 		float spatial_split_plane_distance = NAN;
 		
-		float lamba = AABB::overlap(aabb_left, aabb_right).surface_area();
+		AABB aabb_left, aabb_right;
+		int ss_count_left, ss_count_right;
 
-		const float alpha = 0.00001f; // Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
-		if (lamba * inv_root_surface_area > alpha) { 
-			BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance);
+		float lamba = AABB::overlap(b1, b2).surface_area();
+
+		const float alpha = 0.0001f; // Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
+		float ratio = lamba * inv_root_surface_area;
+		assert(ratio >= 0.0f && ratio <= 1.0f);
+
+		if (ratio > alpha) { 
+			BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, ss_count_left, ss_count_right);
 		}
 
 		// @TODO: left is not needed and right can use the 'temp' array
@@ -130,7 +136,7 @@ struct SBVHNode {
 			memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
 			memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
 
-			int offset_left  = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left,  sah, temp, inv_root_surface_area);
+			int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area);
 
 			memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
 			memcpy(indices[1] + first_index + offset_left, children_right[1], n_right * sizeof(int));
@@ -147,6 +153,8 @@ struct SBVHNode {
 			
 			return offset_left + offset_right;
 		} else {
+			assert(ratio > alpha);
+
 			// Check SAH termination condition
 			float parent_cost = aabb.surface_area() * float(index_count); 
 			if (spatial_split_cost >= parent_cost) {
@@ -163,19 +171,40 @@ struct SBVHNode {
 					int index = indices[dimension][i];
 					const Triangle & triangle = triangles[index];
 
+					//bool goes_left  = AABB::intersect(triangle.aabb, aabb_left);
+					//bool goes_right = AABB::intersect(triangle.aabb, aabb_right);
+
 					float dist_p0 = triangle.position0[spatial_split_dimension] + spatial_split_plane_distance;
 					float dist_p1 = triangle.position1[spatial_split_dimension] + spatial_split_plane_distance;
 					float dist_p2 = triangle.position2[spatial_split_dimension] + spatial_split_plane_distance;
 
 					const float epsilon = 0.0001f;
-					bool goes_left  = dist_p0 < -epsilon || dist_p1 < -epsilon || dist_p2 < -epsilon;
-					bool goes_right = dist_p0 >  epsilon || dist_p1 >  epsilon || dist_p2 >  epsilon;
+					//bool goes_left  = dist_p0 < -epsilon || dist_p1 < -epsilon || dist_p2 < -epsilon;
+					//bool goes_right = dist_p0 >  epsilon || dist_p1 >  epsilon || dist_p2 >  epsilon;
+
+					bool goes_left  = dist_p0 <= 0.0f || dist_p1 <= 0.0f || dist_p2 <= 0.0f;
+					bool goes_right = dist_p0 >  0.0f || dist_p1 >  0.0f || dist_p2 >  0.0f;
 
 					if (goes_left && goes_right) {
-						// B1 en B2 weet je op dit moment nog niet, die moet je dus WEL berekenen in parition_spatial
-						// Zelfde geldt voor N1 en N2
+						AABB delta_left  = aabb_left;
+						AABB delta_right = aabb_right;
 
-						// @TODO: unsplitting
+						delta_left.expand (triangle.aabb);
+						delta_right.expand(triangle.aabb);
+
+						float c_1 = delta_left.surface_area() *  ss_count_left         +  aabb_right.surface_area() * (ss_count_right - 1.0f);
+						float c_2 =  aabb_left.surface_area() * (ss_count_left - 1.0f) + delta_right.surface_area() *  ss_count_right;
+
+						float c_split = spatial_split_cost;
+						if (c_1 < c_split) {
+							if (c_2 < c_1) {
+								goes_left = false;
+							} else {
+								goes_right = false;
+							}
+						} else if (c_2 < c_split) {
+							goes_left = false;
+						}
 					} 
 					
 					if (goes_left) {
@@ -193,6 +222,9 @@ struct SBVHNode {
 			
 			int n_left  = children_left_count [0];
 			int n_right = children_right_count[0];
+
+			//assert(n_left  == ss_count_left);
+			//assert(n_right == ss_count_right);
 
 			assert(n_left  > 0 && n_left  < index_count);
 			assert(n_right > 0 && n_right < index_count);

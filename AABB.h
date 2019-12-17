@@ -72,8 +72,7 @@ struct AABB {
 
 		AABB aabb;
 
-		if (b2.min.x > b1.max.x || b2.min.y > b1.max.y || b2.min.z > b1.max.z) return aabb; 
-		if (b1.min.x > b2.max.x || b1.min.y > b2.max.y || b1.min.z > b2.max.z) return aabb; 
+		if (!intersect(b1, b2)) return aabb;
 
 		aabb.min = Vector3::max(b1.min, b2.min);
 		aabb.max = Vector3::min(b1.max, b2.max);
@@ -107,4 +106,11 @@ struct AABB {
 	}
 
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
+
+	inline static bool intersect(const AABB & b1, const AABB & b2) {
+		if (b2.min.x > b1.max.x || b2.min.y > b1.max.y || b2.min.z > b1.max.z) return false; 
+		if (b1.min.x > b2.max.x || b1.min.y > b2.max.y || b1.min.z > b2.max.z) return false; 
+
+		return true;		
+	}
 };
