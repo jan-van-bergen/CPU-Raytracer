@@ -26,35 +26,51 @@ namespace Math {
 		RIGHT
 	};
 
-	inline PlaneTriangleIntersection plane_triangle_intersection(const Vector3 & plane_normal, float plane_distance, const Vector3 & p0, const Vector3 & p1, const Vector3 & p2, Vector3 & i0, Vector3 & i1) {
+	inline PlaneTriangleIntersection plane_triangle_intersection(int dimension, float plane_distance, const Vector3 & p0, const Vector3 & p1, const Vector3 & p2, Vector3 & i0, Vector3 & i1) {
 		// Calculate signed distance to the Plane for each endpoint of the Triangle
-		float dist_p0 = Vector3::dot(plane_normal, p0) + plane_distance;
-		float dist_p1 = Vector3::dot(plane_normal, p1) + plane_distance;
-		float dist_p2 = Vector3::dot(plane_normal, p2) + plane_distance;
+		float dist_p0 = p0[dimension] + plane_distance;
+		float dist_p1 = p1[dimension] + plane_distance;
+		float dist_p2 = p2[dimension] + plane_distance;
 
-		// If all three points lie on the same side of the plane there is no intersection
-		if (dist_p0 <= 0.0f && dist_p1 <= 0.0f && dist_p2 <= 0.0f) return PlaneTriangleIntersection::LEFT;
-		if (dist_p0 >= 0.0f && dist_p1 >= 0.0f && dist_p2 >= 0.0f) return PlaneTriangleIntersection::RIGHT;
+		Vector3 left[3];  int left_count  = 0;
+		Vector3 right[3]; int right_count = 0;
 
-		Vector3 edge10 = p1 - p0;
-		Vector3 edge20 = p2 - p0;
-		Vector3 edge21 = p2 - p1;
+		if (dist_p0 <= 0.0f) left[left_count++] = p0; else right[right_count++] = p0;
+		if (dist_p1 <= 0.0f) left[left_count++] = p1; else right[right_count++] = p1;
+		if (dist_p2 <= 0.0f) left[left_count++] = p2; else right[right_count++] = p2;
 
-		float t0 = -(Vector3::dot(plane_normal, p0) + plane_distance) / Vector3::dot(plane_normal, edge10);
-		float t1 = -(Vector3::dot(plane_normal, p0) + plane_distance) / Vector3::dot(plane_normal, edge20);
-		float t2 = -(Vector3::dot(plane_normal, p1) + plane_distance) / Vector3::dot(plane_normal, edge21);
+		if (left_count  == 3) return PlaneTriangleIntersection::LEFT;
+		if (right_count == 3) return PlaneTriangleIntersection::RIGHT;
 
-		if (t0 <= 0.0f || t0 >= 1.0f) {
-			i0 = p0 + t1 * edge20;
-			i1 = p1 + t2 * edge21;
-		} else if(t1 <= 0.0f || t1 >= 1.0f) {
-			i0 = p0 + t0 * edge10;
-			i1 = p1 + t2 * edge21;
-		} else { 
-			assert(t2 <= 0.0f || t2 >= 1.0f);
+		if (left_count == 1) {
+			assert(right_count == 2);
 
-			i0 = p0 + t0 * edge10;
-			i1 = p0 + t1 * edge20;
+			Vector3 edge0 = right[0] - left[0];
+			Vector3 edge1 = right[1] - left[0];
+
+			float t0 = -(left[0][dimension] + plane_distance) / edge0[dimension];
+			float t1 = -(left[0][dimension] + plane_distance) / edge1[dimension];
+
+			assert(t0 >= 0.0f && t0 <= 1.0f);
+			assert(t1 >= 0.0f && t1 <= 1.0f);
+
+			i0 = left[0] + t0 * edge0;
+			i1 = left[0] + t1 * edge1;
+		} else {
+			assert(left_count  == 2);
+			assert(right_count == 1);
+
+			Vector3 edge0 = left[0] - right[0];
+			Vector3 edge1 = left[1] - right[0];
+
+			float t0 = -(right[0][dimension] + plane_distance) / edge0[dimension];
+			float t1 = -(right[0][dimension] + plane_distance) / edge1[dimension];
+			
+			assert(t0 >= 0.0f && t0 <= 1.0f);
+			assert(t1 >= 0.0f && t1 <= 1.0f);
+
+			i0 = right[0] + t0 * edge0;
+			i1 = right[0] + t1 * edge1;
 		}
 
 		return PlaneTriangleIntersection::INTERSECTS;

@@ -45,8 +45,8 @@ namespace BVHConstructors {
 	inline void split_indices(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, int * temp, int split_dimension, int split_index, float split) {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			if (dimension != split_dimension) {
-				int left  = first_index;
-				int right = split_index;
+				int left  = 0;
+				int right = split_index - first_index;
 
 				for (int i = first_index; i < first_index + index_count; i++) {
 					bool goes_left = primitives[indices[dimension][i]].get_position()[split_dimension] < split;
@@ -59,7 +59,7 @@ namespace BVHConstructors {
 
 						int j = split_index - 1;
 						// While we can go left and the left primitive has the same coordinate along the split dimension as the split itself
-						while (j >= 0 && primitives[indices[split_dimension][j]].get_position()[split_dimension] == split) {
+						while (j >= first_index && primitives[indices[split_dimension][j]].get_position()[split_dimension] == split) {
 							if (indices[split_dimension][j] == indices[dimension][i]) {
 								goes_left = true;
 
@@ -78,10 +78,10 @@ namespace BVHConstructors {
 				}
 
 				// If these conditions are not met the memcpy below is invalid
-				assert(left  == split_index);
-				assert(right == first_index + index_count);
+				assert(left  == split_index - first_index);
+				assert(right == index_count);
 
-				memcpy(indices[dimension] + first_index, temp + first_index, index_count * sizeof(int));
+				memcpy(indices[dimension] + first_index, temp, index_count * sizeof(int));
 
 				assert(is_sorted(primitives, indices, first_index,        left ));
 				assert(is_sorted(primitives, indices, first_index + left, right));
@@ -165,47 +165,42 @@ namespace BVHConstructors {
 		float min_bin_cost = INFINITY;
 		int   min_bin_index     = -1;
 		int   min_bin_dimension = -1;
-		float min_bin_plane_distance;
+		float min_bin_plane_distance = NAN;
 
 		const int BIN_COUNT = 100;
 
 		// @SPEED: get this from caller
 		AABB bounds = calculate_bounds(triangles, indices[0], first_index, first_index + index_count);
 
-		Vector3 plane_normals[3] = {
-			Vector3(1.0f, 0.0f, 0.0f),
-			Vector3(0.0f, 1.0f, 0.0f),
-			Vector3(0.0f, 0.0f, 1.0f),
-		};
-
 		struct Bin {
-			AABB aabb;
-			int entry;
-			int exit;
+			AABB aabb = AABB::create_empty();
+			int entry = 0;
+			int exit  = 0;
 		} bins[3][BIN_COUNT]; // @TODO: should this be on the stack?
 
 		for (int dimension = 0; dimension < 3; dimension++) {
-			float bounds_min  = bounds.min[dimension];
-			float bounds_max  = bounds.max[dimension];
+			float bounds_min  = bounds.min[dimension] - 0.001f;
+			float bounds_max  = bounds.max[dimension] + 0.001f;
 			float bounds_step = (bounds_max - bounds_min) / BIN_COUNT;
 
-			Vector3 plane_normal = plane_normals[dimension];
+			for (int i = first_index; i < first_index + index_count; i++) {
+				const Triangle & triangle = triangles[indices[dimension][i]];
+				
+				Vector3 intersections[4];
+				Math::PlaneTriangleIntersection left;
+				Math::PlaneTriangleIntersection right;
+				
+				float plane_left_distance  = -bounds_min;
+				float plane_right_distance = plane_left_distance - bounds_step;
 
-			float plane_left_distance  = -bounds_min;
-			float plane_right_distance = plane_left_distance - bounds_step;
+				left = Math::plane_triangle_intersection(dimension, plane_left_distance, triangle.position0, triangle.position1, triangle.position2, intersections[0], intersections[1]);
 
-			for (int b = 0; b < BIN_COUNT; b++) {
-				Bin & bin = bins[dimension][b];
-				bin.aabb = AABB::create_empty();
-				bin.entry = 0;
-				bin.exit  = 0;
+				for (int b = 0; b < BIN_COUNT; b++) {
+					Bin & bin = bins[dimension][b];
 
-				for (int i = first_index; i < first_index + index_count; i++) {
-					const Triangle & triangle = triangles[indices[dimension][i]];
+					right = Math::plane_triangle_intersection(dimension, plane_right_distance, triangle.position0, triangle.position1, triangle.position2, intersections[2], intersections[3]);
 
-					Vector3 intersections[4];
-					Math::PlaneTriangleIntersection left  = Math::plane_triangle_intersection(plane_normal, plane_left_distance,  triangle.position0, triangle.position1, triangle.position2, intersections[0], intersections[1]);
-					Math::PlaneTriangleIntersection right = Math::plane_triangle_intersection(plane_normal, plane_right_distance, triangle.position0, triangle.position1, triangle.position2, intersections[2], intersections[3]);
+					assert(!(left == Math::PlaneTriangleIntersection::LEFT && right == Math::PlaneTriangleIntersection::RIGHT));
 
 					if (left == Math::PlaneTriangleIntersection::INTERSECTS && right == Math::PlaneTriangleIntersection::INTERSECTS) {
 						bin.aabb.expand(AABB::from_points(intersections, 4));
@@ -213,10 +208,10 @@ namespace BVHConstructors {
 						assert(right == Math::PlaneTriangleIntersection::LEFT);
 
 						bin.aabb.expand(AABB::from_points(intersections, 2));
-
-						float dist_p0 = Vector3::dot(plane_normal, triangle.position0) + plane_left_distance;
-						float dist_p1 = Vector3::dot(plane_normal, triangle.position1) + plane_left_distance;
-						float dist_p2 = Vector3::dot(plane_normal, triangle.position2) + plane_left_distance;
+						
+						float dist_p0 = triangle.position0[dimension] + plane_left_distance;
+						float dist_p1 = triangle.position1[dimension] + plane_left_distance;
+						float dist_p2 = triangle.position2[dimension] + plane_left_distance;
 
 						if (dist_p0 >= 0.0f) bin.aabb.expand(triangle.position0);
 						if (dist_p1 >= 0.0f) bin.aabb.expand(triangle.position1);
@@ -228,32 +223,49 @@ namespace BVHConstructors {
 
 						bin.aabb.expand(AABB::from_points(intersections + 2, 2));
 
-						float dist_p0 = Vector3::dot(plane_normal, triangle.position0) + plane_right_distance;
-						float dist_p1 = Vector3::dot(plane_normal, triangle.position1) + plane_right_distance;
-						float dist_p2 = Vector3::dot(plane_normal, triangle.position2) + plane_right_distance;
+						float dist_p0 = triangle.position0[dimension] + plane_right_distance;
+						float dist_p1 = triangle.position1[dimension] + plane_right_distance;
+						float dist_p2 = triangle.position2[dimension] + plane_right_distance;
 
 						if (dist_p0 <= 0.0f) bin.aabb.expand(triangle.position0);
 						if (dist_p1 <= 0.0f) bin.aabb.expand(triangle.position1);
 						if (dist_p2 <= 0.0f) bin.aabb.expand(triangle.position2);
 
 						bin.entry++;
-					} else if (left == Math::PlaneTriangleIntersection::RIGHT && right == Math::PlaneTriangleIntersection::LEFT){
+					} else if (left == Math::PlaneTriangleIntersection::RIGHT && right == Math::PlaneTriangleIntersection::LEFT) {
 						bin.aabb.expand(triangle.aabb);
 
 						bin.entry++;
 						bin.exit++;
 					}
+
+					const float epsilon = 0.001f;
+					assert(bin.aabb.min[dimension] > bounds_min +  b    * bounds_step - epsilon);
+					assert(bin.aabb.max[dimension] < bounds_min + (b+1) * bounds_step + epsilon);
+
+					assert(bin.aabb.min[0] > bounds.min[0] - epsilon); assert(bin.aabb.max[0] < bounds.max[0] + epsilon);
+					assert(bin.aabb.min[1] > bounds.min[1] - epsilon); assert(bin.aabb.max[1] < bounds.max[1] + epsilon);
+					assert(bin.aabb.min[2] > bounds.min[2] - epsilon); assert(bin.aabb.max[2] < bounds.max[2] + epsilon);
+					
+					// Advance planes for next Bin
+					plane_left_distance   = plane_right_distance;
+					plane_right_distance -= bounds_step;
+
+					intersections[0] = intersections[2];
+					intersections[1] = intersections[3];
+
+					left = right;
 				}
-
-				assert(bin.aabb.min[dimension] >= bounds_min +  b    * bounds_step - 0.001f);
-				assert(bin.aabb.max[dimension] <= bounds_min + (b+1) * bounds_step + 0.001f);
-
-				// Advance planes for next Bin
-				plane_left_distance  -= bounds_step;
-				plane_right_distance -= bounds_step;
 			}
 
-			float bin_sah[BIN_COUNT];
+			for (int b = 0; b < BIN_COUNT; b++) {
+				for (int d = 0; d < 3; d++) {
+					float diff = bins[dimension][b].aabb.max[d] - bins[dimension][b].aabb.min[d];
+					if (diff < 0.001f) bins[dimension][b].aabb.max[d] += 0.005f;
+				}
+			}
+
+			float bin_sah[BIN_COUNT - 1];
 
 			AABB left_aabb  = AABB::create_empty();
 			int  left_count = 0;
@@ -262,9 +274,11 @@ namespace BVHConstructors {
 				left_aabb.expand(bins[dimension][b].aabb);
 				left_count += bins[dimension][b].entry;
 
-				bin_sah[b] = left_aabb.surface_area() * float(left_count);
-
-				// if (dimension == 2 && b == 68) left_aabb.debug(0);
+				if (left_count < index_count) {
+					bin_sah[b] = left_aabb.surface_area() * float(left_count);
+				} else {
+					bin_sah[b] = INFINITY;
+				}
 			}
 
 			AABB right_aabb  = AABB::create_empty();
@@ -274,9 +288,11 @@ namespace BVHConstructors {
 				right_aabb.expand(bins[dimension][b].aabb);
 				right_count += bins[dimension][b].exit;
 
-				bin_sah[b - 1] += right_aabb.surface_area() * float(right_count);
-				
-				// if (dimension == 2 && b == 69) right_aabb.debug(1);
+				if (right_count < index_count) {
+					bin_sah[b - 1] += right_aabb.surface_area() * float(right_count);
+				} else {
+					bin_sah[b - 1] = INFINITY;
+				}
 			}
 
 			// Find the minimum of the SAH

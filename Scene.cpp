@@ -25,6 +25,9 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 	
+	//Vector3 i0, i1;
+	//Math::PlaneTriangleIntersection intersection = Math::plane_triangle_intersection(Vector3(0,1,0), 0, Vector3(-1,1,2), Vector3(1,1,1), Vector3(0,-1,-1), i0, i1);
+
 	/*const MeshData * temp = MeshData::load(DATA_PATH("Monkey.obj"));
 
 	SBVH sbvh;
@@ -67,7 +70,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #else
 	bvh_meshes.init(1);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("Monkey.obj"));
+	bvh_meshes.primitives[0].init(DATA_PATH("pica/pica.obj"));
 	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 #endif
@@ -90,7 +93,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.3f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
+		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 
 	//camera.position = Vector3(2.0f, 4.0f, -2.0f);
