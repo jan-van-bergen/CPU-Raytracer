@@ -29,7 +29,7 @@ struct SBVHNode {
 	};
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
-	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
+	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp, float inv_root_surface_area) {
 		aabb = BVHConstructors::calculate_bounds(triangles, indices[0], first_index, first_index + index_count);
 		
 		if (index_count < 3) {
@@ -43,17 +43,24 @@ struct SBVHNode {
 		left = node_index;
 		node_index += 2;
 
-		//if (first_index == 3122 && index_count == 16) __debugbreak();
-
-		int   full_sah_split_dimension = -1;
 		float full_sah_split_cost = NAN;
+		int   full_sah_split_dimension = -1;
 		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, temp, full_sah_split_dimension, full_sah_split_cost);
 
+		AABB aabb_left  = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], first_index,          full_sah_split_index);
+		AABB aabb_right = BVHConstructors::calculate_bounds(triangles, indices[full_sah_split_dimension], full_sah_split_index, first_index + index_count);
+
+		float spatial_split_cost = INFINITY;
 		int   spatial_split_dimension = -1;
-		float spatial_split_cost = NAN;
 		float spatial_split_plane_distance = NAN;
-		int   spatial_split_index = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance);
 		
+		float lamba = AABB::overlap(aabb_left, aabb_right).surface_area();
+
+		const float alpha = 0.00001f; // Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
+		if (lamba * inv_root_surface_area > alpha) { 
+			BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance);
+		}
+
 		// @TODO: left is not needed and right can use the 'temp' array
 		int * children_left [3] { new int[index_count], new int[index_count], new int[index_count] };
 		int * children_right[3] { new int[index_count], new int[index_count], new int[index_count] };
@@ -61,7 +68,7 @@ struct SBVHNode {
 		int children_left_count [3] = { 0, 0, 0 };
 		int children_right_count[3] = { 0, 0, 0 };
 
-		if (full_sah_split_cost < spatial_split_cost) {
+		if (full_sah_split_cost <= spatial_split_cost) {
 			// Check SAH termination condition
 			float parent_cost = aabb.surface_area() * float(index_count); 
 			if (full_sah_split_cost >= parent_cost) {
@@ -74,8 +81,7 @@ struct SBVHNode {
 			count = (full_sah_split_dimension + 1) << 30;
 
 			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
-			//BVHConstructors::split_indices(triangles, indices, first_index, index_count, temp, full_sah_split_dimension, full_sah_split_index, split);
-			
+
 			for (int dimension = 0; dimension < 3; dimension++) {
 				//if (dimension != full_sah_split_dimension) {
 					for (int i = first_index; i < first_index + index_count; i++) {
@@ -120,19 +126,17 @@ struct SBVHNode {
 			assert(first_index + n_left == full_sah_split_index);
 			assert(n_left + n_right == index_count);
 
-			//printf("Full SAH: first = %i, count = %i, dim = %i, index = %i, n_left = %i, n_right = %i\n", first_index, index_count, full_sah_split_dimension, full_sah_split_index, n_left, n_right);
-			
 			memcpy(indices[0] + first_index, children_left[0], n_left * sizeof(int));
 			memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
 			memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
 
-			int offset_left  = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left,  sah, temp);
+			int offset_left  = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left,  sah, temp, inv_root_surface_area);
 
 			memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
 			memcpy(indices[1] + first_index + offset_left, children_right[1], n_right * sizeof(int));
 			memcpy(indices[2] + first_index + offset_left, children_right[2], n_right * sizeof(int));
 
-			int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp);
+			int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area);
 			
 			delete [] children_left[0];
 			delete [] children_left[1];
@@ -153,8 +157,6 @@ struct SBVHNode {
 			}
 			
 			count = (spatial_split_dimension + 1) << 30;
-
-			//if (first_index == 8631 && index_count == 14) printf("dim = %i\ndist = %f\n", spatial_split_dimension, spatial_split_plane_distance);
 
 			for (int dimension = 0; dimension < 3; dimension++) {
 				for (int i = first_index; i < first_index + index_count; i++) {
@@ -190,13 +192,13 @@ struct SBVHNode {
 			memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
 			memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
 
-			int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp);
+			int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area);
 
 			memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
 			memcpy(indices[1] + first_index + offset_left, children_right[1], n_right * sizeof(int));
 			memcpy(indices[2] + first_index + offset_left, children_right[2], n_right * sizeof(int));
 
-			int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp);
+			int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area);
 
 			delete [] children_left[0];
 			delete [] children_left[1];
@@ -206,9 +208,7 @@ struct SBVHNode {
 			delete [] children_right[2];
 			
 			return offset_left + offset_right;
-		}			
-
-		abort();
+		}
 	}
 	
 	inline bool is_leaf() const {
@@ -337,8 +337,10 @@ struct SBVH {
 
 		int * temp = new int[primitive_count];
 
+		float root_surface_area = BVHConstructors::calculate_bounds(primitives, indices[0], 0, primitive_count).surface_area();
+
 		int node_index = 2;
-		int leaf_count = nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah, temp);
+		int leaf_count = nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_surface_area);
 
 		printf("Leaf count: %i\n", leaf_count);
 
