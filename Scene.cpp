@@ -4,7 +4,7 @@
 
 #define NUMBER_OF_BOUNCES 3
 
-#define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
+#define BVH_HEATMAP true // Toggle to visualize number of traversal steps through BVH
 
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
@@ -141,7 +141,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 #if BVH_HEATMAP
 	SIMD_Vector3 debug;
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
-		Vector3 colour = Test::heat_palette->sample(Math::clamp(closest_hit.bvh_steps[i] / 32, 0.0f, 1.0f), 0.0f);
+		Vector3 colour = Debug::heat_palette->sample(Math::clamp(closest_hit.bvh_steps[i] / 32, 0.0f, 1.0f), 0.0f);
 
 		debug.x[i] = colour.x;
 		debug.y[i] = colour.y;

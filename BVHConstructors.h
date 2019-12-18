@@ -236,6 +236,10 @@ namespace BVHConstructors {
 
 						bin.entry++;
 						bin.exit++;
+					} else if (left == Math::PlaneTriangleIntersection::LEFT) {
+						assert(right == Math::PlaneTriangleIntersection::LEFT);
+
+						break;
 					}
 
 					const float epsilon = 0.01f;
