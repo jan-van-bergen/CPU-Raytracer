@@ -56,7 +56,7 @@ namespace Math {
 
                     if (delta_ap > 0 && delta_pb <= 0) { 
 						float t = delta_ap / delta_ab;
-                        intersections[intersection_count++] = (1 - t) * vertex_a + t * pb;
+                        intersections[intersection_count++] = (1.0f - t) * vertex_a + t * pb;
 					}
                 }
             }
