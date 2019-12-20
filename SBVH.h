@@ -166,10 +166,6 @@ struct SBVHNode {
 			AABB aabb_new_left  = aabb_left;
 			AABB aabb_new_right = aabb_right;
 
-			std::vector<const Triangle *> straddlers;
-			std::vector<const Triangle *> lefts;
-			std::vector<const Triangle *> rights;
-
 			float bounds_min = node_aabb.min[spatial_split_dimension] - 0.001f;
 			float bounds_max = node_aabb.max[spatial_split_dimension] + 0.001f;
 			
@@ -184,20 +180,15 @@ struct SBVHNode {
 					bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
 					bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
 
+					// @TODO: UNSPLITTING!
+
 					if (bin_max < spatial_split_bin) {
 						children_left[dimension][children_left_count[dimension]++] = index;
-
-						lefts.push_back(&triangle);
 					} else if (bin_min >= spatial_split_bin) {
 						children_right[dimension][children_right_count[dimension]++] = index;
-
-						rights.push_back(&triangle);
 					} else {
 						children_left[dimension][children_left_count[dimension]++] = index;
 						children_right[dimension][children_right_count[dimension]++] = index;
-
-						lefts.push_back(&triangle);
-						rights.push_back(&triangle);
 					}
 				}
 			}
