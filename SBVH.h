@@ -39,8 +39,6 @@ struct SBVHNode {
 			first = first_index;
 			count = index_count;
 			
-			printf("Leaf with %i primitives at %i\n", index_count, first_index);
-			
 			return count;
 		}
 		
@@ -70,25 +68,23 @@ struct SBVHNode {
 			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, ss_count_left, ss_count_right, node_aabb);
 		}
 
-		// @TODO: left is not needed and right can use the 'temp' array
-		int * children_left [3] { new int[index_count], new int[index_count], new int[index_count] };
-		int * children_right[3] { new int[index_count], new int[index_count], new int[index_count] };
-
-		int children_left_count [3] = { 0, 0, 0 };
-		int children_right_count[3] = { 0, 0, 0 };
-
 		// Check SAH termination condition
 		float parent_cost = aabb.surface_area() * float(index_count); 
 		if (parent_cost <= full_sah_split_cost && parent_cost <= spatial_split_cost) {
 			first = first_index;
 			count = index_count;
 			
-			printf("Leaf with %i primitives at %i\n", index_count, first_index);
-			
 			return count;
 		} 
 
 		count = (full_sah_split_dimension + 1) << 30;
+		
+		// @TODO: left is not needed and right can use the 'temp' array
+		int * children_left [3] { new int[index_count], new int[index_count], new int[index_count] };
+		int * children_right[3] { new int[index_count], new int[index_count], new int[index_count] };
+
+		int children_left_count [3] = { 0, 0, 0 };
+		int children_right_count[3] = { 0, 0, 0 };
 
 		if (full_sah_split_cost <= spatial_split_cost) {
 			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
@@ -181,15 +177,20 @@ struct SBVHNode {
 					bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
 
 					// @TODO: UNSPLITTING!
+					bool goes_left  = false;
+					bool goes_right = false;
 
 					if (bin_max < spatial_split_bin) {
-						children_left[dimension][children_left_count[dimension]++] = index;
+						goes_left = true;
 					} else if (bin_min >= spatial_split_bin) {
-						children_right[dimension][children_right_count[dimension]++] = index;
+						goes_right = true;
 					} else {
-						children_left[dimension][children_left_count[dimension]++] = index;
-						children_right[dimension][children_right_count[dimension]++] = index;
+						goes_left  = true;
+						goes_right = true;
 					}
+
+					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;
+					if (goes_right) children_right[dimension][children_right_count[dimension]++] = index;
 				}
 			}
 

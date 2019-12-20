@@ -253,7 +253,7 @@ namespace BVHConstructors {
 				AABB aabb = AABB::create_empty();
 				int entries = 0;
 				int exits   = 0;
-			} bins[BIN_COUNT]; // @TODO: should this be on the stack?
+			} bins[BIN_COUNT];
 
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
