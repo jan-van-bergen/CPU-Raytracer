@@ -176,7 +176,6 @@ struct SBVHNode {
 					bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
 					bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
 
-					// @TODO: UNSPLITTING!
 					bool goes_left  = false;
 					bool goes_right = false;
 
@@ -187,7 +186,39 @@ struct SBVHNode {
 					} else {
 						goes_left  = true;
 						goes_right = true;
+
+						// Consider usplitting
+						AABB delta_left  = aabb_left;
+						AABB delta_right = aabb_right;
+
+						delta_left.expand (triangle.aabb);
+						delta_right.expand(triangle.aabb);
+
+						float c_1 = delta_left.surface_area() *  ss_count_left         +  aabb_right.surface_area() * (ss_count_right - 1.0f);
+						float c_2 =  aabb_left.surface_area() * (ss_count_left - 1.0f) + delta_right.surface_area() *  ss_count_right;
+
+						float c_split = spatial_split_cost;
+						if (c_1 < c_split) {
+							if (c_2 < c_1) {
+								goes_left = false;
+								rejected_left++;
+
+								aabb_new_right.expand(triangle.aabb);
+							} else {
+								goes_right = false;
+								rejected_right++;
+
+								aabb_new_left.expand(triangle.aabb);
+							}
+						} else if (c_2 < c_split) {
+							goes_left = false;
+							rejected_left++;
+
+							aabb_new_right.expand(triangle.aabb);
+						}
 					}
+
+					assert(goes_left || goes_right);
 
 					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;
 					if (goes_right) children_right[dimension][children_right_count[dimension]++] = index;
@@ -199,7 +230,8 @@ struct SBVHNode {
 			
 			int n_left  = children_left_count [0];
 			int n_right = children_right_count[0];
-
+			
+			// If a straddling reference is rejected from left or right it should have happened in all 3 dimensions
 			assert(rejected_left % 3 == 0 && rejected_right % 3 == 0);
 
 			assert(n_left  == ss_count_left  - rejected_left  / 3);
