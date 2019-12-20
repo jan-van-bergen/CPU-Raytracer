@@ -24,62 +24,6 @@ namespace Math {
         return a + (u * (b - a)) + (v * (c - a));
     }
 
-	enum class PlaneTriangleIntersection {
-		INTERSECTS = 0,
-		LEFT,
-		RIGHT
-	};
-
-	inline PlaneTriangleIntersection plane_triangle_intersection(int dimension, float plane_distance, const Vector3 & p0, const Vector3 & p1, const Vector3 & p2, Vector3 & i0, Vector3 & i1) {
-		// Calculate signed distance to the Plane for each endpoint of the Triangle
-		float dist_p0 = p0[dimension] + plane_distance;
-		float dist_p1 = p1[dimension] + plane_distance;
-		float dist_p2 = p2[dimension] + plane_distance;
-
-		Vector3 left[3];  int left_count  = 0;
-		Vector3 right[3]; int right_count = 0;
-
-		if (dist_p0 <= 0.0f) left[left_count++] = p0; else right[right_count++] = p0;
-		if (dist_p1 <= 0.0f) left[left_count++] = p1; else right[right_count++] = p1;
-		if (dist_p2 <= 0.0f) left[left_count++] = p2; else right[right_count++] = p2;
-
-		if (left_count  == 3) return PlaneTriangleIntersection::LEFT;
-		if (right_count == 3) return PlaneTriangleIntersection::RIGHT;
-
-		if (left_count == 1) {
-			assert(right_count == 2);
-
-			Vector3 edge0 = right[0] - left[0];
-			Vector3 edge1 = right[1] - left[0];
-
-			float t0 = -(left[0][dimension] + plane_distance) / edge0[dimension];
-			float t1 = -(left[0][dimension] + plane_distance) / edge1[dimension];
-
-			t0 = Math::clamp(t0, 0.0f, 1.0f);
-			t1 = Math::clamp(t1, 0.0f, 1.0f);
-
-			i0 = left[0] + t0 * edge0;
-			i1 = left[0] + t1 * edge1;
-		} else {
-			assert(left_count  == 2);
-			assert(right_count == 1);
-
-			Vector3 edge0 = left[0] - right[0];
-			Vector3 edge1 = left[1] - right[0];
-
-			float t0 = -(right[0][dimension] + plane_distance) / edge0[dimension];
-			float t1 = -(right[0][dimension] + plane_distance) / edge1[dimension];
-			
-			t0 = Math::clamp(t0, 0.0f, 1.0f);
-			t1 = Math::clamp(t1, 0.0f, 1.0f);
-
-			i0 = right[0] + t0 * edge0;
-			i1 = right[0] + t1 * edge1;
-		}
-
-		return PlaneTriangleIntersection::INTERSECTS;
-	}
-
 	inline AABB triangle_bin_bounds(int dimension, float plane_min, float plane_max, const Triangle & triangle) {
         Vector3 vertices[3] = { 
 			triangle.position0,
