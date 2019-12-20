@@ -151,6 +151,8 @@ namespace BVHConstructors {
 				bounds_left[i].expand(primitives[indices[dimension][first_index + i - 1]].aabb);
 				bounds_left[i] = AABB::overlap(bounds_left[i], node_aabb);
 
+				assert(!bounds_left[i].is_empty());
+
 				sah[i] = bounds_left[i].surface_area() * float(i);
 			}
 
@@ -159,6 +161,8 @@ namespace BVHConstructors {
 				bounds_right[i] = bounds_right[i+1];
 				bounds_right[i].expand(primitives[indices[dimension][first_index + i]].aabb);
 				bounds_right[i] = AABB::overlap(bounds_right[i], node_aabb);
+				
+				assert(!bounds_right[i].is_empty());
 
 				sah[i] += bounds_right[i].surface_area() * float(index_count - i);
 			}
@@ -192,16 +196,16 @@ namespace BVHConstructors {
 		int   min_bin_dimension = -1;
 		float min_bin_plane_distance = NAN;
 
-		struct Bin {
-			AABB aabb = AABB::create_empty();
-			int entries = 0;
-			int exits   = 0;
-		} bins[3][BIN_COUNT]; // @TODO: should this be on the stack?
-
 		for (int dimension = 0; dimension < 3; dimension++) {
 			float bounds_min  = bounds.min[dimension] - 0.001f;
 			float bounds_max  = bounds.max[dimension] + 0.001f;
 			float bounds_step = (bounds_max - bounds_min) / BIN_COUNT;
+			
+			struct Bin {
+				AABB aabb = AABB::create_empty();
+				int entries = 0;
+				int exits   = 0;
+			} bins[BIN_COUNT]; // @TODO: should this be on the stack?
 
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
@@ -215,11 +219,11 @@ namespace BVHConstructors {
 				bin_min = Math::clamp(bin_min, 0, BIN_COUNT - 1);
 				bin_max = Math::clamp(bin_max, 0, BIN_COUNT - 1);
 
-				bins[dimension][bin_min].entries++;
-				bins[dimension][bin_max].exits++;
+				bins[bin_min].entries++;
+				bins[bin_max].exits++;
 
 				for (int b = bin_min; b <= bin_max; b++) {
-					Bin & bin = bins[dimension][b];
+					Bin & bin = bins[b];
 
 					plane_right_distance = bounds_min + float(b+1) * bounds_step;
 
@@ -262,11 +266,11 @@ namespace BVHConstructors {
 			
 			for (int b = 1; b < BIN_COUNT; b++) {
 				bounds_left[b] = bounds_left[b-1];
-				bounds_left[b].expand(bins[dimension][b-1].aabb);
+				bounds_left[b].expand(bins[b-1].aabb);
 
 				assert(bounds_left[b].is_valid() || bounds_left[b].is_empty());
 
-				count_left[b] = count_left[b-1] + bins[dimension][b-1].entries;
+				count_left[b] = count_left[b-1] + bins[b-1].entries;
 
 				if (count_left[b] < index_count) {
 					bin_sah[b] = bounds_left[b].surface_area() * float(count_left[b]);
@@ -277,11 +281,11 @@ namespace BVHConstructors {
 
 			for (int b = BIN_COUNT - 1; b > 0; b--) {
 				bounds_right[b] = bounds_right[b+1];
-				bounds_right[b].expand(bins[dimension][b].aabb);
+				bounds_right[b].expand(bins[b].aabb);
 				
 				assert(bounds_right[b].is_valid() || bounds_right[b].is_empty());
 
-				count_right[b] = count_right[b+1] + bins[dimension][b].exits;
+				count_right[b] = count_right[b+1] + bins[b].exits;
 
 				if (count_right[b] < index_count) {
 					bin_sah[b] += bounds_right[b].surface_area() * float(count_right[b]);
@@ -293,8 +297,8 @@ namespace BVHConstructors {
 			//assert(count_left[2] > 0);
 			//assert(count_right[BIN_COUNT - 2] > 0);
 
-			assert(count_left [BIN_COUNT - 1] + bins[dimension][BIN_COUNT - 1].entries == index_count);
-			assert(count_right[1]             + bins[dimension][0].exits               == index_count);
+			assert(count_left [BIN_COUNT - 1] + bins[BIN_COUNT - 1].entries == index_count);
+			assert(count_right[1]             + bins[0].exits               == index_count);
 
 			// Find the minimum of the SAH
 			for (int b = 1; b < BIN_COUNT; b++) {
@@ -313,15 +317,6 @@ namespace BVHConstructors {
 					min_bin_plane_distance = -(bounds_min + bounds_step * float(b));
 				}
 			}
-		}
-
-		if (min_bin_cost < INFINITY) {
-			int assert_left = 0, assert_right = 0;
-			for (int i = 0;             i < min_bin_index; i++) assert_left  += bins[min_bin_dimension][i].entries;
-			for (int i = min_bin_index; i < BIN_COUNT;     i++) assert_right += bins[min_bin_dimension][i].exits;
-
-			assert(assert_left  == n_left);
-			assert(assert_right == n_right);
 		}
 
 		split_dimension = min_bin_dimension;
