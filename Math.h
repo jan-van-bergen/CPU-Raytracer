@@ -1,4 +1,8 @@
 #pragma once
+#include <algorithm>
+
+#include "Triangle.h"
+
 #include "SIMD.h"
 
 #include "Vector3.h"
@@ -51,8 +55,8 @@ namespace Math {
 			float t0 = -(left[0][dimension] + plane_distance) / edge0[dimension];
 			float t1 = -(left[0][dimension] + plane_distance) / edge1[dimension];
 
-			assert(t0 >= 0.0f && t0 <= 1.0f);
-			assert(t1 >= 0.0f && t1 <= 1.0f);
+			t0 = Math::clamp(t0, 0.0f, 1.0f);
+			t1 = Math::clamp(t1, 0.0f, 1.0f);
 
 			i0 = left[0] + t0 * edge0;
 			i1 = left[0] + t1 * edge1;
@@ -66,14 +70,70 @@ namespace Math {
 			float t0 = -(right[0][dimension] + plane_distance) / edge0[dimension];
 			float t1 = -(right[0][dimension] + plane_distance) / edge1[dimension];
 			
-			assert(t0 >= 0.0f && t0 <= 1.0f);
-			assert(t1 >= 0.0f && t1 <= 1.0f);
+			t0 = Math::clamp(t0, 0.0f, 1.0f);
+			t1 = Math::clamp(t1, 0.0f, 1.0f);
 
 			i0 = right[0] + t0 * edge0;
 			i1 = right[0] + t1 * edge1;
 		}
 
 		return PlaneTriangleIntersection::INTERSECTS;
+	}
+
+	inline AABB triangle_bin_bounds(int dimension, float plane_min, float plane_max, const Triangle & triangle) {
+        Vector3 vertices[3] = { 
+			triangle.position0,
+			triangle.position1, 
+			triangle.position2 
+		};
+        std::sort(vertices, vertices + 3, [dimension](const Vector3 & a, const Vector3 & b) { return a[dimension] < b[dimension]; });
+
+        float vertex_min = vertices[0][dimension];
+        float vertex_max = vertices[2][dimension];
+        
+        if (vertex_min >= plane_max || vertex_max <= plane_min) return AABB::create_empty();
+        if (vertex_min >= plane_min && vertex_max <= plane_max) return triangle.aabb;
+        
+        Vector3 intersections[4];
+        int     intersection_count = 0;
+
+		float planes[2] = { plane_min, plane_max };
+
+        for (int i = 0; i < 3; i++) {
+            const Vector3 & vertex_a = vertices[i];
+
+            for (int j = i + 1; j < 3; j++) {
+                const Vector3 & pb = vertices[j];
+                float delta_ab = pb[dimension] - vertex_a[dimension];
+
+                for (int cp = 0; cp < 2; cp++) {
+                    float delta_ap = planes[cp] - vertex_a[dimension];
+                    float delta_pb = planes[cp] - pb[dimension];
+
+                    if (delta_ap > 0 && delta_pb <= 0) { 
+						float t = delta_ap / delta_ab;
+                        intersections[intersection_count++] = (1 - t) * vertex_a + t * pb;
+					}
+                }
+            }
+        }
+
+        AABB result = AABB::create_empty();
+
+        if (vertices[1][dimension] >= plane_min && vertices[1][dimension] < plane_max) {
+            result.expand(vertices[1]);
+		}
+
+        for (int i = 0; i < intersection_count; i++) {
+            result.expand(intersections[i]);
+		}
+
+        if (intersection_count == 2) {
+            result.expand(vertex_max < plane_max ? vertices[2] : vertices[0]);
+		}
+
+		result.fix_if_needed();
+        return result;
 	}
 	
 	// Reflects the vector in the normal

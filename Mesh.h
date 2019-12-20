@@ -34,11 +34,17 @@ struct Mesh {
 
 			triangle_bvh.primitives[i].material = mesh_data->triangles[i].material;
 
-			triangle_bvh.primitives[i].aabb.min = Vector3::min(triangle_bvh.primitives[i].position0, Vector3::min(triangle_bvh.primitives[i].position1, triangle_bvh.primitives[i].position2));
-			triangle_bvh.primitives[i].aabb.max = Vector3::max(triangle_bvh.primitives[i].position0, Vector3::max(triangle_bvh.primitives[i].position1, triangle_bvh.primitives[i].position2));
+			Vector3 vertices[3] = { 
+				triangle_bvh.primitives[i].position0, 
+				triangle_bvh.primitives[i].position1, 
+				triangle_bvh.primitives[i].position2 
+			};
+			triangle_bvh.primitives[i].aabb = AABB::from_points(vertices, 3);
 
 			aabb.expand(triangle_bvh.primitives[i].aabb);
 		}
+
+		aabb.fix_if_needed();
 
 		triangle_bvh.build();
 

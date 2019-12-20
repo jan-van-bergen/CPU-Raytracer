@@ -29,8 +29,6 @@ struct Triangle {
 
 	
 	inline void debug(FILE * file, int index) const {
-		fprintf(file, "o Triangle_%i\n", index);
-
 		fprintf(file, "v %f %f %f\n", position0.x, position0.y, position0.z);
 		fprintf(file, "v %f %f %f\n", position1.x, position1.y, position1.z);
 		fprintf(file, "v %f %f %f\n", position2.x, position2.y, position2.z);

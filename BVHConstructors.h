@@ -5,6 +5,8 @@
 #include "Debug.h"
 
 namespace BVHConstructors {
+	inline const int BIN_COUNT = 256;
+
 	// Calculates the smallest enclosing AABB over the union of all AABB's of the primitives in the range defined by [first, last>
 	template<typename PrimitiveType>
 	inline AABB calculate_bounds(const PrimitiveType * primitives, const int * indices, int first, int last) {
@@ -31,6 +33,20 @@ namespace BVHConstructors {
 				float curr = primitives[indices[dimension][i  ]].get_position()[dimension];
 
 				if (prev > curr) return false;
+			}
+		}
+
+		return true;
+	}
+
+	// Used for debugging
+	template<typename PrimitiveType>
+	inline bool is_unique(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count) {
+		for (int dimension = 0; dimension < 3; dimension++) {
+			for (int i = first_index; i < first_index + index_count; i++) {
+				for (int j = first_index; j < i; j++) {
+					if (indices[dimension][j] == indices[dimension][i]) abort();
+				}
 			}
 		}
 
@@ -114,43 +130,55 @@ namespace BVHConstructors {
 
 	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
-	inline int partition_full_sah(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost) {
+	inline int partition_full_sah(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost, const AABB & node_aabb, AABB & aabb_left, AABB & aabb_right) {
 		float min_split_cost = INFINITY;
 		int   min_split_index     = -1;
 		int   min_split_dimension = -1;
-
+		
+		AABB * bounds_left  = new AABB[index_count];
+		AABB * bounds_right = new AABB[index_count + 1];
+			
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
 			assert(is_sorted(primitives, indices, first_index, index_count));
 
-			// First traverse left to right along the current dimension to evaluate first half of the SAH
-			AABB aabb_left = AABB::create_empty();
+			bounds_left [0]           = AABB::create_empty();
+			bounds_right[index_count] = AABB::create_empty();
 
-			for (int i = 0; i < index_count - 1; i++) {
-				aabb_left.expand(primitives[indices[dimension][first_index + i]].aabb);
-				
-				sah[i] = aabb_left.surface_area() * float(i + 1);
+			// First traverse left to right along the current dimension to evaluate first half of the SAH
+			for (int i = 1; i < index_count; i++) {
+				bounds_left[i] = bounds_left[i-1];
+				bounds_left[i].expand(primitives[indices[dimension][first_index + i - 1]].aabb);
+				bounds_left[i] = AABB::overlap(bounds_left[i], node_aabb);
+
+				sah[i] = bounds_left[i].surface_area() * float(i);
 			}
 
 			// Then traverse right to left along the current dimension to evaluate second half of the SAH
-			AABB aabb_right = AABB::create_empty();
-
 			for (int i = index_count - 1; i > 0; i--) {
-				aabb_right.expand(primitives[indices[dimension][first_index + i]].aabb);
+				bounds_right[i] = bounds_right[i+1];
+				bounds_right[i].expand(primitives[indices[dimension][first_index + i]].aabb);
+				bounds_right[i] = AABB::overlap(bounds_right[i], node_aabb);
 
-				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
+				sah[i] += bounds_right[i].surface_area() * float(index_count - i);
 			}
 
 			// Find the minimum of the SAH
-			for (int i = 0; i < index_count - 1; i++) {
+			for (int i = 1; i < index_count; i++) {
 				float cost = sah[i];
 				if (cost < min_split_cost) {
 					min_split_cost = cost;
-					min_split_index = first_index + i + 1;
+					min_split_index = first_index + i;
 					min_split_dimension = dimension;
+
+					aabb_left  = bounds_left[i];
+					aabb_right = bounds_right[i];
 				}
 			}
 		}
+
+		delete [] bounds_left;
+		delete [] bounds_right;
 		
 		split_dimension = min_split_dimension;
 		split_cost      = min_split_cost;
@@ -158,21 +186,16 @@ namespace BVHConstructors {
 		return min_split_index;
 	}
 
-	inline int partition_spatial(const Triangle * triangles, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost, float & plane_distance, AABB & aabb_left, AABB & aabb_right, int & n_left, int & n_right) {
+	inline int partition_spatial(const Triangle * triangles, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost, float & plane_distance, AABB & aabb_left, AABB & aabb_right, int & n_left, int & n_right, AABB bounds) {
 		float min_bin_cost = INFINITY;
 		int   min_bin_index     = -1;
 		int   min_bin_dimension = -1;
 		float min_bin_plane_distance = NAN;
 
-		const int BIN_COUNT = 100;
-
-		// @SPEED: get this from caller
-		AABB bounds = calculate_bounds(triangles, indices[0], first_index, first_index + index_count);
-
 		struct Bin {
 			AABB aabb = AABB::create_empty();
-			int entry = 0;
-			int exit  = 0;
+			int entries = 0;
+			int exits   = 0;
 		} bins[3][BIN_COUNT]; // @TODO: should this be on the stack?
 
 		for (int dimension = 0; dimension < 3; dimension++) {
@@ -183,87 +206,43 @@ namespace BVHConstructors {
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
 				
-				Vector3 intersections[4];
-				Math::PlaneTriangleIntersection left;
-				Math::PlaneTriangleIntersection right;
-				
-				float plane_left_distance = -bounds_min;
+				float plane_left_distance = bounds_min;
 				float plane_right_distance;
 
-				left = Math::plane_triangle_intersection(dimension, plane_left_distance, triangle.position0, triangle.position1, triangle.position2, intersections[0], intersections[1]);
+				int bin_min = BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
+				int bin_max = BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
 
-				for (int b = 0; b < BIN_COUNT; b++) {
+				bin_min = Math::clamp(bin_min, 0, BIN_COUNT - 1);
+				bin_max = Math::clamp(bin_max, 0, BIN_COUNT - 1);
+
+				bins[dimension][bin_min].entries++;
+				bins[dimension][bin_max].exits++;
+
+				for (int b = bin_min; b <= bin_max; b++) {
 					Bin & bin = bins[dimension][b];
 
-					plane_right_distance = -(bounds_min + float(b+1) * bounds_step);
+					plane_right_distance = bounds_min + float(b+1) * bounds_step;
 
-					right = Math::plane_triangle_intersection(dimension, plane_right_distance, triangle.position0, triangle.position1, triangle.position2, intersections[2], intersections[3]);
+					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 
-					assert(!(left == Math::PlaneTriangleIntersection::LEFT && right == Math::PlaneTriangleIntersection::RIGHT));
+					AABB box = Math::triangle_bin_bounds(dimension, plane_left_distance, plane_right_distance, triangle);
 
-					if (left == Math::PlaneTriangleIntersection::INTERSECTS && right == Math::PlaneTriangleIntersection::INTERSECTS) {
-						bin.aabb.expand(AABB::from_points(intersections, 4));
-					} else if (left == Math::PlaneTriangleIntersection::INTERSECTS) {
-						assert(right == Math::PlaneTriangleIntersection::LEFT);
+					bin.aabb.expand(box);
+					bin.aabb = AABB::overlap(bin.aabb, bounds);
 
-						bin.aabb.expand(AABB::from_points(intersections, 2));
-						
-						float dist_p0 = triangle.position0[dimension] + plane_left_distance;
-						float dist_p1 = triangle.position1[dimension] + plane_left_distance;
-						float dist_p2 = triangle.position2[dimension] + plane_left_distance;
+					//bin.aabb.fix_if_needed();
+					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 
-						if (dist_p0 >= 0.0f) bin.aabb.expand(triangle.position0);
-						if (dist_p1 >= 0.0f) bin.aabb.expand(triangle.position1);
-						if (dist_p2 >= 0.0f) bin.aabb.expand(triangle.position2);
-
-						bin.exit++;
-					} else if (right == Math::PlaneTriangleIntersection::INTERSECTS) {
-						assert(left == Math::PlaneTriangleIntersection::RIGHT);
-
-						bin.aabb.expand(AABB::from_points(intersections + 2, 2));
-
-						float dist_p0 = triangle.position0[dimension] + plane_right_distance;
-						float dist_p1 = triangle.position1[dimension] + plane_right_distance;
-						float dist_p2 = triangle.position2[dimension] + plane_right_distance;
-
-						if (dist_p0 <= 0.0f) bin.aabb.expand(triangle.position0);
-						if (dist_p1 <= 0.0f) bin.aabb.expand(triangle.position1);
-						if (dist_p2 <= 0.0f) bin.aabb.expand(triangle.position2);
-
-						bin.entry++;
-					} else if (left == Math::PlaneTriangleIntersection::RIGHT && right == Math::PlaneTriangleIntersection::LEFT) {
-						bin.aabb.expand(triangle.aabb);
-
-						bin.entry++;
-						bin.exit++;
-					} else if (left == Math::PlaneTriangleIntersection::LEFT) {
-						assert(right == Math::PlaneTriangleIntersection::LEFT);
-
-						break;
-					}
-
-					const float epsilon = 0.01f;
+					const float epsilon = 0.0001f;
 					assert(bin.aabb.min[dimension] > bounds_min +  b    * bounds_step - epsilon);
 					assert(bin.aabb.max[dimension] < bounds_min + (b+1) * bounds_step + epsilon);
 
-					assert(bin.aabb.min[0] > bounds.min[0] - epsilon); assert(bin.aabb.max[0] < bounds.max[0] + epsilon);
-					assert(bin.aabb.min[1] > bounds.min[1] - epsilon); assert(bin.aabb.max[1] < bounds.max[1] + epsilon);
-					assert(bin.aabb.min[2] > bounds.min[2] - epsilon); assert(bin.aabb.max[2] < bounds.max[2] + epsilon);
+					assert(bin.aabb.min[0] > bounds.min[0] - epsilon && bin.aabb.max[0] < bounds.max[0] + epsilon);
+					assert(bin.aabb.min[1] > bounds.min[1] - epsilon && bin.aabb.max[1] < bounds.max[1] + epsilon);
+					assert(bin.aabb.min[2] > bounds.min[2] - epsilon && bin.aabb.max[2] < bounds.max[2] + epsilon);
 					
 					// Advance to next Bin
 					plane_left_distance = plane_right_distance;
-
-					intersections[0] = intersections[2];
-					intersections[1] = intersections[3];
-
-					left = right;
-				}
-			}
-
-			for (int b = 0; b < BIN_COUNT; b++) {
-				for (int d = 0; d < 3; d++) {
-					float diff = bins[dimension][b].aabb.max[d] - bins[dimension][b].aabb.min[d];
-					if (diff < 0.001f) bins[dimension][b].aabb.max[d] += 0.005f;
 				}
 			}
 
@@ -281,26 +260,28 @@ namespace BVHConstructors {
 			count_left [0]         = 0;
 			count_right[BIN_COUNT] = 0;
 			
-			for (int b = 0; b < BIN_COUNT - 1; b++) {
-				bounds_left[b+1] = AABB::create_empty();
-				bounds_left[b+1].expand(bounds_left[b]);
-				bounds_left[b+1].expand(bins[dimension][b].aabb);
+			for (int b = 1; b < BIN_COUNT; b++) {
+				bounds_left[b] = bounds_left[b-1];
+				bounds_left[b].expand(bins[dimension][b-1].aabb);
 
-				count_left[b+1] = count_left[b] + bins[dimension][b].entry;
+				assert(bounds_left[b].is_valid() || bounds_left[b].is_empty());
 
-				if (count_left[b+1] < index_count) {
-					bin_sah[b+1] = bounds_left[b+1].surface_area() * float(count_left[b+1]);
+				count_left[b] = count_left[b-1] + bins[dimension][b-1].entries;
+
+				if (count_left[b] < index_count) {
+					bin_sah[b] = bounds_left[b].surface_area() * float(count_left[b]);
 				} else {
-					bin_sah[b+1] = INFINITY;
+					bin_sah[b] = INFINITY;
 				}
 			}
 
 			for (int b = BIN_COUNT - 1; b > 0; b--) {
-				bounds_right[b] = AABB::create_empty();
-				bounds_right[b].expand(bounds_right[b+1]);
+				bounds_right[b] = bounds_right[b+1];
 				bounds_right[b].expand(bins[dimension][b].aabb);
+				
+				assert(bounds_right[b].is_valid() || bounds_right[b].is_empty());
 
-				count_right[b] = count_right[b+1] + bins[dimension][b].exit;
+				count_right[b] = count_right[b+1] + bins[dimension][b].exits;
 
 				if (count_right[b] < index_count) {
 					bin_sah[b] += bounds_right[b].surface_area() * float(count_right[b]);
@@ -309,12 +290,18 @@ namespace BVHConstructors {
 				}
 			}
 
+			//assert(count_left[2] > 0);
+			//assert(count_right[BIN_COUNT - 2] > 0);
+
+			assert(count_left [BIN_COUNT - 1] + bins[dimension][BIN_COUNT - 1].entries == index_count);
+			assert(count_right[1]             + bins[dimension][0].exits               == index_count);
+
 			// Find the minimum of the SAH
 			for (int b = 1; b < BIN_COUNT; b++) {
 				float cost = bin_sah[b];
 				if (cost < min_bin_cost) {
 					min_bin_cost = cost;
-					min_bin_index = first_index + b;
+					min_bin_index = b;
 					min_bin_dimension = dimension;
 
 					aabb_left  = bounds_left [b];
@@ -327,11 +314,20 @@ namespace BVHConstructors {
 				}
 			}
 		}
-		
+
+		if (min_bin_cost < INFINITY) {
+			int assert_left = 0, assert_right = 0;
+			for (int i = 0;             i < min_bin_index; i++) assert_left  += bins[min_bin_dimension][i].entries;
+			for (int i = min_bin_index; i < BIN_COUNT;     i++) assert_right += bins[min_bin_dimension][i].exits;
+
+			assert(assert_left  == n_left);
+			assert(assert_right == n_right);
+		}
+
 		split_dimension = min_bin_dimension;
 		split_cost      = min_bin_cost;
 		plane_distance  = min_bin_plane_distance;
 
-		return -1;
+		return min_bin_index;
 	}
 }
