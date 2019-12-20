@@ -130,6 +130,54 @@ namespace BVHConstructors {
 
 	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
+	inline int partition_object(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost) {
+		float min_split_cost = INFINITY;
+		int   min_split_index     = -1;
+		int   min_split_dimension = -1;
+
+		// Check splits along all 3 dimensions
+		for (int dimension = 0; dimension < 3; dimension++) {
+			assert(is_sorted(primitives, indices, first_index, index_count));
+
+			// First traverse left to right along the current dimension to evaluate first half of the SAH
+			AABB aabb_left;
+			aabb_left.min = Vector3(+INFINITY);
+			aabb_left.max = Vector3(-INFINITY);
+			for (int i = 0; i < index_count - 1; i++) {
+				aabb_left.expand(primitives[indices[dimension][first_index + i]].aabb);
+				
+				sah[i] = aabb_left.surface_area() * float(i + 1);
+			}
+
+			// Then traverse right to left along the current dimension to evaluate second half of the SAH
+			AABB aabb_right;
+			aabb_right.min = Vector3(+INFINITY);
+			aabb_right.max = Vector3(-INFINITY);
+			for (int i = index_count - 1; i > 0; i--) {
+				aabb_right.expand(primitives[indices[dimension][first_index + i]].aabb);
+
+				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
+			}
+
+			// Find the minimum of the SAH
+			for (int i = 0; i < index_count - 1; i++) {
+				float cost = sah[i];
+				if (cost < min_split_cost) {
+					min_split_cost = cost;
+					min_split_index = first_index + i + 1;
+					min_split_dimension = dimension;
+				}
+			}
+		}
+		
+		split_cost      = min_split_cost;
+		split_dimension = min_split_dimension;
+
+		return min_split_index;
+	}
+
+	// Evaluates SAH for every object for every dimension to determine splitting candidate
+	template<typename PrimitiveType>
 	inline int partition_full_sah(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost, const AABB & node_aabb, AABB & aabb_left, AABB & aabb_right) {
 		float min_split_cost = INFINITY;
 		int   min_split_index     = -1;
@@ -137,7 +185,7 @@ namespace BVHConstructors {
 		
 		AABB * bounds_left  = new AABB[index_count];
 		AABB * bounds_right = new AABB[index_count + 1];
-			
+		
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
 			assert(is_sorted(primitives, indices, first_index, index_count));

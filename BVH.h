@@ -50,7 +50,7 @@ struct BVHNode {
 		int split_index = BVHConstructors::partition_median(primitives, indices, first_index, index_count, temp, split_dimension);
 #elif BVH_CONSTRUCTION_STRATEGY == BVH_CONSTRUCT_FULL_SAH
 		float split_cost;
-		int split_index = -1; abort(); // BVHConstructors::partition_full_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
+		int split_index = BVHConstructors::partition_object(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
 		// Check SAH termination condition
 		float parent_cost = aabb.surface_area() * float(index_count); 
