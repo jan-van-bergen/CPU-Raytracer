@@ -249,6 +249,8 @@ namespace BVHConstructors {
 			float bounds_max  = bounds.max[dimension] + 0.001f;
 			float bounds_step = (bounds_max - bounds_min) / BIN_COUNT;
 			
+			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
+
 			struct Bin {
 				AABB aabb = AABB::create_empty();
 				int entries = 0;
@@ -261,8 +263,8 @@ namespace BVHConstructors {
 				float plane_left_distance = bounds_min;
 				float plane_right_distance;
 
-				int bin_min = BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
-				int bin_max = BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
+				int bin_min = int(BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) * inv_bounds_delta));
+				int bin_max = int(BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) * inv_bounds_delta));
 
 				bin_min = Math::clamp(bin_min, 0, BIN_COUNT - 1);
 				bin_max = Math::clamp(bin_max, 0, BIN_COUNT - 1);
@@ -362,7 +364,7 @@ namespace BVHConstructors {
 					n_left  = count_left [b];
 					n_right = count_right[b];
 
-					min_bin_plane_distance = -(bounds_min + bounds_step * float(b));
+					min_bin_plane_distance = bounds_min + bounds_step * float(b);
 				}
 			}
 		}

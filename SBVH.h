@@ -57,7 +57,7 @@ struct SBVHNode {
 		int   spatial_split_bin = -1;
 
 		AABB aabb_left, aabb_right;
-		int ss_count_left, ss_count_right;
+		int spatial_split_count_left, spatial_split_count_right;
 
 		float lamba = AABB::overlap_surface_area(b1, b2);
 
@@ -65,7 +65,7 @@ struct SBVHNode {
 		float ratio = lamba * inv_root_surface_area;
 		assert(ratio >= 0.0f && ratio <= 1.0f);
 		if (ratio > alpha) { 
-			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, ss_count_left, ss_count_right, node_aabb);
+			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition
@@ -152,13 +152,15 @@ struct SBVHNode {
 			float bounds_min = node_aabb.min[spatial_split_dimension] - 0.001f;
 			float bounds_max = node_aabb.max[spatial_split_dimension] + 0.001f;
 			
+			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
+
 			for (int dimension = 0; dimension < 3; dimension++) {	
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
 					const Triangle & triangle = triangles[index];
 					
-					int bin_min = BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
-					int bin_max = BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) / (bounds_max - bounds_min)); // @PERFORMANCE
+					int bin_min = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+					int bin_max = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
 
 					bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
 					bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
@@ -181,8 +183,8 @@ struct SBVHNode {
 						delta_left.expand (triangle.aabb);
 						delta_right.expand(triangle.aabb);
 
-						float c_1 = delta_left.surface_area() *  ss_count_left         +  aabb_right.surface_area() * (ss_count_right - 1.0f);
-						float c_2 =  aabb_left.surface_area() * (ss_count_left - 1.0f) + delta_right.surface_area() *  ss_count_right;
+						float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
+						float c_2 =  aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
 
 						float c_split = spatial_split_cost;
 						if (c_1 < c_split) {
@@ -221,8 +223,8 @@ struct SBVHNode {
 			// If a straddling reference is rejected from left or right it should have happened in all 3 dimensions
 			assert(rejected_left % 3 == 0 && rejected_right % 3 == 0);
 
-			assert(n_left  == ss_count_left  - rejected_left  / 3);
-			assert(n_right == ss_count_right - rejected_right / 3);
+			assert(n_left  == spatial_split_count_left  - rejected_left  / 3);
+			assert(n_right == spatial_split_count_right - rejected_right / 3);
 
 			assert(n_left  > 0 && n_left  < index_count);
 			assert(n_right > 0 && n_right < index_count);
