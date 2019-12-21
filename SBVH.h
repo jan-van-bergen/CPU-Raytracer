@@ -90,7 +90,7 @@ struct SBVHNode {
 		
 		// @TODO: left is not needed and right can use the 'temp' array
 		int * children_left [3] { indices[0] + first_index, indices[1] + first_index, indices[2] + first_index };
-		int * children_right[3] { new int[index_count], new int[index_count], new int[index_count] };
+		int * children_right[3] { new int[index_count],     new int[index_count],     new int[index_count]     };
 
 		int children_left_count [3] = { 0, 0, 0 };
 		int children_right_count[3] = { 0, 0, 0 };
@@ -288,13 +288,6 @@ struct SBVHNode {
 			child_aabb_right = spatial_split_aabb_right;
 		}
 		
-		// First copy the indices going left into the indices buffer
-		// We don't copy the right side yet, because the left side might
-		// still grow in size due to reference duplication
-		//memcpy(indices[0] + first_index, children_left[0], n_left * sizeof(int));
-		//memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
-		//memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
-
 		// Do a depth first traversal, so that we know the amount of indices that were recursively created by the left child
 		int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
 
