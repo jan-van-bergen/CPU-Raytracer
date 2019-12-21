@@ -48,7 +48,7 @@ struct SBVHNode {
 		int   full_sah_split_dimension = -1;
 		AABB  full_sah_aabb_left;
 		AABB  full_sah_aabb_right;
-		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
+		int   full_sah_split_index = BVHConstructors::partition_object(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
 
 		// Spatial Split information
 		float spatial_split_cost = INFINITY;

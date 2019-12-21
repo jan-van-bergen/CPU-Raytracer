@@ -42,7 +42,7 @@ struct BVHNode {
 		
 		int split_dimension;
 		float split_cost;
-		int split_index = BVHConstructors::partition_object(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
+		int split_index = BVHConstructors::partition_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
 		// Check SAH termination condition
 		float parent_cost = aabb.surface_area() * float(index_count); 
