@@ -88,7 +88,6 @@ struct SBVHNode {
 		// From this point on it is decided that this Node will NOT be a leaf Node
 		count = (full_sah_split_dimension + 1) << 30;
 		
-		// @TODO: left is not needed and right can use the 'temp' array
 		int * children_left [3] { indices[0] + first_index, indices[1] + first_index, indices[2] + first_index };
 		int * children_right[3] { new int[index_count],     new int[index_count],     new int[index_count]     };
 
@@ -107,9 +106,6 @@ struct SBVHNode {
 			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
 
 			for (int dimension = 0; dimension < 3; dimension++) {
-				// @OPTIMIZATION: for dimension == full_sah_split_dimension we actually 
-				// don't need to check whether the triangles go left or right!
-
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
 
@@ -174,6 +170,9 @@ struct SBVHNode {
 			int rejected_left  = 0;
 			int rejected_right = 0;
 
+			float lleft  = float(spatial_split_count_left);
+			float rright = float(spatial_split_count_right);
+
 			for (int i = first_index; i < first_index + index_count; i++) {
 				int index = indices[spatial_split_dimension][i];
 				const Triangle & triangle = triangles[index];
@@ -209,8 +208,8 @@ struct SBVHNode {
 						delta_left.expand (triangle.aabb);
 						delta_right.expand(triangle.aabb);
 
-						float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  spatial_split_aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
-						float c_2 =  spatial_split_aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
+						float c_1 =              delta_left.surface_area() *  lleft         + spatial_split_aabb_right.surface_area() * (rright - 1.0f);
+						float c_2 = spatial_split_aabb_left.surface_area() * (lleft - 1.0f) +              delta_right.surface_area() *  rright;
 						float c_split = spatial_split_cost;
 
 						// Check what the cheapest option is
@@ -218,15 +217,24 @@ struct SBVHNode {
 							if (c_2 < c_1) {
 								goes_left = false;
 								rejected_left++;
+
+								lleft -= 1.0f;
+
 								spatial_split_aabb_right.expand(triangle.aabb);
 							} else {
 								goes_right = false;
 								rejected_right++;
+								
+								rright -= 1.0f;
+
 								spatial_split_aabb_left.expand(triangle.aabb);
 							}
 						} else if (c_2 < c_split) {
 							goes_left = false;
 							rejected_left++;
+							
+							lleft -= 1.0f;
+
 							spatial_split_aabb_right.expand(triangle.aabb);
 						}
 					} else if (valid_left) {
