@@ -158,81 +158,81 @@ struct SBVHNode {
 			
 			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
 
+			int * indices_going_left  = new int[spatial_split_count_left];
+			int * indices_going_right = new int[spatial_split_count_right];
+
+			int temp_left = 0, temp_right = 0;
+
+			for (int i = first_index; i < first_index + index_count; i++) {
+				int index = indices[spatial_split_dimension][i];
+				const Triangle & triangle = triangles[index];
+					
+				int bin_min = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				int bin_max = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+
+				bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
+				bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
+
+				bool goes_left  = false;
+				bool goes_right = false;
+
+				if (bin_max < spatial_split_bin) {
+					goes_left = true;
+				} else if (bin_min >= spatial_split_bin) {
+					goes_right = true;
+				} else {
+					bool valid_left  = AABB::overlap(triangle.aabb, aabb_new_left ).is_valid();
+					bool valid_right = AABB::overlap(triangle.aabb, aabb_new_right).is_valid();
+
+					if (valid_left && valid_right) {
+						goes_left  = true;
+						goes_right = true;
+					} else if (valid_left) {
+						goes_left = true;
+
+						rejected_right++;
+					} else if (valid_right) {
+						goes_right = true;
+
+						rejected_left++;
+					}
+				}
+
+				// Triangle must go left, right, or both
+				assert(goes_left || goes_right);
+
+				if (goes_left)  indices_going_left [temp_left++]  = index;
+				if (goes_right) indices_going_right[temp_right++] = index;
+			}
+
 			for (int dimension = 0; dimension < 3; dimension++) {	
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
-					const Triangle & triangle = triangles[index];
-					
-					int bin_min = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
-					int bin_max = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
-
-					bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
-					bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
 
 					bool goes_left  = false;
 					bool goes_right = false;
 
-					if (bin_max < spatial_split_bin) {
-						goes_left = true;
-					} else if (bin_min >= spatial_split_bin) {
-						goes_right = true;
-					} else {
-						bool valid_left  = AABB::overlap(triangle.aabb, aabb_left ).is_valid();
-						bool valid_right = AABB::overlap(triangle.aabb, aabb_right).is_valid();
-
-						if (valid_left && valid_right) {
-							goes_left  = true;
-							goes_right = true;
-
-							// Consider usplitting
-							/*
-							AABB delta_left  = aabb_left;
-							AABB delta_right = aabb_right;
-
-							delta_left.expand (triangle.aabb);
-							delta_right.expand(triangle.aabb);
-
-							float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
-							float c_2 =  aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
-
-							float c_split = spatial_split_cost;
-							if (c_1 < c_split) {
-								if (c_2 < c_1) {
-									goes_left = false;
-									rejected_left++;
-
-									aabb_new_right.expand(triangle.aabb);
-								} else {
-									goes_right = false;
-									rejected_right++;
-
-									aabb_new_left.expand(triangle.aabb);
-								}
-							} else if (c_2 < c_split) {
-								goes_left = false;
-								rejected_left++;
-
-								aabb_new_right.expand(triangle.aabb);
-							}
-							*/
-						} else if (valid_left) {
+					for (int j = 0; j < temp_left; j++) {
+						if (indices_going_left[j] == index) {
 							goes_left = true;
-
-							rejected_right++;
-						} else if (valid_right) {
-							goes_right = true;
-
-							rejected_left++;
+							break;
 						}
 					}
 
-					// Triangle must go left, right, or both
-					assert(goes_left || goes_right);
+					for (int j = 0; j < temp_right; j++) {
+						if (indices_going_right[j] == index) {
+							goes_right = true;
+							break;
+						}
+					}
 
 					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;
 					if (goes_right) children_right[dimension][children_right_count[dimension]++] = index;
 				}
 			}
+
+			delete [] indices_going_left;
+			delete [] indices_going_right; 
 
 			// We should have made the same decision (going left/right) in every dimension
 			assert(children_left_count [0] == children_left_count [1] && children_left_count [1] == children_left_count [2]);
@@ -241,12 +241,9 @@ struct SBVHNode {
 			n_left  = children_left_count [0];
 			n_right = children_right_count[0];
 			
-			// If a straddling reference is rejected from left or right it should have happened in all 3 dimensions
-			assert(rejected_left % 3 == 0 && rejected_right % 3 == 0);
-
 			// The actual number of references going left/right should match the numbers calculated during spatial splitting
-			assert(n_left  == spatial_split_count_left  - rejected_left  / 3);
-			assert(n_right == spatial_split_count_right - rejected_right / 3);
+			assert(n_left  == spatial_split_count_left  - rejected_left);
+			assert(n_right == spatial_split_count_right - rejected_right);
 
 			// A valid partition contains at least one and strictly less than all
 			assert(n_left  > 0 && n_left  < index_count);
