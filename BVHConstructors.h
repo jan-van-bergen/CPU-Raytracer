@@ -256,7 +256,6 @@ namespace BVHConstructors {
 				int exits   = 0;
 			} bins[BIN_COUNT];
 
-			// For each Triangle
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
 				
