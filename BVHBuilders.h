@@ -1,27 +1,20 @@
 #pragma once
-#include <algorithm>
 
 #include "BVHPartitions.h"
 
-#include "ScopedTimer.h"
+#define BVH_TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
+#define BVH_TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
+#define BVH_TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
 
-#define SBVH_CONSTRUCT_MEDIAN   0 // Split using median Primitive along the longest axis
-#define SBVH_CONSTRUCT_FULL_SAH 1 // Evaluate SAH for every Primtive to determine if we should split there
+#define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_NAIVE
 
-#define SBVH_CONSTRUCTION_STRATEGY SBVH_CONSTRUCT_FULL_SAH
+#define BVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
+#define BVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
+#define BVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
+#define BVH_AXIS_MASK   0xc0000000 // 11 00 zeroes...
 
-#define SBVH_TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
-#define SBVH_TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
-#define SBVH_TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
-
-#define SBVH_TRAVERSAL_STRATEGY SBVH_TRAVERSE_TREE_ORDERED
-
-#define SBVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
-#define SBVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
-#define SBVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
-#define SBVH_AXIS_MASK   0xc0000000 // 11 00 zeroes...
-
-struct SBVHNode {
+template<typename PrimitiveType>
+struct BVHNode {
 	AABB aabb;
 	union {  // A Node can either be a leaf or have children. A leaf Node means count = 0
 		int left;  // Left contains index of left child if the current Node is not a leaf Node
@@ -29,18 +22,138 @@ struct SBVHNode {
 	};
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
-	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp[2], float inv_root_surface_area, AABB node_aabb) {
-		aabb = node_aabb;
+	inline bool is_leaf() const {
+		return (count & (~BVH_AXIS_MASK)) > 0;
+	}
+
+	inline bool should_visit_left_first(const Ray & ray) const {
+#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE
+		return true;
+#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
+		switch (count & BVH_AXIS_MASK) {
+			case BVH_AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
+			case BVH_AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
+			case BVH_AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
+
+			default: abort();
+		}
+#endif
+	}
+
+	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, int step) const {
+		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
+		if (SIMD_float::all_false(mask)) return;
+
+		if (is_leaf()) {
+			for (int i = first; i < first + count; i++) {
+				primitives[indices[i]].trace(ray, ray_hit, step + count);
+			}
+		} else {
+			if (should_visit_left_first(ray)) {
+				// Visit left Node first, then visit right Node
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			} else {
+				// Visit right Node first, then visit left Node
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+			}
+		}
+	}
+
+	inline SIMD_float intersect(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, SIMD_float max_distance) const {
+		SIMD_float mask = aabb.intersect(ray, max_distance);
+		if (SIMD_float::all_false(mask)) return mask;
+
+		if (is_leaf()) {
+			SIMD_float hit(0.0f);
+
+			for (int i = first; i < first + count; i++) {
+				hit = hit | primitives[indices[i]].intersect(ray, max_distance);
+
+				if (SIMD_float::all_true(hit)) return hit;
+			}
+
+			return hit;
+		} else {
+			if (should_visit_left_first(ray)) {
+				SIMD_float hit = nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
+
+				if (SIMD_float::all_true(hit)) return hit;
+
+				return hit | nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
+			} else {
+				SIMD_float hit = nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
+
+				if (SIMD_float::all_true(hit)) return hit;
+
+				return hit | nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
+			}
+		}
+	}
+
+	inline void debug(FILE * file, const BVHNode nodes[], int & index) const {
+		aabb.debug(file, index++);
+
+		if (!is_leaf()) {
+			nodes[left  ].debug(file, nodes, index);
+			nodes[left+1].debug(file, nodes, index);
+		}
+	}
+};
+namespace BVHBuilders {
+	template<typename PrimitiveType>
+	inline void build_bvh(BVHNode<PrimitiveType> & node, const PrimitiveType * primitives, int * indices[3], BVHNode<PrimitiveType> nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
+		node.aabb = BVHPartitions::calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
+		
+		if (index_count < 3) {
+			// Leaf Node, terminate recursion
+			node.first = first_index;
+			node.count = index_count;
+
+			return;
+		}
+		
+		node.left = node_index;
+		node_index += 2;
+		
+		int split_dimension;
+		float split_cost;
+		int split_index = BVHPartitions::partition_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
+
+		// Check SAH termination condition
+		float parent_cost = node.aabb.surface_area() * float(index_count); 
+		if (split_cost >= parent_cost) {
+			node.first = first_index;
+			node.count = index_count;
+
+			return;
+		}
+
+		float split = primitives[indices[split_dimension][split_index]].get_position()[split_dimension];
+		BVHPartitions::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
+
+		node.count = (split_dimension + 1) << 30;
+
+		int n_left  = split_index - first_index;
+		int n_right = first_index + index_count - split_index;
+
+		build_bvh(nodes[node.left    ], primitives, indices, nodes, node_index, first_index,          n_left,  sah, temp);
+		build_bvh(nodes[node.left + 1], primitives, indices, nodes, node_index, first_index + n_left, n_right, sah, temp);
+	}
+
+	inline int build_sbvh(BVHNode<Triangle> & node, const Triangle * triangles, int * indices[3], BVHNode<Triangle> nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp[2], float inv_root_surface_area, AABB node_aabb) {
+		node.aabb = node_aabb;
 
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
-			first = first_index;
-			count = index_count;
+			node.first = first_index;
+			node.count = index_count;
 			
-			return count;
+			return node.count;
 		}
 		
-		left = node_index;
+		node.left = node_index;
 		node_index += 2;
 
 		// Object Split information
@@ -77,16 +190,16 @@ struct SBVHNode {
 		}
 
 		// Check SAH termination condition
-		float parent_cost = aabb.surface_area() * float(index_count); 
+		float parent_cost = node.aabb.surface_area() * float(index_count); 
 		if (parent_cost <= full_sah_split_cost && parent_cost <= spatial_split_cost) {
-			first = first_index;
-			count = index_count;
+			node.first = first_index;
+			node.count = index_count;
 			
-			return count;
+			return node.count;
 		} 
 
 		// From this point on it is decided that this Node will NOT be a leaf Node
-		count = (full_sah_split_dimension + 1) << 30;
+		node.count = (full_sah_split_dimension + 1) << 30;
 		
 		int * children_left [3] { indices[0] + first_index, indices[1] + first_index, indices[2] + first_index };
 		int * children_right[3] { new int[index_count],     new int[index_count],     new int[index_count]     };
@@ -304,7 +417,7 @@ struct SBVHNode {
 		}
 		
 		// Do a depth first traversal, so that we know the amount of indices that were recursively created by the left child
-		int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
+		int offset_left = build_sbvh(nodes[node.left], triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
 
 		// Using the depth first offset, we can now copy over the right references
 		memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
@@ -312,7 +425,7 @@ struct SBVHNode {
 		memcpy(indices[2] + first_index + offset_left, children_right[2], n_right * sizeof(int));
 			
 		// Now recurse on the right side
-		int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
+		int offset_right = build_sbvh(nodes[node.left + 1], triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
 		
 		delete [] children_right[0];
 		delete [] children_right[1];
@@ -321,193 +434,4 @@ struct SBVHNode {
 		// Report the total number of leaves contained in the subtree
 		return offset_left + offset_right;
 	}
-	
-	// The current Node is a leaf if its primitive count is larger than zero
-	inline bool is_leaf() const {
-		return (count & (~SBVH_AXIS_MASK)) > 0;
-	}
-
-	inline bool should_visit_left_first(const Ray & ray) const {
-#if SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_NAIVE
-		return true;
-#elif SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_ORDERED
-		switch (count & SBVH_AXIS_MASK) {
-			case SBVH_AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
-			case SBVH_AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
-			case SBVH_AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
-
-			default: abort();
-		}
-#endif
-	}
-
-	inline void trace(const Triangle * primitives, const int * indices, const SBVHNode nodes[], const Ray & ray, RayHit & ray_hit, int step) const {
-		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
-		if (SIMD_float::all_false(mask)) return;
-
-		if (is_leaf()) {
-			for (int i = first; i < first + count; i++) {
-				primitives[indices[i]].trace(ray, ray_hit, step + count);
-			}
-		} else {
-			if (should_visit_left_first(ray)) {
-				// Visit left Node first, then visit right Node
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-			} else {
-				// Visit right Node first, then visit left Node
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-			}
-		}
-	}
-
-	inline SIMD_float intersect(const Triangle * primitives, const int * indices, const SBVHNode nodes[], const Ray & ray, SIMD_float max_distance) const {
-		SIMD_float mask = aabb.intersect(ray, max_distance);
-		if (SIMD_float::all_false(mask)) return mask;
-
-		if (is_leaf()) {
-			SIMD_float hit(0.0f);
-
-			for (int i = first; i < first + count; i++) {
-				hit = hit | primitives[indices[i]].intersect(ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-			}
-
-			return hit;
-		} else {
-			if (should_visit_left_first(ray)) {
-				SIMD_float hit = nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-
-				return hit | nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
-			} else {
-				SIMD_float hit = nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-
-				return hit | nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
-			}
-		}
-	}
-	
-	inline void debug(FILE * file, const SBVHNode nodes[], int & index) const {
-		aabb.debug(file, index++);
-
-		if (!is_leaf()) {
-			nodes[left  ].debug(file, nodes, index);
-			nodes[left+1].debug(file, nodes, index);
-		}
-	}
-};
-
-struct SBVH {
-	Triangle * primitives;
-	int        primitive_count;
-
-	int * indices_x;
-	int * indices_y;
-	int * indices_z;
-
-	SBVHNode * nodes;
-
-	inline void init(int count) {
-		assert(count > 0);
-
-		primitive_count = count; 
-		primitives = new Triangle[primitive_count];
-
-		// Construct index array
-		int overallocation = 10;
-
-		int * all_indices  = new int[3 * overallocation * primitive_count];
-		indices_x = all_indices;
-		indices_y = all_indices + primitive_count * overallocation;
-		indices_z = all_indices + primitive_count * overallocation * 2;
-
-		for (int i = 0; i < primitive_count; i++) {
-			indices_x[i] = i;
-			indices_y[i] = i;
-			indices_z[i] = i;
-		}
-
-		// Construct Node pool
-		nodes = reinterpret_cast<SBVHNode *>(ALLIGNED_MALLOC(8 * primitive_count * sizeof(SBVHNode), 64));
-		assert((unsigned long long)nodes % 64 == 0);
-	}
-
-	inline void build() {
-		ScopedTimer timer("BVH Construction");
-
-		float * sah = new float[primitive_count];
-		
-		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
-		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
-		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
-		
-		int * indices[3] = { indices_x, indices_y, indices_z };
-
-		int * temp[2] = { new int[primitive_count], new int[primitive_count] };
-
-		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices[0], 0, primitive_count);
-
-		int node_index = 2;
-		int leaf_count = nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
-
-		printf("Leaf count: %i\n", leaf_count);
-
-		assert(node_index <= 8 * primitive_count);
-
-		delete [] temp[0];
-		delete [] temp[1];
-		delete [] sah;
-	}
-	
-	inline void update() const {
-		for (int i = 0; i < primitive_count; i++) {
-			primitives[i].update();
-		}
-	}
-	
-	inline void trace(const Ray & ray, RayHit & ray_hit) const {
-#if SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_BRUTE_FORCE
-		for (int i = 0; i < primitive_count; i++) {
-			primitives[i].trace(ray, ray_hit, 0);
-		}
-#elif SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_NAIVE || SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_ORDERED
-		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);
-#endif
-	}
-
-	inline SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
-#if SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_BRUTE_FORCE
-		SIMD_float result(0.0f);
-
-		for (int i = 0; i < primitive_count; i++) {
-			result = result | primitives[i].intersect(ray, max_distance);
-
-			if (SIMD_float::all_true(result)) break;
-		}
-
-		return result;
-#elif SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_NAIVE || SBVH_TRAVERSAL_STRATEGY == SBVH_TRAVERSE_TREE_ORDERED
-		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
-#endif
-	}
-	
-	inline void debug() const {
-		FILE * file = nullptr;
-		fopen_s(&file, DATA_PATH("debug.obj"), "w");
-
-		if (file == nullptr) abort(); // Error opening file!
-
-		int index = 0;
-		nodes[0].debug(file, nodes, index);
-
-		fclose(file);
-
-		printf("Written debug info to debug.obj\n");
-	}
-};
+}

@@ -209,6 +209,7 @@
   <ItemGroup>
     <ClInclude Include="AABB.h" />
     <ClInclude Include="BVH.h" />
+    <ClInclude Include="BVHBuilders.h" />
     <ClInclude Include="BVHPartitions.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DirectionalLight.h" />
@@ -225,7 +226,6 @@
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="RayHit.h" />
-    <ClInclude Include="SBVH.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScopedTimer.h" />
     <ClInclude Include="SIMD.h" />

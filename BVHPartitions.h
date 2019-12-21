@@ -265,7 +265,7 @@ namespace BVHPartitions {
 					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 					
 					// The AABB of the current Bin cannot exceed the planes of the current Bin
-					const float epsilon = 0.0001f;
+					const float epsilon = 0.01f;
 					assert(bin.aabb.min[dimension] > plane_left_distance  - epsilon);
 					assert(bin.aabb.max[dimension] < plane_right_distance + epsilon);
 

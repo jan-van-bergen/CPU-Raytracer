@@ -5,7 +5,6 @@
 #include "PrimitiveList.h"
 
 #include "BVH.h"
-#include "SBVH.h"
 
 #include "PointLight.h"
 #include "SpotLight.h"

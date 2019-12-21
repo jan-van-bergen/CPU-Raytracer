@@ -8,14 +8,13 @@
 #include "RayHit.h"
 
 #include "BVH.h"
-#include "SBVH.h"
 
 struct Mesh {
 	Transform transform;
 
 	const MeshData * mesh_data = nullptr;
 
-	SBVH triangle_bvh;
+	BVH<Triangle> triangle_bvh;
 	//BVH<Triangle> triangle_bvh;
 
 	inline void init(const char * file_path)  {
@@ -46,7 +45,8 @@ struct Mesh {
 
 		aabb.fix_if_needed();
 
-		triangle_bvh.build();
+		triangle_bvh.build_sbvh();
+		//triangle_bvh.build_bvh();
 
 		//triangle_bvh.debug();
 	}

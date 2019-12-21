@@ -47,7 +47,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 #endif
 
 	bvh_meshes.update();
-	bvh_meshes.build();
+	bvh_meshes.build_bvh();
 
 	int triangle_count = 0;
 	for (int p = 0; p < bvh_meshes.primitive_count; p++) {
