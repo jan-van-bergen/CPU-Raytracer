@@ -102,32 +102,6 @@ namespace BVHConstructors {
 		}
 	}
 
-	// Partitions object using the median Primitive along the longest axis
-	template<typename PrimitiveType>
-	inline int partition_median(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, int * temp, int & split_dimension) {
-		float max_axis_length    = -INFINITY;
-		int   max_axis_dimension = -1;
-
-		// Find longest dimension
-		for (int dimension = 0; dimension < 3; dimension++) {
-			assert(is_sorted(primitives, indices, first_index, first_index + index_count));
-
-			float min = primitives[indices[dimension][first_index                  ]].get_position()[dimension];
-			float max = primitives[indices[dimension][first_index + index_count - 1]].get_position()[dimension];
-
-			float axis_length = max - min;
-			if (axis_length > max_axis_length) {
-				max_axis_length = axis_length;
-				max_axis_dimension = dimension;
-			}
-		}
-
-		split_dimension = max_axis_dimension;
-
-		int median_index = first_index + (index_count >> 1);
-		return median_index;
-	}
-
 	// Evaluates SAH for every object for every dimension to determine splitting candidate
 	template<typename PrimitiveType>
 	inline int partition_object(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, float * sah, int * temp, int & split_dimension, float & split_cost) {

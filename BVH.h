@@ -6,11 +6,6 @@
 
 #include "ScopedTimer.h"
 
-#define BVH_CONSTRUCT_MEDIAN   0 // Split using median Primitive along the longest axis
-#define BVH_CONSTRUCT_FULL_SAH 1 // Evaluate SAH for every Primtive to determine if we should split there
-
-#define BVH_CONSTRUCTION_STRATEGY BVH_CONSTRUCT_FULL_SAH
-
 #define BVH_TRAVERSE_BRUTE_FORCE  0 // Doesn't use the tree structure of the BVH, checks every Primitive for every Ray
 #define BVH_TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
 #define BVH_TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
@@ -46,9 +41,6 @@ struct BVHNode {
 		node_index += 2;
 		
 		int split_dimension;
-#if BVH_CONSTRUCTION_STRATEGY == BVH_CONSTRUCT_MEDIAN
-		int split_index = BVHConstructors::partition_median(primitives, indices, first_index, index_count, temp, split_dimension);
-#elif BVH_CONSTRUCTION_STRATEGY == BVH_CONSTRUCT_FULL_SAH
 		float split_cost;
 		int split_index = BVHConstructors::partition_object(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
@@ -60,7 +52,6 @@ struct BVHNode {
 
 			return;
 		}
-#endif
 
 		float split = primitives[indices[split_dimension][split_index]].get_position()[split_dimension];
 		BVHConstructors::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
