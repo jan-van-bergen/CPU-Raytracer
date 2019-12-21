@@ -7,6 +7,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
 #include "Util.h"
+#include "ScopedTimer.h"
 
 static std::unordered_map<std::string, MeshData *> cache;
 
@@ -15,6 +16,8 @@ const MeshData * MeshData::load(const char * file_path) {
 
 	// If the cache already contains this Model Data simply return it
 	if (mesh_data) return mesh_data;
+
+	ScopedTimer timer("Mesh Loading");
 
 	// Otherwise, load new MeshData
 	tinyobj::attrib_t attrib;
