@@ -46,7 +46,7 @@ namespace BVHPartitions {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			for (int i = first_index; i < first_index + index_count; i++) {
 				for (int j = first_index; j < i; j++) {
-					if (indices[dimension][j] == indices[dimension][i]) abort();
+					if (indices[dimension][j] == indices[dimension][i]) return false;
 				}
 			}
 		}
