@@ -3,7 +3,7 @@
 ## Features
 
 ### SBVH
-SBVH was implemented.
+SBVH was implemented, including reference unsplitting.
 
 ### Fast BVH Construction
 (Regular) BVH Construction of a scene with >= 100000 triangles is done in under one second.
