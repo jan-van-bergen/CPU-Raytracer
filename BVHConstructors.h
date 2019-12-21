@@ -199,8 +199,6 @@ namespace BVHConstructors {
 				bounds_left[i].expand(primitives[indices[dimension][first_index + i - 1]].aabb);
 				bounds_left[i] = AABB::overlap(bounds_left[i], node_aabb);
 
-				assert(!bounds_left[i].is_empty());
-
 				sah[i] = bounds_left[i].surface_area() * float(i);
 			}
 
@@ -210,11 +208,9 @@ namespace BVHConstructors {
 				bounds_right[i].expand(primitives[indices[dimension][first_index + i]].aabb);
 				bounds_right[i] = AABB::overlap(bounds_right[i], node_aabb);
 				
-				assert(!bounds_right[i].is_empty());
-
 				sah[i] += bounds_right[i].surface_area() * float(index_count - i);
 			}
-
+			
 			// Find the minimum of the SAH
 			for (int i = 1; i < index_count; i++) {
 				float cost = sah[i];
@@ -222,6 +218,9 @@ namespace BVHConstructors {
 					min_split_cost = cost;
 					min_split_index = first_index + i;
 					min_split_dimension = dimension;
+					
+					assert(!bounds_left [i].is_empty());
+					assert(!bounds_right[i].is_empty());
 
 					aabb_left  = bounds_left[i];
 					aabb_right = bounds_right[i];

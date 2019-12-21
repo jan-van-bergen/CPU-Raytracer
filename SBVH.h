@@ -32,8 +32,6 @@ struct SBVHNode {
 	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp, float inv_root_surface_area, AABB node_aabb) {
 		aabb = node_aabb;
 
-		//assert(BVHConstructors::is_unique(triangles, indices, first_index, index_count));
-		
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
 			first = first_index;
@@ -47,13 +45,13 @@ struct SBVHNode {
 
 		AABB b1, b2;
 
-		float full_sah_split_cost = NAN;
+		float full_sah_split_cost;
 		int   full_sah_split_dimension = -1;
 		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, temp, full_sah_split_dimension, full_sah_split_cost, node_aabb, b1, b2);
 
 		float spatial_split_cost = INFINITY;
 		int   spatial_split_dimension = -1;
-		float spatial_split_plane_distance = NAN;
+		float spatial_split_plane_distance;
 		int   spatial_split_bin = -1;
 
 		AABB aabb_left, aabb_right;
@@ -177,40 +175,58 @@ struct SBVHNode {
 					} else if (bin_min >= spatial_split_bin) {
 						goes_right = true;
 					} else {
-						goes_left  = true;
-						goes_right = true;
+						bool valid_left  = AABB::overlap(triangle.aabb, aabb_left ).is_valid();
+						bool valid_right = AABB::overlap(triangle.aabb, aabb_right).is_valid();
 
-						// Consider usplitting
-						AABB delta_left  = aabb_left;
-						AABB delta_right = aabb_right;
+						if (valid_left && valid_right) {
+							goes_left  = true;
+							goes_right = true;
 
-						delta_left.expand (triangle.aabb);
-						delta_right.expand(triangle.aabb);
+							// Consider usplitting
+							/*
+							AABB delta_left  = aabb_left;
+							AABB delta_right = aabb_right;
 
-						float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
-						float c_2 =  aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
+							delta_left.expand (triangle.aabb);
+							delta_right.expand(triangle.aabb);
 
-						float c_split = spatial_split_cost;
-						if (c_1 < c_split) {
-							if (c_2 < c_1) {
+							float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
+							float c_2 =  aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
+
+							float c_split = spatial_split_cost;
+							if (c_1 < c_split) {
+								if (c_2 < c_1) {
+									goes_left = false;
+									rejected_left++;
+
+									aabb_new_right.expand(triangle.aabb);
+								} else {
+									goes_right = false;
+									rejected_right++;
+
+									aabb_new_left.expand(triangle.aabb);
+								}
+							} else if (c_2 < c_split) {
 								goes_left = false;
 								rejected_left++;
 
 								aabb_new_right.expand(triangle.aabb);
-							} else {
-								goes_right = false;
-								rejected_right++;
-
-								aabb_new_left.expand(triangle.aabb);
 							}
-						} else if (c_2 < c_split) {
-							goes_left = false;
-							rejected_left++;
+							*/
+						} else if (valid_left) {
+							goes_left = true;
 
-							aabb_new_right.expand(triangle.aabb);
+							rejected_right++;
+						} else if (valid_right) {
+							goes_right = true;
+
+							rejected_left++;
+						} else {
+							abort();
 						}
 					}
 
+					// Triangle must go left, right, or both
 					assert(goes_left || goes_right);
 
 					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;

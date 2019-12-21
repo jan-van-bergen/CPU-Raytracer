@@ -4,7 +4,7 @@
 
 #define NUMBER_OF_BOUNCES 3
 
-#define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
+#define BVH_HEATMAP true // Toggle to visualize number of traversal steps through BVH
 
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
@@ -41,6 +41,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	bvh_meshes.init(1);
 	//bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
 	bvh_meshes.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
+	//bvh_meshes.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/powerplant/powerplant.obj");
@@ -157,6 +158,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	SIMD_float diffuse_mask = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
+	/*
 	if (!SIMD_float::all_false(diffuse_mask)) {
 		SIMD_Vector3 diffuse = SIMD_Vector3(ambient_lighting);
 
@@ -202,6 +204,9 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 		result += diffuse * material_diffuse;
 	}
+	*/
+
+	result = material_diffuse;
 
 	// If we have bounces left to do, recurse one level deeper
 	if (bounces_left > 0) {	
