@@ -8,7 +8,7 @@ SBVH was implemented, including reference unsplitting. BVH and SBVH use the same
 The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
 
 ### Fast BVH Construction
-Regular BVH Construction of a scene with > 100000 triangles is done in under one second. The Sponza scene (262205 triangles) takes under 700 ms on my machine.
+Regular BVH Construction of a scene with > 100000 triangles is done in under one second. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
 
 The regular BVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_BVH``.
 
