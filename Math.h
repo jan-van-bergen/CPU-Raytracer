@@ -24,54 +24,70 @@ namespace Math {
         return a + (u * (b - a)) + (v * (c - a));
     }
 
-	inline AABB triangle_bin_bounds(int dimension, float plane_min, float plane_max, const Triangle & triangle) {
+	// Calculates the smallest enclosing AABB of a Triangle between the two planes that define a Bin
+	inline AABB triangle_binned_aabb(const Triangle & triangle, int dimension, float plane_min, float plane_max) {		
         Vector3 vertices[3] = { 
 			triangle.position0,
 			triangle.position1, 
 			triangle.position2 
 		};
-        std::sort(vertices, vertices + 3, [dimension](const Vector3 & a, const Vector3 & b) { return a[dimension] < b[dimension]; });
+
+		// Sort the vertices along the current dimension using unrolled Bubble Sort
+		if (vertices[0][dimension] > vertices[1][dimension]) std::swap(vertices[0], vertices[1]);
+		if (vertices[1][dimension] > vertices[2][dimension]) std::swap(vertices[1], vertices[2]);
+		if (vertices[0][dimension] > vertices[1][dimension]) std::swap(vertices[0], vertices[1]);
 
         float vertex_min = vertices[0][dimension];
         float vertex_max = vertices[2][dimension];
         
+		// If all vertices lie on one side of either plane the AABB is empty
         if (vertex_min >= plane_max || vertex_max <= plane_min) return AABB::create_empty();
+		// If all verticies lie between the two planes, the AABB is just the Triangle's entire AABB
         if (vertex_min >= plane_min && vertex_max <= plane_max) return triangle.aabb;
         
         Vector3 intersections[4];
         int     intersection_count = 0;
 
-		float planes[2] = { plane_min, plane_max };
-
         for (int i = 0; i < 3; i++) {
             const Vector3 & vertex_a = vertices[i];
 
             for (int j = i + 1; j < 3; j++) {
-                const Vector3 & pb = vertices[j];
-                float delta_ab = pb[dimension] - vertex_a[dimension];
+                const Vector3 & vertex_b = vertices[j];
 
-                for (int cp = 0; cp < 2; cp++) {
-                    float delta_ap = planes[cp] - vertex_a[dimension];
-                    float delta_pb = planes[cp] - pb[dimension];
+                float delta_ba = vertex_b[dimension] - vertex_a[dimension];
 
-                    if (delta_ap > 0 && delta_pb <= 0) { 
-						float t = delta_ap / delta_ab;
-                        intersections[intersection_count++] = (1.0f - t) * vertex_a + t * pb;
-					}
-                }
+				// Check against min plane
+				float delta_min_a = plane_min - vertex_a[dimension];
+                float delta_min_b = plane_min - vertex_b[dimension];
+
+                if (delta_min_a > 0.0f && delta_min_b <= 0.0f) { 
+					// Lerp to obtain exact intersection point
+					float t = delta_min_a / delta_ba;
+                    intersections[intersection_count++] = (1.0f - t) * vertex_a + t * vertex_b;
+				}
+
+				// Check against max plane
+				float delta_max_a = plane_max - vertex_a[dimension];
+                float delta_max_b = plane_max - vertex_b[dimension];
+
+                if (delta_max_a > 0.0f && delta_max_b <= 0.0f) { 
+					// Lerp to obtain exact intersection point
+					float t = delta_max_a / delta_ba;
+                    intersections[intersection_count++] = (1.0f - t) * vertex_a + t * vertex_b;
+				}
             }
         }
 
-        AABB result = AABB::create_empty();
+		// All intersection points should be included in the AABB
+        AABB result = AABB::from_points(intersections, intersection_count);
 
+		// If the middle vertex lies between the two planes it should be included in the AABB
         if (vertices[1][dimension] >= plane_min && vertices[1][dimension] < plane_max) {
             result.expand(vertices[1]);
 		}
 
-        for (int i = 0; i < intersection_count; i++) {
-            result.expand(intersections[i]);
-		}
-
+		// In case we have only two intersections with either plane it must be the case that
+		// either the leftmost or the rightmost vertex lies between the two planes
         if (intersection_count == 2) {
             result.expand(vertex_max < plane_max ? vertices[2] : vertices[0]);
 		}
