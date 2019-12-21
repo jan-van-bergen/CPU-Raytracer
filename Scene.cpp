@@ -25,36 +25,6 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 	
-	//Vector3 i0, i1;
-	//Math::PlaneTriangleIntersection intersection = Math::plane_triangle_intersection(Vector3(0,1,0), 0, Vector3(-1,1,2), Vector3(1,1,1), Vector3(0,-1,-1), i0, i1);
-
-	/*const MeshData * temp = MeshData::load(DATA_PATH("Monkey.obj"));
-
-	SBVH sbvh;
-	sbvh.init(temp->triangle_count);
-	
-	// Copy Texture Coordinates and Material
-	for (int i = 0; i < temp->triangle_count; i++) {
-		sbvh.triangles[i].position0 = temp->triangles[i].position0;
-		sbvh.triangles[i].position1 = temp->triangles[i].position1;
-		sbvh.triangles[i].position2 = temp->triangles[i].position2;
-
-		sbvh.triangles[i].tex_coord0 = temp->triangles[i].tex_coord0;
-		sbvh.triangles[i].tex_coord1 = temp->triangles[i].tex_coord1;
-		sbvh.triangles[i].tex_coord2 = temp->triangles[i].tex_coord2;
-
-		sbvh.triangles[i].normal0 = temp->triangles[i].normal0;
-		sbvh.triangles[i].normal1 = temp->triangles[i].normal1;
-		sbvh.triangles[i].normal2 = temp->triangles[i].normal2;
-
-		sbvh.triangles[i].material = temp->triangles[i].material;
-
-		sbvh.triangles[i].aabb.min = Vector3::min(sbvh.triangles[i].position0, Vector3::min(sbvh.triangles[i].position1, sbvh.triangles[i].position2));
-		sbvh.triangles[i].aabb.max = Vector3::max(sbvh.triangles[i].position0, Vector3::max(sbvh.triangles[i].position1, sbvh.triangles[i].position2));
-	}
-
-	sbvh.build();*/
-
 #if false
 	bvh_meshes.init(5);
 	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);

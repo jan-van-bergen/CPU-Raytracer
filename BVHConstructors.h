@@ -257,6 +257,7 @@ namespace BVHConstructors {
 				int exits   = 0;
 			} bins[BIN_COUNT];
 
+			// For each Triangle
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
 				
@@ -272,6 +273,7 @@ namespace BVHConstructors {
 				bins[bin_min].entries++;
 				bins[bin_max].exits++;
 
+				// Iterate over bins that intersect the AABB along the current dimension
 				for (int b = bin_min; b <= bin_max; b++) {
 					Bin & bin = bins[b];
 
@@ -279,18 +281,22 @@ namespace BVHConstructors {
 
 					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 
+					// Calculate relevant portion of the AABB with regard to the two planes that define the current Bin
 					AABB box = Math::triangle_bin_bounds(dimension, plane_left_distance, plane_right_distance, triangle);
 
+					// Clip the AABB against the parent bounds
 					bin.aabb.expand(box);
 					bin.aabb = AABB::overlap(bin.aabb, bounds);
 
-					//bin.aabb.fix_if_needed();
+					// AABB must be valid
 					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
-
+					
+					// The AABB of the current Bin cannot exceed the planes of the current Bin
 					const float epsilon = 0.0001f;
-					assert(bin.aabb.min[dimension] > bounds_min +  b    * bounds_step - epsilon);
-					assert(bin.aabb.max[dimension] < bounds_min + (b+1) * bounds_step + epsilon);
+					assert(bin.aabb.min[dimension] > plane_left_distance  - epsilon);
+					assert(bin.aabb.max[dimension] < plane_right_distance + epsilon);
 
+					// The AABB of the current Bin cannot exceed the bounds of the Node's AABB
 					assert(bin.aabb.min[0] > bounds.min[0] - epsilon && bin.aabb.max[0] < bounds.max[0] + epsilon);
 					assert(bin.aabb.min[1] > bounds.min[1] - epsilon && bin.aabb.max[1] < bounds.max[1] + epsilon);
 					assert(bin.aabb.min[2] > bounds.min[2] - epsilon && bin.aabb.max[2] < bounds.max[2] + epsilon);
@@ -314,6 +320,7 @@ namespace BVHConstructors {
 			count_left [0]         = 0;
 			count_right[BIN_COUNT] = 0;
 			
+			// First traverse left to right along the current dimension to evaluate first half of the SAH
 			for (int b = 1; b < BIN_COUNT; b++) {
 				bounds_left[b] = bounds_left[b-1];
 				bounds_left[b].expand(bins[b-1].aabb);
@@ -329,6 +336,7 @@ namespace BVHConstructors {
 				}
 			}
 
+			// Then traverse right to left along the current dimension to evaluate second half of the SAH
 			for (int b = BIN_COUNT - 1; b > 0; b--) {
 				bounds_right[b] = bounds_right[b+1];
 				bounds_right[b].expand(bins[b].aabb);
@@ -350,7 +358,7 @@ namespace BVHConstructors {
 			assert(count_left [BIN_COUNT - 1] + bins[BIN_COUNT - 1].entries == index_count);
 			assert(count_right[1]             + bins[0].exits               == index_count);
 
-			// Find the minimum of the SAH
+			// Find the splitting plane that yields the lowest SAH cost along the current dimension
 			for (int b = 1; b < BIN_COUNT; b++) {
 				float cost = bin_sah[b];
 				if (cost < min_bin_cost) {
