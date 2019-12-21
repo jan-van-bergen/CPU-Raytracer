@@ -12,7 +12,7 @@
 #define MESH_USE_BVH  0
 #define MESH_USE_SBVH 1
 
-#define MESH_ACCELERATOR MESH_USE_BVH
+#define MESH_ACCELERATOR MESH_USE_SBVH
 
 struct Mesh {
 	Transform transform;
