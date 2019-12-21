@@ -284,13 +284,13 @@ namespace BVHPartitions {
 			AABB bounds_left [SBVH_BIN_COUNT];
 			AABB bounds_right[SBVH_BIN_COUNT + 1];
 			
-			bounds_left [0]         = AABB::create_empty();
+			bounds_left [0]              = AABB::create_empty();
 			bounds_right[SBVH_BIN_COUNT] = AABB::create_empty();
 
 			int count_left [SBVH_BIN_COUNT];
 			int count_right[SBVH_BIN_COUNT + 1];
 
-			count_left [0]         = 0;
+			count_left [0]              = 0;
 			count_right[SBVH_BIN_COUNT] = 0;
 			
 			// First traverse left to right along the current dimension to evaluate first half of the SAH
