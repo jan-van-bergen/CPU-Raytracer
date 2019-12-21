@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-const char * get_path(const char * file_path) {
+const char * Util::get_path(const char * file_path) {
 	const char * path_end      = file_path;
 	const char * last_path_end = nullptr;
 

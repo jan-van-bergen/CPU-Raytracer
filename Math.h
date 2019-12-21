@@ -1,8 +1,7 @@
 #pragma once
-#include <algorithm>
-
 #include "Triangle.h"
 
+#include "Util.h"
 #include "SIMD.h"
 
 #include "Vector3.h"
@@ -33,9 +32,9 @@ namespace Math {
 		};
 
 		// Sort the vertices along the current dimension using unrolled Bubble Sort
-		if (vertices[0][dimension] > vertices[1][dimension]) std::swap(vertices[0], vertices[1]);
-		if (vertices[1][dimension] > vertices[2][dimension]) std::swap(vertices[1], vertices[2]);
-		if (vertices[0][dimension] > vertices[1][dimension]) std::swap(vertices[0], vertices[1]);
+		if (vertices[0][dimension] > vertices[1][dimension]) Util::swap(vertices[0], vertices[1]);
+		if (vertices[1][dimension] > vertices[2][dimension]) Util::swap(vertices[1], vertices[2]);
+		if (vertices[0][dimension] > vertices[1][dimension]) Util::swap(vertices[0], vertices[1]);
 
         float vertex_min = vertices[0][dimension];
         float vertex_max = vertices[2][dimension];

@@ -24,7 +24,7 @@ const MeshData * MeshData::load(const char * file_path) {
 	std::string warning;
 	std::string error;
 
-	const char * path = get_path(file_path);
+	const char * path = Util::get_path(file_path);
 
 	tinyobj::LoadObj(&attrib, &shapes, &materials, &warning, &error, file_path, path);
 
