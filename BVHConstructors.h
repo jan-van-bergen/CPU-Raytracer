@@ -282,7 +282,7 @@ namespace BVHConstructors {
 
 					// Calculate relevant portion of the AABB with regard to the two planes that define the current Bin
 					AABB box = Math::triangle_bin_bounds(dimension, plane_left_distance, plane_right_distance, triangle);
-
+					
 					// Clip the AABB against the parent bounds
 					bin.aabb.expand(box);
 					bin.aabb = AABB::overlap(bin.aabb, bounds);

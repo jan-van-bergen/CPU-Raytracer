@@ -61,7 +61,9 @@ struct SBVHNode {
 
 		const float alpha = 10e-5; // Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
 		float ratio = lamba * inv_root_surface_area;
+		
 		assert(ratio >= 0.0f && ratio <= 1.0f);
+
 		if (ratio > alpha) { 
 			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
