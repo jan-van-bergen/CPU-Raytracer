@@ -223,8 +223,6 @@ struct SBVHNode {
 							goes_right = true;
 
 							rejected_left++;
-						} else {
-							abort();
 						}
 					}
 
