@@ -215,9 +215,11 @@ struct SBVHNode {
 						float c_1     =              delta_left.surface_area() *  n_1       + spatial_split_aabb_right_surface_area   * (n_2-1.0f);
 						float c_2     = spatial_split_aabb_left_surface_area   * (n_1-1.0f) +              delta_right.surface_area() *  n_2;
 
-						// Check what the cheapest option is
+						// If C_1 resp. C_2 is cheapest, let the triangle go left resp. right
+						// Otherwise, do nothing and let the triangle go both left and right
 						if (c_1 < c_split) {
 							if (c_2 < c_1) {
+								// C_2 is cheapest, remove from left
 								goes_left = false;
 								rejected_left++;
 
@@ -225,6 +227,7 @@ struct SBVHNode {
 
 								spatial_split_aabb_right.expand(triangle.aabb);
 							} else {
+								// C_1 is cheapest, remove from right
 								goes_right = false;
 								rejected_right++;
 								
@@ -233,6 +236,7 @@ struct SBVHNode {
 								spatial_split_aabb_left.expand(triangle.aabb);
 							}
 						} else if (c_2 < c_split) {
+							// C_2 is cheapest, remove from left
 							goes_left = false;
 							rejected_left++;
 							
