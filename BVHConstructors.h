@@ -5,7 +5,7 @@
 #include "Debug.h"
 
 namespace BVHConstructors {
-	inline const int BIN_COUNT = 256;
+	inline const int SBVH_BIN_COUNT = 256;
 
 	// Calculates the smallest enclosing AABB over the union of all AABB's of the primitives in the range defined by [first, last>
 	template<typename PrimitiveType>
@@ -246,7 +246,7 @@ namespace BVHConstructors {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			float bounds_min  = bounds.min[dimension] - 0.001f;
 			float bounds_max  = bounds.max[dimension] + 0.001f;
-			float bounds_step = (bounds_max - bounds_min) / BIN_COUNT;
+			float bounds_step = (bounds_max - bounds_min) / SBVH_BIN_COUNT;
 			
 			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
 
@@ -254,7 +254,7 @@ namespace BVHConstructors {
 				AABB aabb = AABB::create_empty();
 				int entries = 0;
 				int exits   = 0;
-			} bins[BIN_COUNT];
+			} bins[SBVH_BIN_COUNT];
 
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
@@ -262,11 +262,11 @@ namespace BVHConstructors {
 				float plane_left_distance = bounds_min;
 				float plane_right_distance;
 
-				int bin_min = int(BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) * inv_bounds_delta));
-				int bin_max = int(BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) * inv_bounds_delta));
+				int bin_min = int(SBVH_BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) * inv_bounds_delta));
+				int bin_max = int(SBVH_BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) * inv_bounds_delta));
 
-				bin_min = Math::clamp(bin_min, 0, BIN_COUNT - 1);
-				bin_max = Math::clamp(bin_max, 0, BIN_COUNT - 1);
+				bin_min = Math::clamp(bin_min, 0, SBVH_BIN_COUNT - 1);
+				bin_max = Math::clamp(bin_max, 0, SBVH_BIN_COUNT - 1);
 
 				bins[bin_min].entries++;
 				bins[bin_max].exits++;
@@ -304,22 +304,22 @@ namespace BVHConstructors {
 				}
 			}
 
-			float bin_sah[BIN_COUNT];
+			float bin_sah[SBVH_BIN_COUNT];
 
-			AABB bounds_left [BIN_COUNT];
-			AABB bounds_right[BIN_COUNT + 1];
+			AABB bounds_left [SBVH_BIN_COUNT];
+			AABB bounds_right[SBVH_BIN_COUNT + 1];
 			
 			bounds_left [0]         = AABB::create_empty();
-			bounds_right[BIN_COUNT] = AABB::create_empty();
+			bounds_right[SBVH_BIN_COUNT] = AABB::create_empty();
 
-			int count_left [BIN_COUNT];
-			int count_right[BIN_COUNT + 1];
+			int count_left [SBVH_BIN_COUNT];
+			int count_right[SBVH_BIN_COUNT + 1];
 
 			count_left [0]         = 0;
-			count_right[BIN_COUNT] = 0;
+			count_right[SBVH_BIN_COUNT] = 0;
 			
 			// First traverse left to right along the current dimension to evaluate first half of the SAH
-			for (int b = 1; b < BIN_COUNT; b++) {
+			for (int b = 1; b < SBVH_BIN_COUNT; b++) {
 				bounds_left[b] = bounds_left[b-1];
 				bounds_left[b].expand(bins[b-1].aabb);
 
@@ -335,7 +335,7 @@ namespace BVHConstructors {
 			}
 
 			// Then traverse right to left along the current dimension to evaluate second half of the SAH
-			for (int b = BIN_COUNT - 1; b > 0; b--) {
+			for (int b = SBVH_BIN_COUNT - 1; b > 0; b--) {
 				bounds_right[b] = bounds_right[b+1];
 				bounds_right[b].expand(bins[b].aabb);
 				
@@ -353,11 +353,11 @@ namespace BVHConstructors {
 			//assert(count_left[2] > 0);
 			//assert(count_right[BIN_COUNT - 2] > 0);
 
-			assert(count_left [BIN_COUNT - 1] + bins[BIN_COUNT - 1].entries == index_count);
+			assert(count_left [SBVH_BIN_COUNT - 1] + bins[SBVH_BIN_COUNT - 1].entries == index_count);
 			assert(count_right[1]             + bins[0].exits               == index_count);
 
 			// Find the splitting plane that yields the lowest SAH cost along the current dimension
-			for (int b = 1; b < BIN_COUNT; b++) {
+			for (int b = 1; b < SBVH_BIN_COUNT; b++) {
 				float cost = bin_sah[b];
 				if (cost < min_bin_cost) {
 					min_bin_cost = cost;

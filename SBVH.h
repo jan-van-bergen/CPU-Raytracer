@@ -170,18 +170,18 @@ struct SBVHNode {
 			int rejected_left  = 0;
 			int rejected_right = 0;
 
-			float lleft  = float(spatial_split_count_left);
-			float rright = float(spatial_split_count_right);
+			float n_1 = float(spatial_split_count_left);
+			float n_2 = float(spatial_split_count_right);
 
 			for (int i = first_index; i < first_index + index_count; i++) {
 				int index = indices[spatial_split_dimension][i];
 				const Triangle & triangle = triangles[index];
 				
-				int bin_min = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
-				int bin_max = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				int bin_min = int(BVHConstructors::SBVH_BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				int bin_max = int(BVHConstructors::SBVH_BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
 
-				bin_min = Math::clamp(bin_min, 0, BVHConstructors::BIN_COUNT - 1);
-				bin_max = Math::clamp(bin_max, 0, BVHConstructors::BIN_COUNT - 1);
+				bin_min = Math::clamp(bin_min, 0, BVHConstructors::SBVH_BIN_COUNT - 1);
+				bin_max = Math::clamp(bin_max, 0, BVHConstructors::SBVH_BIN_COUNT - 1);
 
 				bool goes_left  = false;
 				bool goes_right = false;
@@ -208,9 +208,12 @@ struct SBVHNode {
 						delta_left.expand (triangle.aabb);
 						delta_right.expand(triangle.aabb);
 
-						float c_1 =              delta_left.surface_area() *  lleft         + spatial_split_aabb_right.surface_area() * (rright - 1.0f);
-						float c_2 = spatial_split_aabb_left.surface_area() * (lleft - 1.0f) +              delta_right.surface_area() *  rright;
-						float c_split = spatial_split_cost;
+						float spatial_split_aabb_left_surface_area  = spatial_split_aabb_left.surface_area();
+						float spatial_split_aabb_right_surface_area = spatial_split_aabb_right.surface_area();
+
+						float c_split = spatial_split_aabb_left_surface_area   *  n_1       + spatial_split_aabb_right_surface_area   *  n_2;
+						float c_1     =              delta_left.surface_area() *  n_1       + spatial_split_aabb_right_surface_area   * (n_2-1.0f);
+						float c_2     = spatial_split_aabb_left_surface_area   * (n_1-1.0f) +              delta_right.surface_area() *  n_2;
 
 						// Check what the cheapest option is
 						if (c_1 < c_split) {
@@ -218,14 +221,14 @@ struct SBVHNode {
 								goes_left = false;
 								rejected_left++;
 
-								lleft -= 1.0f;
+								n_1 -= 1.0f;
 
 								spatial_split_aabb_right.expand(triangle.aabb);
 							} else {
 								goes_right = false;
 								rejected_right++;
 								
-								rright -= 1.0f;
+								n_2 -= 1.0f;
 
 								spatial_split_aabb_left.expand(triangle.aabb);
 							}
@@ -233,7 +236,7 @@ struct SBVHNode {
 							goes_left = false;
 							rejected_left++;
 							
-							lleft -= 1.0f;
+							n_1 -= 1.0f;
 
 							spatial_split_aabb_right.expand(triangle.aabb);
 						}
