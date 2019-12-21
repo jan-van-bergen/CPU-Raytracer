@@ -1,5 +1,4 @@
 #pragma once
-#include <cassert>
 #include <algorithm>
 
 #include "BVHBuilders.h"
@@ -84,7 +83,7 @@ struct BVH {
 
 		printf("Leaf count: %i\n", leaf_count);
 
-		assert(node_index <= 8 * primitive_count);
+		assert(node_index <= 2 * primitive_count);
 
 		delete [] temp[0];
 		delete [] temp[1];
