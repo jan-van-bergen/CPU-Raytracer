@@ -29,7 +29,7 @@ struct SBVHNode {
 	};
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
-	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp, float inv_root_surface_area, AABB node_aabb) {
+	inline int subdivide(const Triangle * triangles, int * indices[3], SBVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp[2], float inv_root_surface_area, AABB node_aabb) {
 		aabb = node_aabb;
 
 		if (index_count < 3) {
@@ -47,7 +47,7 @@ struct SBVHNode {
 
 		float full_sah_split_cost;
 		int   full_sah_split_dimension = -1;
-		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, temp, full_sah_split_dimension, full_sah_split_cost, node_aabb, b1, b2);
+		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, b1, b2);
 
 		float spatial_split_cost = INFINITY;
 		int   spatial_split_dimension = -1;
@@ -65,7 +65,7 @@ struct SBVHNode {
 		assert(ratio >= 0.0f && ratio <= 1.0f);
 
 		if (ratio > alpha) { 
-			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, temp, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
+			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition
@@ -158,8 +158,8 @@ struct SBVHNode {
 			
 			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
 
-			int * indices_going_left  = new int[spatial_split_count_left];
-			int * indices_going_right = new int[spatial_split_count_right];
+			int * indices_going_left  = temp[0];
+			int * indices_going_right = temp[1];
 
 			int temp_left = 0, temp_right = 0;
 
@@ -201,38 +201,21 @@ struct SBVHNode {
 				// Triangle must go left, right, or both
 				assert(goes_left || goes_right);
 
-				if (goes_left)  indices_going_left [temp_left++]  = index;
-				if (goes_right) indices_going_right[temp_right++] = index;
+				indices_going_left [index] = goes_left;
+				indices_going_right[index] = goes_right;
 			}
 
 			for (int dimension = 0; dimension < 3; dimension++) {	
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
 
-					bool goes_left  = false;
-					bool goes_right = false;
-
-					for (int j = 0; j < temp_left; j++) {
-						if (indices_going_left[j] == index) {
-							goes_left = true;
-							break;
-						}
-					}
-
-					for (int j = 0; j < temp_right; j++) {
-						if (indices_going_right[j] == index) {
-							goes_right = true;
-							break;
-						}
-					}
+					bool goes_left  = indices_going_left [index];
+					bool goes_right = indices_going_right[index];
 
 					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;
 					if (goes_right) children_right[dimension][children_right_count[dimension]++] = index;
 				}
 			}
-
-			delete [] indices_going_left;
-			delete [] indices_going_right; 
 
 			// We should have made the same decision (going left/right) in every dimension
 			assert(children_left_count [0] == children_left_count [1] && children_left_count [1] == children_left_count [2]);
@@ -412,7 +395,7 @@ struct SBVH {
 		
 		int * indices[3] = { indices_x, indices_y, indices_z };
 
-		int * temp = new int[primitive_count];
+		int * temp[2] = { new int[primitive_count], new int[primitive_count] };
 
 		AABB root_aabb = BVHConstructors::calculate_bounds(primitives, indices[0], 0, primitive_count);
 
@@ -423,7 +406,8 @@ struct SBVH {
 
 		assert(node_index <= 8 * primitive_count);
 
-		delete [] temp;
+		delete [] temp[0];
+		delete [] temp[1];
 		delete [] sah;
 	}
 	
