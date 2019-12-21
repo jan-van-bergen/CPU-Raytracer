@@ -95,46 +95,50 @@ struct SBVHNode {
 			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
 
 			for (int dimension = 0; dimension < 3; dimension++) {
-				//if (dimension != full_sah_split_dimension) {
-					for (int i = first_index; i < first_index + index_count; i++) {
-						int index = indices[dimension][i];
+				// @OPTIMIZATION: for dimension == full_sah_split_dimension we actually 
+				// don't need to check whether the triangles go left or right!
 
-						bool goes_left = triangles[indices[dimension][i]].get_position()[full_sah_split_dimension] < split;
+				for (int i = first_index; i < first_index + index_count; i++) {
+					int index = indices[dimension][i];
 
-						if (triangles[indices[dimension][i]].get_position()[full_sah_split_dimension] == split) {
-							// In case the current primitive has the same coordianate as the one we split on along the split dimension,
-							// We don't know whether the primitive should go left or right.
-							// In this case check all primitive indices on the left side of the split that 
-							// have the same split coordinate for equality with the current primitive index i
+					bool goes_left = triangles[index].get_position()[full_sah_split_dimension] < split;
 
-							int j = full_sah_split_index - 1;
-							// While we can go left and the left primitive has the same coordinate along the split dimension as the split itself
-							while (j >= first_index && triangles[indices[full_sah_split_dimension][j]].get_position()[full_sah_split_dimension] == split) {
-								if (indices[full_sah_split_dimension][j] == indices[dimension][i]) {
-									goes_left = true;
+					if (triangles[index].get_position()[full_sah_split_dimension] == split) {
+						// In case the current primitive has the same coordianate as the one we split on along the split dimension,
+						// We don't know whether the primitive should go left or right.
+						// In this case check all primitive indices on the left side of the split that 
+						// have the same split coordinate for equality with the current primitive index i
 
-									break;
-								}
+						int j = full_sah_split_index - 1;
+						// While we can go left and the left primitive has the same coordinate along the split dimension as the split itself
+						while (j >= first_index && triangles[indices[full_sah_split_dimension][j]].get_position()[full_sah_split_dimension] == split) {
+							if (indices[full_sah_split_dimension][j] == index) {
+								goes_left = true;
 
-								j--;
+								break;
 							}
-						}
 
-						if (goes_left) {
-							children_left[dimension][children_left_count[dimension]++] = index;
-						} else {
-							children_right[dimension][children_right_count[dimension]++] = index;
+							j--;
 						}
 					}
-				//}
+
+					if (goes_left) {
+						children_left[dimension][children_left_count[dimension]++] = index;
+					} else {
+						children_right[dimension][children_right_count[dimension]++] = index;
+					}
+				}
 			}
 			
+			// We should have made the same decision (going left/right) in every dimension
 			assert(children_left_count [0] == children_left_count [1] && children_left_count [1] == children_left_count [2]);
 			assert(children_right_count[0] == children_right_count[1] && children_right_count[1] == children_right_count[2]);
 			
 			n_left  = children_left_count [0];
 			n_right = children_right_count[0];
 
+			// Using object split, no duplicates can occur. 
+			// Thus, left + right should equal the total number of triangles
 			assert(first_index + n_left == full_sah_split_index);
 			assert(n_left + n_right == index_count);
 			
@@ -214,6 +218,7 @@ struct SBVHNode {
 				}
 			}
 
+			// We should have made the same decision (going left/right) in every dimension
 			assert(children_left_count [0] == children_left_count [1] && children_left_count [1] == children_left_count [2]);
 			assert(children_right_count[0] == children_right_count[1] && children_right_count[1] == children_right_count[2]);
 			
@@ -223,28 +228,37 @@ struct SBVHNode {
 			// If a straddling reference is rejected from left or right it should have happened in all 3 dimensions
 			assert(rejected_left % 3 == 0 && rejected_right % 3 == 0);
 
+			// The actual number of references going left/right should match the numbers calculated during spatial splitting
 			assert(n_left  == spatial_split_count_left  - rejected_left  / 3);
 			assert(n_right == spatial_split_count_right - rejected_right / 3);
 
+			// A valid partition contains at least one and strictly less than all
 			assert(n_left  > 0 && n_left  < index_count);
 			assert(n_right > 0 && n_right < index_count);
 			
+			// Make sure no triangles dissapeared
 			assert(n_left + n_right >= index_count);
 			
 			child_aabb_left  = aabb_new_left;
 			child_aabb_right = aabb_new_right;
 		}
 		
+		// First copy the indices going left into the indices buffer
+		// We don't copy the right side yet, because the left side might
+		// still grow in size due to reference duplication
 		memcpy(indices[0] + first_index, children_left[0], n_left * sizeof(int));
 		memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
 		memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
 
+		// Do a depth first traversal, so that we know the amount of indices that were recursively created by the left child
 		int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
 
+		// Using the depth first offset, we can now copy over the right references
 		memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
 		memcpy(indices[1] + first_index + offset_left, children_right[1], n_right * sizeof(int));
 		memcpy(indices[2] + first_index + offset_left, children_right[2], n_right * sizeof(int));
 			
+		// Now recurse on the right side
 		int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
 			
 		delete [] children_left[0];
@@ -253,10 +267,12 @@ struct SBVHNode {
 		delete [] children_right[0];
 		delete [] children_right[1];
 		delete [] children_right[2];
-			
+		
+		// Report the total number of leaves contained in the subtree
 		return offset_left + offset_right;
 	}
 	
+	// The current Node is a leaf if its primitive count is larger than zero
 	inline bool is_leaf() const {
 		return (count & (~SBVH_AXIS_MASK)) > 0;
 	}
