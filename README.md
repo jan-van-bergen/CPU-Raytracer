@@ -5,8 +5,12 @@
 ### SBVH
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same struct ``BVH``, you can switch between them by  calling either ``BVHBuilder::build_bvh(...)`` or ``BVHBuilder::build_sbvh(...)``. Note that the SBVH only supports Triangle primitives.
 
+The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
+
 ### Fast BVH Construction
 (Regular) BVH Construction of a scene with >= 100000 triangles is done in under one second.
+
+The regular BVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_BVH``.
 
 ### Fast BVH Traversal
 BVH and SBVH traversal is optimized by expanding child nodes in order, based on the split axis and the Ray's direction. The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` and ``SBVHNode`` to ensure the fact that those structs are still 32 bytes.
