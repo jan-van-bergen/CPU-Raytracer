@@ -23,7 +23,7 @@ struct BVH {
 		primitive_count = count; 
 		primitives = new PrimitiveType[primitive_count];
 
-		int overallocation = 2;
+		int overallocation = 2; // SBVH requires more space
 
 		// Construct index array
 		int * all_indices  = new int[3 * overallocation * primitive_count];

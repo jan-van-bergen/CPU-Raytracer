@@ -101,6 +101,7 @@ struct BVHNode {
 		}
 	}
 };
+
 namespace BVHBuilders {
 	template<typename PrimitiveType>
 	inline void build_bvh(BVHNode<PrimitiveType> & node, const PrimitiveType * primitives, int * indices[3], BVHNode<PrimitiveType> nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
