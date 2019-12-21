@@ -9,13 +9,17 @@
 
 #include "BVH.h"
 
+#define MESH_USE_BVH  0
+#define MESH_USE_SBVH 1
+
+#define MESH_ACCELERATOR MESH_USE_BVH
+
 struct Mesh {
 	Transform transform;
 
 	const MeshData * mesh_data = nullptr;
 
 	BVH<Triangle> triangle_bvh;
-	//BVH<Triangle> triangle_bvh;
 
 	inline void init(const char * file_path)  {
 		mesh_data = MeshData::load(file_path);
@@ -45,9 +49,11 @@ struct Mesh {
 
 		aabb.fix_if_needed();
 
+#if MESH_ACCELERATOR == MESH_USE_BVH
+		triangle_bvh.build_bvh();
+#elif MESH_ACCELERATOR == MESH_USE_SBVH
 		triangle_bvh.build_sbvh();
-		//triangle_bvh.build_bvh();
-
+#endif
 		//triangle_bvh.debug();
 	}
 
