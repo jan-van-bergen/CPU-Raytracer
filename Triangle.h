@@ -7,7 +7,7 @@
 
 #include "AABB.h"
 
-struct Triangle {
+struct alignas(64) Triangle {
 	Vector3 position0;
 	Vector3 position1;
 	Vector3 position2;
