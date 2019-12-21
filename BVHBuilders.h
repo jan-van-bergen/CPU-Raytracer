@@ -159,16 +159,15 @@ namespace BVHBuilders {
 
 		// Object Split information
 		float full_sah_split_cost;
-		int   full_sah_split_dimension = -1;
+		int   full_sah_split_dimension;
 		AABB  full_sah_aabb_left;
 		AABB  full_sah_aabb_right;
 		int   full_sah_split_index = BVHPartitions::partition_object(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
 
 		// Spatial Split information
 		float spatial_split_cost = INFINITY;
-		int   spatial_split_dimension = -1;
+		int   spatial_split_dimension;
 		float spatial_split_plane_distance;
-		int   spatial_split_bin = -1;
 		AABB  spatial_split_aabb_left;
 		AABB  spatial_split_aabb_right;
 		int   spatial_split_count_left;
@@ -187,7 +186,7 @@ namespace BVHBuilders {
 
 		// If ratio between overlap area and root area is large enough, consider a Spatial Split
 		if (ratio > alpha) { 
-			spatial_split_bin = BVHPartitions::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
+			BVHPartitions::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition
@@ -269,11 +268,6 @@ namespace BVHBuilders {
 		} else {
 			// Perform Spatial Split
 
-			float bounds_min = node_aabb.min[spatial_split_dimension] - 0.001f;
-			float bounds_max = node_aabb.max[spatial_split_dimension] + 0.001f;
-			
-			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
-
 			// The two temp arrays will be used as lookup tables
 			int * indices_going_left  = temp[0];
 			int * indices_going_right = temp[1];
@@ -291,22 +285,16 @@ namespace BVHBuilders {
 				int index = indices[spatial_split_dimension][i];
 				const Triangle & triangle = triangles[index];
 				
-				int bin_min = int(BVHPartitions::SBVH_BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
-				int bin_max = int(BVHPartitions::SBVH_BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				bool goes_left = 
+					triangle.position0[spatial_split_dimension] <= spatial_split_plane_distance || 
+					triangle.position1[spatial_split_dimension] <= spatial_split_plane_distance || 
+					triangle.position2[spatial_split_dimension] <= spatial_split_plane_distance;
+				bool goes_right = 
+					triangle.position0[spatial_split_dimension] >= spatial_split_plane_distance || 
+					triangle.position1[spatial_split_dimension] >= spatial_split_plane_distance || 
+					triangle.position2[spatial_split_dimension] >= spatial_split_plane_distance;
 
-				bin_min = Math::clamp(bin_min, 0, BVHPartitions::SBVH_BIN_COUNT - 1);
-				bin_max = Math::clamp(bin_max, 0, BVHPartitions::SBVH_BIN_COUNT - 1);
-
-				bool goes_left  = false;
-				bool goes_right = false;
-
-				if (bin_max < spatial_split_bin) {
-					goes_left = true;
-				} else if (bin_min >= spatial_split_bin) {
-					goes_right = true;
-				} else { 
-					// Straddler
-					
+				if (goes_left && goes_right) { // Straddler					
 					// A split can result in triangles that lie on one side of the plane but that don't overlap the AABB
 					bool valid_left  = AABB::overlap(triangle.aabb, spatial_split_aabb_left ).is_valid();
 					bool valid_right = AABB::overlap(triangle.aabb, spatial_split_aabb_right).is_valid();
@@ -325,6 +313,7 @@ namespace BVHBuilders {
 						float spatial_split_aabb_left_surface_area  = spatial_split_aabb_left.surface_area();
 						float spatial_split_aabb_right_surface_area = spatial_split_aabb_right.surface_area();
 
+						// Calculate SAH cost for the 3 different cases
 						float c_split = spatial_split_aabb_left_surface_area   *  n_1       + spatial_split_aabb_right_surface_area   *  n_2;
 						float c_1     =              delta_left.surface_area() *  n_1       + spatial_split_aabb_right_surface_area   * (n_2-1.0f);
 						float c_2     = spatial_split_aabb_left_surface_area   * (n_1-1.0f) +              delta_right.surface_area() *  n_2;
@@ -332,16 +321,14 @@ namespace BVHBuilders {
 						// If C_1 resp. C_2 is cheapest, let the triangle go left resp. right
 						// Otherwise, do nothing and let the triangle go both left and right
 						if (c_1 < c_split) {
-							if (c_2 < c_1) {
-								// C_2 is cheapest, remove from left
+							if (c_2 < c_1) { // C_2 is cheapest, remove from left
 								goes_left = false;
 								rejected_left++;
 
 								n_1 -= 1.0f;
 
 								spatial_split_aabb_right.expand(triangle.aabb);
-							} else {
-								// C_1 is cheapest, remove from right
+							} else { // C_1 is cheapest, remove from right
 								goes_right = false;
 								rejected_right++;
 								
@@ -349,8 +336,7 @@ namespace BVHBuilders {
 
 								spatial_split_aabb_left.expand(triangle.aabb);
 							}
-						} else if (c_2 < c_split) {
-							// C_2 is cheapest, remove from left
+						} else if (c_2 < c_split) { // C_2 is cheapest, remove from left
 							goes_left = false;
 							rejected_left++;
 							
