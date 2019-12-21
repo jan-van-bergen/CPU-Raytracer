@@ -3,7 +3,7 @@
 ## Features
 
 ### SBVH
-SBVH was implemented, including reference unsplitting.
+SBVH was implemented, including reference unsplitting. BVH and SBVH use the same struct ``BVH``, you can switch between them by  calling either ``BVHBuilder::build_bvh(...)`` or ``BVHBuilder::build_sbvh(...)``. Note that the SBVH only supports Triangle primitives.
 
 ### Fast BVH Construction
 (Regular) BVH Construction of a scene with >= 100000 triangles is done in under one second.
