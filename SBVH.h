@@ -43,29 +43,37 @@ struct SBVHNode {
 		left = node_index;
 		node_index += 2;
 
-		AABB b1, b2;
-
+		// Object Split information
 		float full_sah_split_cost;
 		int   full_sah_split_dimension = -1;
-		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, b1, b2);
+		AABB  full_sah_aabb_left;
+		AABB  full_sah_aabb_right;
+		int   full_sah_split_index = BVHConstructors::partition_full_sah(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
 
+		// Spatial Split information
 		float spatial_split_cost = INFINITY;
 		int   spatial_split_dimension = -1;
 		float spatial_split_plane_distance;
 		int   spatial_split_bin = -1;
+		AABB  spatial_split_aabb_left;
+		AABB  spatial_split_aabb_right;
+		int   spatial_split_count_left;
+		int   spatial_split_count_right;
 
-		AABB aabb_left, aabb_right;
-		int spatial_split_count_left, spatial_split_count_right;
+		// Calculate the overlap between the child bounding boxes resulting from the Object Split
+		float lamba = AABB::overlap_surface_area(full_sah_aabb_left, full_sah_aabb_right);
 
-		float lamba = AABB::overlap_surface_area(b1, b2);
+		// Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
+		const float alpha = 10e-5; 
 
-		const float alpha = 10e-5; // Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
+		// Divide by the surface area of the bounding box of the root Node
 		float ratio = lamba * inv_root_surface_area;
 		
 		assert(ratio >= 0.0f && ratio <= 1.0f);
 
+		// If ratio between overlap area and root area is large enough, consider a Spatial Split
 		if (ratio > alpha) { 
-			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, aabb_left, aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
+			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition
@@ -77,10 +85,11 @@ struct SBVHNode {
 			return count;
 		} 
 
+		// From this point on it is decided that this Node will NOT be a leaf Node
 		count = (full_sah_split_dimension + 1) << 30;
 		
 		// @TODO: left is not needed and right can use the 'temp' array
-		int * children_left [3] { new int[index_count], new int[index_count], new int[index_count] };
+		int * children_left [3] { indices[0] + first_index, indices[1] + first_index, indices[2] + first_index };
 		int * children_right[3] { new int[index_count], new int[index_count], new int[index_count] };
 
 		int children_left_count [3] = { 0, 0, 0 };
@@ -92,6 +101,9 @@ struct SBVHNode {
 		AABB child_aabb_right;
 
 		if (full_sah_split_cost <= spatial_split_cost) {
+			// Perform Object Split
+
+			// Obtain split plane
 			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
 
 			for (int dimension = 0; dimension < 3; dimension++) {
@@ -142,31 +154,30 @@ struct SBVHNode {
 			assert(first_index + n_left == full_sah_split_index);
 			assert(n_left + n_right == index_count);
 			
-			child_aabb_left  = b1;
-			child_aabb_right = b2;
+			child_aabb_left  = full_sah_aabb_left;
+			child_aabb_right = full_sah_aabb_right;
 		} else {
-			assert(ratio > alpha);
-
-			int rejected_left  = 0;
-			int rejected_right = 0;
-
-			AABB aabb_new_left  = aabb_left;
-			AABB aabb_new_right = aabb_right;
+			// Perform Spatial Split
 
 			float bounds_min = node_aabb.min[spatial_split_dimension] - 0.001f;
 			float bounds_max = node_aabb.max[spatial_split_dimension] + 0.001f;
 			
 			float inv_bounds_delta = 1.0f / (bounds_max - bounds_min);
 
+			// The two temp arrays will be used as lookup tables
 			int * indices_going_left  = temp[0];
 			int * indices_going_right = temp[1];
 
 			int temp_left = 0, temp_right = 0;
+			
+			// Keep track of amount of rejected references on both sides for debugging purposes
+			int rejected_left  = 0;
+			int rejected_right = 0;
 
 			for (int i = first_index; i < first_index + index_count; i++) {
 				int index = indices[spatial_split_dimension][i];
 				const Triangle & triangle = triangles[index];
-					
+				
 				int bin_min = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
 				int bin_max = int(BVHConstructors::BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
 
@@ -180,23 +191,26 @@ struct SBVHNode {
 					goes_left = true;
 				} else if (bin_min >= spatial_split_bin) {
 					goes_right = true;
-				} else { // Straddler
-					bool valid_left  = AABB::overlap(triangle.aabb, aabb_new_left ).is_valid();
-					bool valid_right = AABB::overlap(triangle.aabb, aabb_new_right).is_valid();
+				} else { 
+					// Straddler
+					
+					// A split can result in triangles that lie on one side of the plane but that don't overlap the AABB
+					bool valid_left  = AABB::overlap(triangle.aabb, spatial_split_aabb_left ).is_valid();
+					bool valid_right = AABB::overlap(triangle.aabb, spatial_split_aabb_right).is_valid();
 
 					if (valid_left && valid_right) {
 						goes_left  = true;
 						goes_right = true;
 
 						// Consider unsplitting
-						AABB delta_left  = aabb_new_left;
-						AABB delta_right = aabb_new_right;
+						AABB delta_left  = spatial_split_aabb_left;
+						AABB delta_right = spatial_split_aabb_right;
 
 						delta_left.expand (triangle.aabb);
 						delta_right.expand(triangle.aabb);
 
-						float c_1 =    delta_left.surface_area() *  spatial_split_count_left         + aabb_new_right.surface_area() * (spatial_split_count_right - 1.0f);
-						float c_2 = aabb_new_left.surface_area() * (spatial_split_count_left - 1.0f) +    delta_right.surface_area() *  spatial_split_count_right;
+						float c_1 = delta_left.surface_area() *  spatial_split_count_left         +  spatial_split_aabb_right.surface_area() * (spatial_split_count_right - 1.0f);
+						float c_2 =  spatial_split_aabb_left.surface_area() * (spatial_split_count_left - 1.0f) + delta_right.surface_area() *  spatial_split_count_right;
 						float c_split = spatial_split_cost;
 
 						// Check what the cheapest option is
@@ -204,16 +218,16 @@ struct SBVHNode {
 							if (c_2 < c_1) {
 								goes_left = false;
 								rejected_left++;
-								aabb_new_right.expand(triangle.aabb);
+								spatial_split_aabb_right.expand(triangle.aabb);
 							} else {
 								goes_right = false;
 								rejected_right++;
-								aabb_new_left.expand(triangle.aabb);
+								spatial_split_aabb_left.expand(triangle.aabb);
 							}
 						} else if (c_2 < c_split) {
 							goes_left = false;
 							rejected_left++;
-							aabb_new_right.expand(triangle.aabb);
+							spatial_split_aabb_right.expand(triangle.aabb);
 						}
 					} else if (valid_left) {
 						goes_left = true;
@@ -223,6 +237,12 @@ struct SBVHNode {
 						goes_right = true;
 
 						rejected_left++;
+					} else {
+						goes_left  = false;
+						goes_right = false;
+
+						rejected_left++;
+						rejected_right++;
 					}
 				}
 
@@ -233,6 +253,7 @@ struct SBVHNode {
 				indices_going_right[index] = goes_right;
 			}
 
+			// In all three dimensions, use the lookup table to decide which way each Triangle should go
 			for (int dimension = 0; dimension < 3; dimension++) {	
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
@@ -263,16 +284,16 @@ struct SBVHNode {
 			// Make sure no triangles dissapeared
 			assert(n_left + n_right >= index_count);
 			
-			child_aabb_left  = aabb_new_left;
-			child_aabb_right = aabb_new_right;
+			child_aabb_left  = spatial_split_aabb_left;
+			child_aabb_right = spatial_split_aabb_right;
 		}
 		
 		// First copy the indices going left into the indices buffer
 		// We don't copy the right side yet, because the left side might
 		// still grow in size due to reference duplication
-		memcpy(indices[0] + first_index, children_left[0], n_left * sizeof(int));
-		memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
-		memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
+		//memcpy(indices[0] + first_index, children_left[0], n_left * sizeof(int));
+		//memcpy(indices[1] + first_index, children_left[1], n_left * sizeof(int));
+		//memcpy(indices[2] + first_index, children_left[2], n_left * sizeof(int));
 
 		// Do a depth first traversal, so that we know the amount of indices that were recursively created by the left child
 		int offset_left = nodes[left].subdivide(triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
@@ -284,10 +305,7 @@ struct SBVHNode {
 			
 		// Now recurse on the right side
 		int offset_right = nodes[left + 1].subdivide(triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
-			
-		delete [] children_left[0];
-		delete [] children_left[1];
-		delete [] children_left[2];
+		
 		delete [] children_right[0];
 		delete [] children_right[1];
 		delete [] children_right[2];
