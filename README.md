@@ -2,13 +2,18 @@
 
 ## Features
 
+### Surface Area Heuristic
+The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here.
+
 ### SBVH
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same struct ``BVH``, you can switch between them by  calling either ``BVHBuilder::build_bvh(...)`` or ``BVHBuilder::build_sbvh(...)``. Note that the SBVH only supports Triangle primitives.
+
+SBVH improves average frame time in the Sponza scene from 81 ms to 64 ms, compared to the regular BVH.
 
 The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
 
 ### Fast BVH Construction
-Regular BVH Construction of a scene with > 100000 triangles is done in under one second. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
+Regular BVH Construction of a scene with > 100000 triangles is done in under one second, even without binning. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
 
 The regular BVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_BVH``.
 
@@ -21,3 +26,7 @@ Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays.
 
 ## Attribution
 - Ray-AABB intersection was based on code from https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
+
+The following two codebases were used as reference when implementing SBVH. I did not copy their code, I only used it as a reference when I got stuck on various details of the algorithm. (For example, how to avoid floating point precision issues and how to handle some edge cases involving split plane straddlers)
+- https://github.com/trungtle/TLVulkanRenderer
+- https://github.com/shocker-0x15/SLR
