@@ -2,7 +2,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "BVHConstructors.h"
+#include "BVHPartitions.h"
 
 #include "ScopedTimer.h"
 
@@ -27,7 +27,7 @@ struct BVHNode {
 	int count; // Stores split axis in its 2 highest bits, count in its lowest 30 bits
 
 	inline void subdivide(const PrimitiveType * primitives, int * indices[3], BVHNode nodes[], int & node_index, int first_index, int index_count, float * sah, int * temp) {
-		aabb = BVHConstructors::calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
+		aabb = BVHPartitions::calculate_bounds(primitives, indices[0], first_index, first_index + index_count);
 		
 		if (index_count < 3) {
 			// Leaf Node, terminate recursion
@@ -42,7 +42,7 @@ struct BVHNode {
 		
 		int split_dimension;
 		float split_cost;
-		int split_index = BVHConstructors::partition_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
+		int split_index = BVHPartitions::partition_sah(primitives, indices, first_index, index_count, sah, temp, split_dimension, split_cost);
 
 		// Check SAH termination condition
 		float parent_cost = aabb.surface_area() * float(index_count); 
@@ -54,7 +54,7 @@ struct BVHNode {
 		}
 
 		float split = primitives[indices[split_dimension][split_index]].get_position()[split_dimension];
-		BVHConstructors::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
+		BVHPartitions::split_indices(primitives, indices, first_index, index_count, temp, split_dimension, split_index, split);
 
 		count = (split_dimension + 1) << 30;
 

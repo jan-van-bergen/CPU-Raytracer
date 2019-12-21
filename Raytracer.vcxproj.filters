@@ -151,14 +151,14 @@
     <ClInclude Include="Sky.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="BVHConstructors.h">
-      <Filter>Raytracing\BVH</Filter>
-    </ClInclude>
     <ClInclude Include="SBVH.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="BVHPartitions.h">
+      <Filter>Raytracing\BVH</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

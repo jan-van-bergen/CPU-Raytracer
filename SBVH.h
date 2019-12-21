@@ -1,7 +1,7 @@
 #pragma once
 #include <algorithm>
 
-#include "BVHConstructors.h"
+#include "BVHPartitions.h"
 
 #include "ScopedTimer.h"
 
@@ -48,7 +48,7 @@ struct SBVHNode {
 		int   full_sah_split_dimension = -1;
 		AABB  full_sah_aabb_left;
 		AABB  full_sah_aabb_right;
-		int   full_sah_split_index = BVHConstructors::partition_object(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
+		int   full_sah_split_index = BVHPartitions::partition_object(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
 
 		// Spatial Split information
 		float spatial_split_cost = INFINITY;
@@ -73,7 +73,7 @@ struct SBVHNode {
 
 		// If ratio between overlap area and root area is large enough, consider a Spatial Split
 		if (ratio > alpha) { 
-			spatial_split_bin = BVHConstructors::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
+			spatial_split_bin = BVHPartitions::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition
@@ -177,11 +177,11 @@ struct SBVHNode {
 				int index = indices[spatial_split_dimension][i];
 				const Triangle & triangle = triangles[index];
 				
-				int bin_min = int(BVHConstructors::SBVH_BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
-				int bin_max = int(BVHConstructors::SBVH_BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				int bin_min = int(BVHPartitions::SBVH_BIN_COUNT * ((triangle.aabb.min[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
+				int bin_max = int(BVHPartitions::SBVH_BIN_COUNT * ((triangle.aabb.max[spatial_split_dimension] - bounds_min) * inv_bounds_delta));
 
-				bin_min = Math::clamp(bin_min, 0, BVHConstructors::SBVH_BIN_COUNT - 1);
-				bin_max = Math::clamp(bin_max, 0, BVHConstructors::SBVH_BIN_COUNT - 1);
+				bin_min = Math::clamp(bin_min, 0, BVHPartitions::SBVH_BIN_COUNT - 1);
+				bin_max = Math::clamp(bin_max, 0, BVHPartitions::SBVH_BIN_COUNT - 1);
 
 				bool goes_left  = false;
 				bool goes_right = false;
@@ -451,7 +451,7 @@ struct SBVH {
 
 		int * temp[2] = { new int[primitive_count], new int[primitive_count] };
 
-		AABB root_aabb = BVHConstructors::calculate_bounds(primitives, indices[0], 0, primitive_count);
+		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices[0], 0, primitive_count);
 
 		int node_index = 2;
 		int leaf_count = nodes[0].subdivide(primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
