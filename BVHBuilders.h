@@ -297,9 +297,6 @@ namespace BVHBuilders {
 					bool valid_right = AABB::overlap(triangle.aabb, spatial_split_aabb_right).is_valid();
 
 					if (valid_left && valid_right) {
-						goes_left  = true;
-						goes_right = true;
-
 						// Consider unsplitting
 						AABB delta_left  = spatial_split_aabb_left;
 						AABB delta_right = spatial_split_aabb_right;
