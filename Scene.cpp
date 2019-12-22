@@ -93,7 +93,12 @@ void Scene::update(float delta) {
 	time += delta;
 	top_level_bvh.primitives[1].transform.position.y = 1.0f + 2.0f * sinf(time);
 
-	top_level_bvh.primitives[2].transform.position.x -= delta;
+	top_level_bvh.primitives[2].transform.position.x -= delta * 0.5f;
+
+	top_level_bvh.primitives[3].transform.position = Vector3(6.0f, 4.0f + 2.0f * sinf(time*0.5f), 4.0f + 2.0f *cosf(time*0.5f));
+	top_level_bvh.primitives[3].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta * 0.5f) * top_level_bvh.primitives[3].transform.rotation;
+
+	top_level_bvh.primitives[4].transform.rotation = Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), delta) * top_level_bvh.primitives[4].transform.rotation;
 
 	spheres.update();
 	planes.update();
