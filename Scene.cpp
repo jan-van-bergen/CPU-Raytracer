@@ -6,6 +6,11 @@
 
 #define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
 
+#define SCENE_SPONZA  0 
+#define SCENE_DYNAMIC 1
+
+#define SCENE SCENE_DYNAMIC
+
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
@@ -25,7 +30,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 	
-#if true
+#if SCENE == SCENE_DYNAMIC
 	top_level_bvh.init(5);
 	Mesh * diamond   = top_level_bvh.primitives + 0;
 	Mesh * monkey    = top_level_bvh.primitives + 1;
@@ -87,6 +92,7 @@ Scene::~Scene() {
 void Scene::update(float delta) {
 	camera.update(delta, SDL_GetKeyboardState(0));
 
+#if SCENE == SCENE_DYNAMIC
 	top_level_bvh.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * top_level_bvh.primitives[0].transform.rotation;
 
 	static float time = 0.0f;
@@ -99,6 +105,7 @@ void Scene::update(float delta) {
 	top_level_bvh.primitives[3].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta * 0.5f) * top_level_bvh.primitives[3].transform.rotation;
 
 	top_level_bvh.primitives[4].transform.rotation = Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), delta) * top_level_bvh.primitives[4].transform.rotation;
+#endif
 
 	spheres.update();
 	planes.update();
