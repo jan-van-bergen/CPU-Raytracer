@@ -53,15 +53,16 @@ namespace Math {
 			for (int j = i + 1; j < 3; j++) {
 				float vertex_j = vertices[j][dimension];
 
-				// Check edge ij against min and max plane
 				float bin_delta = vertex_j - vertex_i;
 
+				// Check if edge between Vertex i and j intersects the min plane
 				if (vertex_i < plane_min && plane_min <= vertex_j) { 
 					// Lerp to obtain exact intersection point
 					float t = (plane_min - vertex_i) / bin_delta;
 					intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 				}
 
+				// Check if edge between Vertex i and j intersects the max plane
 				if (vertex_i < plane_max && plane_max <= vertex_j) { 
 					// Lerp to obtain exact intersection point
 					float t = (plane_max - vertex_i) / bin_delta;
