@@ -19,7 +19,7 @@ The SBVH only supports Triangle primitives, so it cannot be used as a Top Level 
 ### Fast BVH Construction
 Regular BVH Construction of a scene with > 100000 triangles is done in under one second, even without binning. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
 
-The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp to ``SCENE_SPONZA`` and the ``MESH_ACCELERATOR`` define in Mesh.h to ``MESH_USE_BVH``.
+The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp to ``SCENE_SPONZA`` and the ``MESH_ACCELERATOR`` define in Mesh.h to ``MESH_USE_BVH``. The time it takes to construct a Triangle BVH is always reported for every Mesh.
 
 SBVH construction of Sponza takes about 12 seconds on my machine.
 
