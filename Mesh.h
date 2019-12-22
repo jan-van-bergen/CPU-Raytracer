@@ -58,7 +58,6 @@ struct Mesh {
 	}
 
 	void update();
-	void update_aabb();
 
 	void trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 		triangle_bvh.trace(ray, ray_hit);
