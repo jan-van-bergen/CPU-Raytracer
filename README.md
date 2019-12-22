@@ -28,6 +28,11 @@ BVH and SBVH traversal is optimized by expanding child nodes in order, based on 
 
 Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays. This results in a speedup of about 6x over scalar code!. You can switch between scalar flow, and vector flow by changing the ``SIMD_LANE_SIZE``define in SIMD.h.
 
+## General
+
+Two Scene configurations are provided; one only containing a single Sponza mesh to showcase the SBVH, and one containing 5 different moving meshes to showcase the Top Level BVH.
+You can switch between these by setting the ``SCENE`` define at the top of the Scene.cpp file.
+
 ## Attribution
 - Ray-AABB intersection was based on code from https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
 
