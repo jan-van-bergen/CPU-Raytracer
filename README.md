@@ -6,11 +6,15 @@
 The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here.
 
 ### SBVH
-SBVH was implemented, including reference unsplitting. BVH and SBVH use the same struct ``BVH``, you can switch between them by  calling either ``BVHBuilder::build_bvh(...)`` or ``BVHBuilder::build_sbvh(...)``. Note that the SBVH only supports Triangle primitives.
+SBVH was implemented, including reference unsplitting. BVH and SBVH use the same class ``BVH``, you can switch between them by  changing the ``MESH_ACCELERATOR`` define in Mesh.cpp to either ``MESH_USE_BVH`` or ``MESH_USE_SBVH``. 
 
 SBVH improves average frame time in the Sponza scene from 81 ms to 64 ms, compared to the regular BVH.
 
 The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
+
+### Two Levels of BVH
+There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with translations and rotations.
+The SBVH only supports Triangle primitives, so it cannot be used as a Top Level BVH.
 
 ### Fast BVH Construction
 Regular BVH Construction of a scene with > 100000 triangles is done in under one second, even without binning. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
