@@ -9,26 +9,26 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_DYNAMIC
+#define SCENE SCENE_SPONZA
 
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
-	spheres[0].init(1.0f);
-	spheres[1].init(1.0f);
-	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
-	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
-	spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
-	spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
-	spheres[0].material.reflection = 0.2f;
-	spheres[1].material.reflection = 0.2f;
-	spheres[0].material.transmittance = 0.6f;
-	spheres[1].material.transmittance = 0.6f;
-	spheres[0].material.index_of_refraction = 1.33f;
-	spheres[1].material.index_of_refraction = 1.68f;
+Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+	//spheres[0].init(1.0f);
+	//spheres[1].init(1.0f);
+	//spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
+	//spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
+	//spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
+	//spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
+	//spheres[0].material.reflection = 0.2f;
+	//spheres[1].material.reflection = 0.2f;
+	//spheres[0].material.transmittance = 0.6f;
+	//spheres[1].material.transmittance = 0.6f;
+	//spheres[0].material.index_of_refraction = 1.33f;
+	//spheres[1].material.index_of_refraction = 1.68f;
 
-	planes[0].transform.position.y = -1.0f;
-	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
-	planes[0].material.reflection = 0.25f;
+	//planes[0].transform.position.y = -1.0f;
+	//planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
+	//planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
+	//planes[0].material.reflection = 0.25f;
 	
 #if SCENE == SCENE_DYNAMIC
 	top_level_bvh.init(5);
@@ -64,13 +64,16 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
-	point_lights = new PointLight[point_light_count = 1] {
+	point_light_count = 0;
+	spot_light_count  = 0;
+
+	/*point_lights = new PointLight[point_light_count = 1] {
 		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
 	};
 
 	spot_lights = new SpotLight[spot_light_count = 1] {
 		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
-	};
+	};*/
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
 		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
