@@ -18,3 +18,9 @@ void Mesh::update() {
 		triangle_bvh.primitives[i].normal2 = Matrix4::transform_direction(transform.world_matrix, mesh_data->triangles[i].normal2);
 	}
 }
+
+void Mesh::update_aabb() {
+	transform.calc_world_matrix();
+
+	aabb_world = AABB::transform(aabb, transform.world_matrix);
+}

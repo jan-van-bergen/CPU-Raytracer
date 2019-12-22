@@ -48,31 +48,31 @@ namespace Math {
         int     intersection_count = 0;
 
         for (int i = 0; i < 3; i++) {
-            const Vector3 & vertex_a = vertices[i];
+            const Vector3 & vertex_i = vertices[i];
 
             for (int j = i + 1; j < 3; j++) {
-                const Vector3 & vertex_b = vertices[j];
+                const Vector3 & vertex_j = vertices[j];
 
-                float delta_ba = vertex_b[dimension] - vertex_a[dimension];
+                float delta_ba = vertex_j[dimension] - vertex_i[dimension];
 
 				// Check against min plane
-				float delta_min_a = plane_min - vertex_a[dimension];
-                float delta_min_b = plane_min - vertex_b[dimension];
+				float delta_min_i = plane_min - vertex_i[dimension];
+                float delta_min_j = plane_min - vertex_j[dimension];
 
-                if (delta_min_a > 0.0f && delta_min_b <= 0.0f) { 
+                if (delta_min_i > 0.0f && delta_min_j <= 0.0f) { 
 					// Lerp to obtain exact intersection point
-					float t = delta_min_a / delta_ba;
-                    intersections[intersection_count++] = (1.0f - t) * vertex_a + t * vertex_b;
+					float t = delta_min_i / delta_ba;
+                    intersections[intersection_count++] = (1.0f - t) * vertex_i + t * vertex_j;
 				}
 
 				// Check against max plane
-				float delta_max_a = plane_max - vertex_a[dimension];
-                float delta_max_b = plane_max - vertex_b[dimension];
+				float delta_max_i = plane_max - vertex_i[dimension];
+                float delta_max_j = plane_max - vertex_j[dimension];
 
-                if (delta_max_a > 0.0f && delta_max_b <= 0.0f) { 
+                if (delta_max_i > 0.0f && delta_max_j <= 0.0f) { 
 					// Lerp to obtain exact intersection point
-					float t = delta_max_a / delta_ba;
-                    intersections[intersection_count++] = (1.0f - t) * vertex_a + t * vertex_b;
+					float t = delta_max_i / delta_ba;
+                    intersections[intersection_count++] = (1.0f - t) * vertex_i + t * vertex_j;
 				}
             }
         }

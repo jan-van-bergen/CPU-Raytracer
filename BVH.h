@@ -121,16 +121,4 @@ struct BVH {
 		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
 #endif
 	}
-
-	inline void debug() const {
-		FILE * file = nullptr;
-		fopen_s(&file, DATA_PATH("debug.obj"), "w");
-
-		if (file == nullptr) abort(); // Error opening file!
-
-		int index = 0;
-		nodes[0].debug(file, nodes, index);
-
-		fclose(file);
-	}
 };

@@ -91,15 +91,6 @@ struct BVHNode {
 			}
 		}
 	}
-
-	inline void debug(FILE * file, const BVHNode nodes[], int & index) const {
-		aabb.debug(file, index++);
-
-		if (!is_leaf()) {
-			nodes[left  ].debug(file, nodes, index);
-			nodes[left+1].debug(file, nodes, index);
-		}
-	}
 };
 
 namespace BVHBuilders {

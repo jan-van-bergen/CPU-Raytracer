@@ -2,6 +2,8 @@
 #include "Ray.h"
 #include "RayHit.h"
 
+#include "Matrix4.h"
+
 struct AABB {
 	Vector3 min;
 	Vector3 max;
@@ -55,37 +57,7 @@ struct AABB {
 
 		return aabb;
 	}
-
-	inline void debug(FILE * file, int index) const {
-		Vector3 vertices[8] = {
-			Vector3(min.x, min.y, min.z),
-			Vector3(min.x, min.y, max.z),
-			Vector3(max.x, min.y, max.z),
-			Vector3(max.x, min.y, min.z),
-			Vector3(min.x, max.y, min.z),
-			Vector3(min.x, max.y, max.z),
-			Vector3(max.x, max.y, max.z),
-			Vector3(max.x, max.y, min.z)
-		};
-
-		int faces[36] = {
-			1, 2, 3, 1, 3, 4,
-			1, 2, 6, 1, 6, 5,
-			1, 5, 8, 1, 8, 4,
-			4, 8, 7, 4, 7, 3,
-			3, 7, 6, 3, 6, 2,
-			5, 6, 7, 5, 7, 8
-		};
-
-		for (int v = 0; v < 8; v++) {
-			fprintf(file, "v %f %f %f\n", vertices[v].x, vertices[v].y, vertices[v].z);
-		}
-
-		for (int f = 0; f < 36; f += 3) {
-			fprintf(file, "f %i %i %i\n", 8*index + faces[f], 8*index + faces[f+1], 8*index + faces[f+2]);
-		}
-	}
-
+	
 	inline static float overlap_surface_area(const AABB & b1, const AABB & b2) {
 		assert(b1.is_valid());
 		assert(b2.is_valid());
@@ -132,5 +104,24 @@ struct AABB {
 		if (b1.min.x > b2.max.x || b1.min.y > b2.max.y || b1.min.z > b2.max.z) return false; 
 
 		return true;		
+	}
+
+	inline static AABB transform(const AABB & aabb, const Matrix4 & transformation) {
+		Vector3 corners[8] = {
+			Vector3(aabb.min.x, aabb.min.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.min.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.min.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.min.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.max.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.max.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.max.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.max.y, aabb.min.z)
+		};
+
+		for (int i = 0; i < 8; i++) {
+			corners[i] = Matrix4::transform_position(transformation, corners[i]);
+		}
+
+		return AABB::from_points(corners, 8);
 	}
 };

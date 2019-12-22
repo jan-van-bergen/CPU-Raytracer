@@ -58,6 +58,7 @@ struct Mesh {
 	}
 
 	void update();
+	void update_aabb();
 
 	void trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 		triangle_bvh.trace(ray, ray_hit);
@@ -69,6 +70,7 @@ struct Mesh {
 	
 	// BVH Related methods
 	AABB aabb;
+	AABB aabb_world;
 
 	inline Vector3 get_position() const {
 		return transform.position;
