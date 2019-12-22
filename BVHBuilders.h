@@ -6,7 +6,7 @@
 #define BVH_TRAVERSE_TREE_NAIVE   1 // Traverses the BVH in a naive way, always checking the left Node before the right Node
 #define BVH_TRAVERSE_TREE_ORDERED 2 // Traverses the BVH based on the split axis and the direction of the Ray
 
-#define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_NAIVE
+#define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_ORDERED
 
 #define BVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
 #define BVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
@@ -281,13 +281,15 @@ namespace BVHBuilders {
 				const Triangle & triangle = triangles[index];
 				
 				bool goes_left = 
-					triangle.position0[spatial_split_dimension] <= spatial_split_plane_distance || 
-					triangle.position1[spatial_split_dimension] <= spatial_split_plane_distance || 
-					triangle.position2[spatial_split_dimension] <= spatial_split_plane_distance;
+					triangle.position0[spatial_split_dimension] < spatial_split_plane_distance || 
+					triangle.position1[spatial_split_dimension] < spatial_split_plane_distance || 
+					triangle.position2[spatial_split_dimension] < spatial_split_plane_distance;
 				bool goes_right = 
 					triangle.position0[spatial_split_dimension] >= spatial_split_plane_distance || 
 					triangle.position1[spatial_split_dimension] >= spatial_split_plane_distance || 
 					triangle.position2[spatial_split_dimension] >= spatial_split_plane_distance;
+
+				assert(goes_left || goes_right);
 
 				if (goes_left && goes_right) { // Straddler					
 					// A split can result in triangles that lie on one side of the plane but that don't overlap the AABB
@@ -340,11 +342,11 @@ namespace BVHBuilders {
 							spatial_split_aabb_right.expand(triangle.aabb);
 						}
 					} else if (valid_left) {
-						goes_left = true;
+						goes_right = false;
 
 						rejected_right++;
 					} else if (valid_right) {
-						goes_right = true;
+						goes_left = false;
 
 						rejected_left++;
 					} else {

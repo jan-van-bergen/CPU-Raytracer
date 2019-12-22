@@ -9,7 +9,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_SPONZA
+#define SCENE SCENE_DYNAMIC
 
 Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	//spheres[0].init(1.0f);
