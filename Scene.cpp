@@ -9,7 +9,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_DYNAMIC
+#define SCENE SCENE_SPONZA
 
 Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	//spheres[0].init(1.0f);
@@ -82,8 +82,8 @@ Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Pr
 	//camera.position = Vector3(2.0f, 4.0f, -2.0f);
 	/*camera.position = Vector3(3.981741f, 7.460717f, 0.421658f);
 	camera.rotation = Quaternion(0.060460f, -0.935293f, 0.196197f, 0.288221f);*/
-	camera.position = Vector3(-4.945156f, 7.383441f, 0.116548f);
-	camera.rotation = Quaternion(-0.070006f, -0.920038f, 0.192997f, -0.333725f);
+	//camera.position = Vector3(-4.945156f, 7.383441f, 0.116548f);
+	//camera.rotation = Quaternion(-0.070006f, -0.920038f, 0.192997f, -0.333725f);
 }
 
 Scene::~Scene() {
