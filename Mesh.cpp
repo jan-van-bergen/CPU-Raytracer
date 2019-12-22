@@ -31,15 +31,17 @@ void Mesh::init(const char * file_path) {
 
 	aabb_model.fix_if_needed();
 
+#if MESH_ACCELERATOR == MESH_USE_BVH
 	{
 		ScopedTimer timer("Mesh BVH Construction");
-
-#if MESH_ACCELERATOR == MESH_USE_BVH
 		triangle_bvh.build_bvh();
-#elif MESH_ACCELERATOR == MESH_USE_SBVH
-		triangle_bvh.build_sbvh();
-#endif
 	}
+#elif MESH_ACCELERATOR == MESH_USE_SBVH
+	{
+		ScopedTimer timer("Mesh SBVH Construction");
+		triangle_bvh.build_sbvh();
+	}
+#endif
 }
 
 void Mesh::update() {

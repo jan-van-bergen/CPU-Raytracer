@@ -91,15 +91,6 @@ struct BVHNode {
 			}
 		}
 	}
-
-	inline void debug(FILE * file, const BVHNode nodes[], int & index) const {
-		aabb.debug(file, index++);
-
-		if (!is_leaf()) {
-			nodes[left  ].debug(file, nodes, index);
-			nodes[left+1].debug(file, nodes, index);
-		}
-	}
 };
 
 namespace BVHBuilders {
@@ -174,7 +165,11 @@ namespace BVHBuilders {
 		int   spatial_split_count_right;
 
 		// Calculate the overlap between the child bounding boxes resulting from the Object Split
-		float lamba = AABB::overlap_surface_area(full_sah_aabb_left, full_sah_aabb_right);
+		float lamba = 0.0f;
+		AABB overlap = AABB::overlap(full_sah_aabb_left, full_sah_aabb_right);
+		if (overlap.is_valid()) {
+			lamba = overlap.surface_area();
+		}
 
 		// Alpha == 1 means regular BVH, Alpha == 0 means full SBVH
 		const float alpha = 10e-5; 
