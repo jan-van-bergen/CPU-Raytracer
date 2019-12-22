@@ -33,7 +33,7 @@ Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays.
 Two Scene configurations are provided; one only containing a single Sponza mesh to showcase the SBVH, and one containing 5 different moving meshes to showcase the Top Level BVH.
 You can switch between these by setting the ``SCENE`` define at the top of the Scene.cpp file.
 
-The Camera can be controlled using WASD for movement and the arrow keys for orientation.
+The Camera can be controlled using WASD for movement and the arrow keys for orientation. Shift and Spacebar can be used to move vertically.
 
 ## Attribution
 - Ray-AABB intersection was based on code from https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
