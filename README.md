@@ -13,7 +13,7 @@ SBVH improves average frame time in the Sponza scene from 81 ms to 64 ms, compar
 The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
 
 ### Two Levels of BVH
-There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with translations and rotations.
+There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with rigid motion.
 The SBVH only supports Triangle primitives, so it cannot be used as a Top Level BVH.
 
 ### Fast BVH Construction
@@ -32,6 +32,8 @@ Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays.
 
 Two Scene configurations are provided; one only containing a single Sponza mesh to showcase the SBVH, and one containing 5 different moving meshes to showcase the Top Level BVH.
 You can switch between these by setting the ``SCENE`` define at the top of the Scene.cpp file.
+
+The Camera can be controlled using WASD for movement and the arrow keys for orientation. Shift and Spacebar can be used to move vertically.
 
 ## Attribution
 - Ray-AABB intersection was based on code from https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
