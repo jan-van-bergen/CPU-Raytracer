@@ -370,6 +370,8 @@ namespace BVHBuilders {
 					bool goes_left  = indices_going_left [index];
 					bool goes_right = indices_going_right[index];
 
+					assert(goes_left || goes_right);
+
 					if (goes_left)  children_left [dimension][children_left_count [dimension]++] = index;
 					if (goes_right) children_right[dimension][children_right_count[dimension]++] = index;
 				}
