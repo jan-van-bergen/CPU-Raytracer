@@ -56,13 +56,13 @@ namespace Math {
 				// Check edge ij against min and max plane
 				float bin_delta = vertex_j - vertex_i;
 
-				if (plane_min > vertex_i && plane_min <= vertex_j) { 
+				if (vertex_i < plane_min && plane_min <= vertex_j) { 
 					// Lerp to obtain exact intersection point
 					float t = (plane_min - vertex_i) / bin_delta;
 					intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 				}
 
-				if (plane_max > vertex_i && plane_max <= vertex_j) { 
+				if (vertex_i < plane_max && plane_max <= vertex_j) { 
 					// Lerp to obtain exact intersection point
 					float t = (plane_max - vertex_i) / bin_delta;
 					intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
