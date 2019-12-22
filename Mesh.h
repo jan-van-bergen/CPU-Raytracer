@@ -70,7 +70,6 @@ struct Mesh {
 	
 	// BVH Related methods
 	AABB aabb;
-	AABB aabb_world;
 
 	inline Vector3 get_position() const {
 		return transform.position;
