@@ -124,4 +124,36 @@ struct AABB {
 
 		return AABB::from_points(corners, 8);
 	}
+
+	inline void debug(FILE * file, int index) const {
+		Vector3 vertices[8] = {
+			Vector3(min.x, min.y, min.z),
+			Vector3(min.x, min.y, max.z),
+			Vector3(max.x, min.y, max.z),
+			Vector3(max.x, min.y, min.z),
+			Vector3(min.x, max.y, min.z),
+			Vector3(min.x, max.y, max.z),
+			Vector3(max.x, max.y, max.z),
+			Vector3(max.x, max.y, min.z)
+		};
+
+		int faces[36] = {
+			1, 2, 3, 1, 3, 4,
+			1, 2, 6, 1, 6, 5,
+			1, 5, 8, 1, 8, 4,
+			4, 8, 7, 4, 7, 3,
+			3, 7, 6, 3, 6, 2,
+			5, 6, 7, 5, 7, 8
+		};
+
+		fprintf(file, "o AABB_%i\n", index);
+
+		for (int v = 0; v < 8; v++) {
+			fprintf(file, "v %f %f %f\n", vertices[v].x, vertices[v].y, vertices[v].z);
+		}
+
+		for (int f = 0; f < 36; f += 3) {
+			fprintf(file, "f %i %i %i\n", 8*index + faces[f], 8*index + faces[f+1], 8*index + faces[f+2]);
+		}
+	}
 };

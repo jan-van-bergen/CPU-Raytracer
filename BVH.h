@@ -42,8 +42,6 @@ struct BVH {
 	}
 
 	inline void build_bvh() {
-		ScopedTimer timer("BVH Construction");
-
 		float * sah = new float[primitive_count];
 		
 		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
@@ -64,8 +62,6 @@ struct BVH {
 	}
 	
 	inline void build_sbvh() {
-		ScopedTimer timer("SBVH Construction");
-
 		float * sah = new float[primitive_count];
 		
 		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
@@ -96,13 +92,13 @@ struct BVH {
 		}
 	}
 
-	inline void trace(const Ray & ray, RayHit & ray_hit) const {
+	inline void trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
 #if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_BRUTE_FORCE
 		for (int i = 0; i < primitive_count; i++) {
-			primitives[i].trace(ray, ray_hit, 0);
+			primitives[i].trace(ray, ray_hit, world, 0);
 		}
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
-		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, 0);
+		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, world, 0);
 #endif
 	}
 
@@ -120,5 +116,17 @@ struct BVH {
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
 #endif
+	}
+
+	inline void debug() const {
+		FILE * file = nullptr;
+		fopen_s(&file, DATA_PATH("top_level_debug.obj"), "w");
+
+		if (file == nullptr) abort(); // Error opening file!
+
+		int index = 0;
+		nodes[0].debug(file, nodes, index);
+
+		fclose(file);
 	}
 };

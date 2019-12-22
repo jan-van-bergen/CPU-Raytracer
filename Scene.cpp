@@ -25,33 +25,37 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
 	planes[0].material.reflection = 0.25f;
 	
-#if false
-	bvh_meshes.init(5);
-	bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 1.0f, 0.0f);
-	bvh_meshes.primitives[1].transform.position = Vector3(4.0f, 2.0f, 0.0f);
-	bvh_meshes.primitives[2].transform.position = Vector3(0.0f, 3.0f, 4.0f);
-	bvh_meshes.primitives[3].transform.position = Vector3(4.0f, 4.0f, 4.0f);
-	bvh_meshes.primitives[4].transform.position = Vector3(0.0f, 5.0f, 8.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("Diamond.obj"));
-	bvh_meshes.primitives[1].init(DATA_PATH("Monkey.obj"));
-	bvh_meshes.primitives[2].init(DATA_PATH("icosphere.obj"));
-	bvh_meshes.primitives[3].init(DATA_PATH("Rock.obj"));
-	bvh_meshes.primitives[4].init(DATA_PATH("Torus.obj"));
+#if true
+	top_level_bvh.init(5);
+	Mesh * diamond   = top_level_bvh.primitives + 0;
+	Mesh * monkey    = top_level_bvh.primitives + 1;
+	Mesh * icosphere = top_level_bvh.primitives + 2;
+	Mesh * rock      = top_level_bvh.primitives + 3;
+	Mesh * torus     = top_level_bvh.primitives + 4;
+
+	diamond->transform.position   = Vector3(0.0f, 1.0f, 0.0f);
+	monkey->transform.position    = Vector3(4.0f, 2.0f, 0.0f);
+	icosphere->transform.position = Vector3(0.0f, 3.0f, 4.0f);
+	rock->transform.position      = Vector3(6.0f, 4.0f, 4.0f);
+	torus->transform.position     = Vector3(0.0f, 5.0f, 8.0f);
+
+	diamond->init  (DATA_PATH("Diamond.obj"));
+	monkey->init   (DATA_PATH("Monkey.obj"));
+	icosphere->init(DATA_PATH("icosphere.obj"));
+	rock->init     (DATA_PATH("Rock.obj"));
+	torus->init    (DATA_PATH("Torus.obj"));
 #else
-	bvh_meshes.init(1);
-	//bvh_meshes.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
-	bvh_meshes.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
-	//bvh_meshes.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
-	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
-	//bvh_meshes.primitives[0].init("C:/Dev/Git/Advanced Graphics/powerplant/powerplant.obj");
+	top_level_bvh.init(1);
+	//top_level_bvh.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
+	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
+	//top_level_bvh.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
+	//top_level_bvh.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
+	//top_level_bvh.primitives[0].init("C:/Dev/Git/Advanced Graphics/powerplant/powerplant.obj");
 #endif
 
-	bvh_meshes.update();
-	bvh_meshes.build_bvh();
-
 	int triangle_count = 0;
-	for (int p = 0; p < bvh_meshes.primitive_count; p++) {
-		triangle_count += bvh_meshes.primitives[p].mesh_data->triangle_count;
+	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
+		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_count;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
@@ -80,10 +84,27 @@ Scene::~Scene() {
 	delete [] directional_lights;
 }
 
+void Scene::update(float delta) {
+	camera.update(delta, SDL_GetKeyboardState(0));
+
+	top_level_bvh.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * top_level_bvh.primitives[0].transform.rotation;
+
+	static float time = 0.0f;
+	time += delta;
+	top_level_bvh.primitives[1].transform.position.y = 1.0f + 2.0f * sinf(time);
+
+	top_level_bvh.primitives[2].transform.position.x -= delta;
+
+	spheres.update();
+	planes.update();
+	top_level_bvh.update();
+	top_level_bvh.build_bvh();
+}
+
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	spheres.trace(ray, ray_hit);
 	planes.trace(ray, ray_hit);
-	bvh_meshes.trace(ray, ray_hit);
+	top_level_bvh.trace(ray, ray_hit, Matrix4());
 }
 
 SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {
@@ -95,7 +116,7 @@ SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance)
 	result = result | planes.intersect(ray, max_distance);
 	if (SIMD_float::all_true(result)) return result;
 
-	result = result | bvh_meshes.intersect(ray, max_distance);
+	result = result | top_level_bvh.intersect(ray, max_distance);
 	return result;
 }
 
@@ -365,19 +386,6 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 	}
 
 	return result; 
-}
-
-void Scene::update(float delta) {
-	camera.update(delta, SDL_GetKeyboardState(0));
-
-#if CURRENT_SCENE == SCENE_TEST
-	// In the Test Scene, rotate the Diamond
-	//bvh_meshes.primitives[0].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta) * bvh_meshes.primitives[0].transform.rotation;
-#endif
-
-	spheres.update();
-	planes.update();
-	bvh_meshes.update();
 }
 
 void Scene::render_tile(const Window & window, int x, int y) const {

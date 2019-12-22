@@ -21,7 +21,7 @@ private:
 	PrimitiveList<Sphere> spheres;
 	PrimitiveList<Plane>  planes;
 
-	BVH<Mesh> bvh_meshes;
+	BVH<Mesh> top_level_bvh;
 
 	// Lights
 	PointLight * point_lights      = nullptr;

@@ -40,23 +40,23 @@ struct BVHNode {
 #endif
 	}
 
-	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, int step) const {
+	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int step) const {
 		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
 		if (SIMD_float::all_false(mask)) return;
 
 		if (is_leaf()) {
 			for (int i = first; i < first + count; i++) {
-				primitives[indices[i]].trace(ray, ray_hit, step + count);
+				primitives[indices[i]].trace(ray, ray_hit, world, step + count);
 			}
 		} else {
 			if (should_visit_left_first(ray)) {
 				// Visit left Node first, then visit right Node
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
 			} else {
 				// Visit right Node first, then visit left Node
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, step + 1);
+				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
+				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
 			}
 		}
 	}
@@ -89,6 +89,15 @@ struct BVHNode {
 
 				return hit | nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
 			}
+		}
+	}
+
+	inline void debug(FILE * file, const BVHNode nodes[], int & index) const {
+		aabb.debug(file, index++);
+
+		if (!is_leaf()) {
+			nodes[left  ].debug(file, nodes, index);
+			nodes[left+1].debug(file, nodes, index);
 		}
 	}
 };

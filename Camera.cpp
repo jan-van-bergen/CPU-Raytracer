@@ -17,7 +17,7 @@ void Camera::resize(int width, int height) {
 
 void Camera::update(float delta, const unsigned char * keys) {
 	// Move Camera around
-	const float MOVEMENT_SPEED = 20.0f;
+	const float MOVEMENT_SPEED = 5.0f;
 	const float ROTATION_SPEED = 3.0f;
 
 	Vector3 right   = rotation * Vector3(1.0f, 0.0f, 0.0f);

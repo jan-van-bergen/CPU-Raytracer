@@ -2,7 +2,7 @@
 
 #include "Math.h"
 
-void Triangle::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
+void Triangle::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 	
@@ -14,8 +14,6 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
-
-
 
 	SIMD_float   f = SIMD_float::rcp(a);
 	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0);
@@ -47,13 +45,17 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + ray.direction * t, mask);
-	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, 
+	SIMD_Vector3 point  = Matrix4::transform_position (world, ray.origin + ray.direction * t);
+	SIMD_Vector3 normal = Matrix4::transform_direction(world, 
 		SIMD_Vector3::normalize(Math::barycentric(
 			SIMD_Vector3(normal0), 
 			SIMD_Vector3(normal1), 
 			SIMD_Vector3(normal2), 
-		u, v)), mask);
+		u, v))
+	);
+
+	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  point,  mask);
+	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal, mask);
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
 	SIMD_Vector3 tex_coord_a(Vector3(tex_coord0.x, tex_coord0.y, 1.0f));
