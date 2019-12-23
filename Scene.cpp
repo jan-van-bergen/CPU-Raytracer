@@ -9,7 +9,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_SPONZA
+#define SCENE SCENE_DYNAMIC
 
 #if SCENE == SCENE_DYNAMIC
 Scene::Scene() : camera(110.0f), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
@@ -111,6 +111,7 @@ void Scene::update(float delta) {
 
 	static float time = 0.0f;
 	time += delta;
+
 	top_level_bvh.primitives[1].transform.position.y = 1.0f + 2.0f * sinf(time);
 
 	top_level_bvh.primitives[2].transform.position.x -= delta * 0.5f;
@@ -120,7 +121,7 @@ void Scene::update(float delta) {
 
 	top_level_bvh.primitives[4].transform.rotation = Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), delta) * top_level_bvh.primitives[4].transform.rotation;
 
-	top_level_bvh.primitives[5].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 0.0f, 1.0f), delta * 0.5f) * top_level_bvh.primitives[5].transform.rotation;
+	top_level_bvh.primitives[5].transform.rotation = Quaternion::nlerp(Quaternion(), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(-90.0f)), 0.5f + 0.5f*sinf(time));
 #endif
 
 	spheres.update();

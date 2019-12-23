@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h>
 
+#include "Math.h"
 #include "Vector3.h"
 
 struct Quaternion {
@@ -32,6 +33,17 @@ struct Quaternion {
 			axis.z * sine,
 			cosf(half_angle)
 		);
+	}
+
+	inline static Quaternion nlerp(const Quaternion & a, const Quaternion & b, float t) {
+		float one_minus_t = 1.0f - t;
+
+		return normalize(Quaternion(
+			one_minus_t * a.x + t * b.x, 
+			one_minus_t * a.y + t * b.y, 
+			one_minus_t * a.z + t * b.z, 
+			one_minus_t * a.w + t * b.w
+		));
 	}
 };
 
