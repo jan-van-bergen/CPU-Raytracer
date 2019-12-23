@@ -65,8 +65,8 @@ struct SIMD_float1 {
 
 	inline static FORCEINLINE int mask(SIMD_float1 floats) { return floats.data_mask; }
 
-	inline FORCEINLINE       float & operator[](int index)       { return data; }
-	inline FORCEINLINE const float & operator[](int index) const { return data; }
+	inline FORCEINLINE       float & operator[](int index)       { assert(index == 0); return data; }
+	inline FORCEINLINE const float & operator[](int index) const { assert(index == 0); return data; }
 };
 
 inline FORCEINLINE SIMD_float1 operator-(SIMD_float1 floats) { 
@@ -151,8 +151,8 @@ struct SIMD_float4 {
 
 	inline static FORCEINLINE int mask(SIMD_float4 floats) { return _mm_movemask_ps(floats.data); }
 
-	inline FORCEINLINE       float & operator[](int index)       { return floats[index]; }
-	inline FORCEINLINE const float & operator[](int index) const { return floats[index]; }
+	inline FORCEINLINE       float & operator[](int index)       { assert(index >= 0 && index < 4); return floats[index]; }
+	inline FORCEINLINE const float & operator[](int index) const { assert(index >= 0 && index < 4); return floats[index]; }
 };
 
 inline FORCEINLINE SIMD_float4 operator-(SIMD_float4 floats) { 
@@ -239,8 +239,8 @@ struct SIMD_float8 {
 
 	inline static FORCEINLINE int mask(SIMD_float8 floats) { return _mm256_movemask_ps(floats.data); }
 	
-	inline FORCEINLINE       float & operator[](int index)       { return floats[index]; }
-	inline FORCEINLINE const float & operator[](int index) const { return floats[index]; }
+	inline FORCEINLINE       float & operator[](int index)       { assert(index >= 0 && index < 8); return floats[index]; }
+	inline FORCEINLINE const float & operator[](int index) const { assert(index >= 0 && index < 8); return floats[index]; }
 };
 
 inline FORCEINLINE SIMD_float8 operator-(SIMD_float8 floats) { 
@@ -277,7 +277,7 @@ struct SIMD_int1 {
 	inline static FORCEINLINE SIMD_int1 min(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data < b.data ? a.data : b.data); }
 	inline static FORCEINLINE SIMD_int1 max(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data > b.data ? a.data : b.data); }
 	
-	inline FORCEINLINE int & operator[](int index) { return data; }
+	inline FORCEINLINE int & operator[](int index) { assert(index == 0); return data; }
 };
 
 inline FORCEINLINE SIMD_int1 operator-(SIMD_int1 ints) { 
@@ -308,8 +308,8 @@ struct SIMD_int4 {
 	inline static FORCEINLINE SIMD_int4 min(SIMD_int4 a, SIMD_int4 b) { return SIMD_int4(_mm_min_epi32(a.data, b.data)); }
 	inline static FORCEINLINE SIMD_int4 max(SIMD_int4 a, SIMD_int4 b) { return SIMD_int4(_mm_max_epi32(a.data, b.data)); }
 	
-	inline FORCEINLINE       int & operator[](int index)       { return ints[index]; }
-	inline FORCEINLINE const int & operator[](int index) const { return ints[index]; }
+	inline FORCEINLINE       int & operator[](int index)       { assert(index >= 0 && index < 4); return ints[index]; }
+	inline FORCEINLINE const int & operator[](int index) const { assert(index >= 0 && index < 4); return ints[index]; }
 };
 
 inline FORCEINLINE SIMD_int4 operator-(SIMD_int4 ints) { 
@@ -340,8 +340,8 @@ struct SIMD_int8 {
 	inline static FORCEINLINE SIMD_int8 min(SIMD_int8 a, SIMD_int8 b) { return SIMD_int8(_mm256_min_epi32(a.data, b.data)); }
 	inline static FORCEINLINE SIMD_int8 max(SIMD_int8 a, SIMD_int8 b) { return SIMD_int8(_mm256_max_epi32(a.data, b.data)); }
 	
-	inline FORCEINLINE       int & operator[](int index)       { return ints[index]; }
-	inline FORCEINLINE const int & operator[](int index) const { return ints[index]; }
+	inline FORCEINLINE       int & operator[](int index)       { assert(index >= 0 && index < 8); return ints[index]; }
+	inline FORCEINLINE const int & operator[](int index) const { assert(index >= 0 && index < 8); return ints[index]; }
 };
 
 inline FORCEINLINE SIMD_int8 operator-(SIMD_int8 ints) { 
