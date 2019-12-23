@@ -96,7 +96,7 @@ Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Pr
 		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 	
-	camera.position = Vector3(0.0f, 2.0f, 0.0f);
+	camera.position = Vector3(0.0f, 10.0f, 0.0f);
 	camera.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), DEG_TO_RAD(-90.0f));
 }
 #endif
