@@ -1,10 +1,9 @@
 #pragma once
-#include "Triangle.h"
+#include "BVH.h"
 #include "Material.h"
 
 struct MeshData {
-	int        triangle_count;
-	Triangle * triangles;
+	BVH<Triangle> triangle_bvh;
 
 	Material * materials;
 

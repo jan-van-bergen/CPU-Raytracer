@@ -14,8 +14,6 @@ struct Mesh {
 
 	const MeshData * mesh_data = nullptr;
 
-	BVH<Triangle> triangle_bvh;
-
 	void init(const char * file_path);
 
 	void update();

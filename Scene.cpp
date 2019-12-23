@@ -9,82 +9,97 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_SPONZA
+#define SCENE SCENE_DYNAMIC
 
-Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
-	//spheres[0].init(1.0f);
-	//spheres[1].init(1.0f);
-	//spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
-	//spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
-	//spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
-	//spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
-	//spheres[0].material.reflection = 0.2f;
-	//spheres[1].material.reflection = 0.2f;
-	//spheres[0].material.transmittance = 0.6f;
-	//spheres[1].material.transmittance = 0.6f;
-	//spheres[0].material.index_of_refraction = 1.33f;
-	//spheres[1].material.index_of_refraction = 1.68f;
-
-	//planes[0].transform.position.y = -1.0f;
-	//planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	//planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
-	//planes[0].material.reflection = 0.25f;
-	
 #if SCENE == SCENE_DYNAMIC
-	top_level_bvh.init(5);
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+	spheres[0].init(1.0f);
+	spheres[1].init(1.0f);
+	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
+	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
+	spheres[0].material.diffuse = Vector3(1.0f, 1.0f, 0.0f);
+	spheres[1].material.diffuse = Vector3(0.0f, 1.0f, 1.0f);
+	spheres[0].material.reflection = 0.2f;
+	spheres[1].material.reflection = 0.2f;
+	spheres[0].material.transmittance = 0.6f;
+	spheres[1].material.transmittance = 0.6f;
+	spheres[0].material.index_of_refraction = 1.33f;
+	spheres[1].material.index_of_refraction = 1.68f;
+
+	planes[0].transform.position.y = -1.0f;
+	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
+	planes[0].material.texture    = Texture::load(DATA_PATH("Floor.png"));
+	planes[0].material.reflection = 0.25f;
+	
+	top_level_bvh.init(6);
 	Mesh * diamond   = top_level_bvh.primitives + 0;
 	Mesh * monkey    = top_level_bvh.primitives + 1;
 	Mesh * icosphere = top_level_bvh.primitives + 2;
 	Mesh * rock      = top_level_bvh.primitives + 3;
-	Mesh * torus     = top_level_bvh.primitives + 4;
+	Mesh * torus1    = top_level_bvh.primitives + 4;
+	Mesh * torus2    = top_level_bvh.primitives + 5;
 
-	diamond->transform.position   = Vector3(0.0f, 1.0f, 0.0f);
-	monkey->transform.position    = Vector3(4.0f, 2.0f, 0.0f);
-	icosphere->transform.position = Vector3(0.0f, 3.0f, 4.0f);
-	rock->transform.position      = Vector3(6.0f, 4.0f, 4.0f);
-	torus->transform.position     = Vector3(0.0f, 5.0f, 8.0f);
+	diamond->transform.position   = Vector3( 0.0f, 1.0f, 0.0f);
+	monkey->transform.position    = Vector3( 4.0f, 2.0f, 0.0f);
+	icosphere->transform.position = Vector3( 0.0f, 3.0f, 4.0f);
+	rock->transform.position      = Vector3( 6.0f, 4.0f, 4.0f);
+	torus1->transform.position    = Vector3( 0.0f, 5.0f, 8.0f);
+	torus2->transform.position    = Vector3(-4.0f, 2.0f, 6.0f);
 
 	diamond->init  (DATA_PATH("Diamond.obj"));
 	monkey->init   (DATA_PATH("Monkey.obj"));
 	icosphere->init(DATA_PATH("icosphere.obj"));
 	rock->init     (DATA_PATH("Rock.obj"));
-	torus->init    (DATA_PATH("Torus.obj"));
+	torus1->init   (DATA_PATH("Torus.obj"));
+	torus2->init   (DATA_PATH("Torus.obj"));
+
+	int triangle_count = 0;
+	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
+		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_bvh.primitive_count;
+	}
+	printf("Scene contains %i triangles.\n", triangle_count);
+
+	point_lights = new PointLight[point_light_count = 1] {
+		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
+	};
+
+	spot_lights = new SpotLight[spot_light_count = 1] {
+		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
+	};
+
+	directional_lights = new DirectionalLight[directional_light_count = 1] {
+		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
+	};
+
+	camera.position = Vector3(-4.694016f, 6.446100f, -0.572288f);
+	camera.rotation = Quaternion(0.268476f, 0.423740f, -0.133092f, 0.854779f);
+}
 #else
+Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	top_level_bvh.init(1);
 	//top_level_bvh.primitives[0].transform.position = Vector3(0.0f, 5.0f, -5.0f);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	//top_level_bvh.primitives[0].init(DATA_PATH("sibenik/sibenik.obj"));
 	//top_level_bvh.primitives[0].init("C:/Dev/Git/Advanced Graphics/rungholt/rungholt.obj");
 	//top_level_bvh.primitives[0].init("C:/Dev/Git/Advanced Graphics/powerplant/powerplant.obj");
-#endif
 
 	int triangle_count = 0;
 	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
-		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_count;
+		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_bvh.primitive_count;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
 	point_light_count = 0;
 	spot_light_count  = 0;
 
-	/*point_lights = new PointLight[point_light_count = 1] {
-		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
-	};
-
-	spot_lights = new SpotLight[spot_light_count = 1] {
-		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
-	};*/
-
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
 		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
-
-	//camera.position = Vector3(2.0f, 4.0f, -2.0f);
-	/*camera.position = Vector3(3.981741f, 7.460717f, 0.421658f);
-	camera.rotation = Quaternion(0.060460f, -0.935293f, 0.196197f, 0.288221f);*/
-	//camera.position = Vector3(-4.945156f, 7.383441f, 0.116548f);
-	//camera.rotation = Quaternion(-0.070006f, -0.920038f, 0.192997f, -0.333725f);
+	
+	camera.position = Vector3(0.0f, 2.0f, 0.0f);
+	camera.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), DEG_TO_RAD(-90.0f));
 }
+#endif
 
 Scene::~Scene() {
 	delete [] point_lights;

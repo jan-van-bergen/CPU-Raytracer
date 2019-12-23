@@ -9,6 +9,11 @@
 #include "Util.h"
 #include "ScopedTimer.h"
 
+#define MESH_USE_BVH  0
+#define MESH_USE_SBVH 1
+
+#define MESH_ACCELERATOR MESH_USE_SBVH
+
 static std::unordered_map<std::string, MeshData *> cache;
 
 const MeshData * MeshData::load(const char * file_path) {
@@ -16,8 +21,6 @@ const MeshData * MeshData::load(const char * file_path) {
 
 	// If the cache already contains this Model Data simply return it
 	if (mesh_data) return mesh_data;
-
-	ScopedTimer timer("Mesh Loading");
 
 	// Otherwise, load new MeshData
 	tinyobj::attrib_t attrib;
@@ -76,9 +79,8 @@ const MeshData * MeshData::load(const char * file_path) {
 		}
 	}
 	
-	mesh_data->triangle_count = total_vertex_count / 3;
-	mesh_data->triangles = new Triangle[mesh_data->triangle_count];
-	
+	mesh_data->triangle_bvh.init(total_vertex_count / 3);
+
 	Vector3 * positions  = new Vector3[max_vertex_count];
 	Vector2 * tex_coords = new Vector2[max_vertex_count];
 	Vector3 * normals    = new Vector3[max_vertex_count];
@@ -119,38 +121,54 @@ const MeshData * MeshData::load(const char * file_path) {
 
 		// Iterate over faces
 		for (int v = 0; v < vertex_count / 3; v++) {
-			mesh_data->triangles[triangle_offset + v].position0 = positions[3*v    ];
-			mesh_data->triangles[triangle_offset + v].position1 = positions[3*v + 1];
-			mesh_data->triangles[triangle_offset + v].position2 = positions[3*v + 2];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].position0 = positions[3*v    ];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].position1 = positions[3*v + 1];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].position2 = positions[3*v + 2];
 
-			mesh_data->triangles[triangle_offset + v].tex_coord0 = tex_coords[3*v    ];
-			mesh_data->triangles[triangle_offset + v].tex_coord1 = tex_coords[3*v + 1];
-			mesh_data->triangles[triangle_offset + v].tex_coord2 = tex_coords[3*v + 2];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].tex_coord0 = tex_coords[3*v    ];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].tex_coord1 = tex_coords[3*v + 1];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].tex_coord2 = tex_coords[3*v + 2];
 
-			mesh_data->triangles[triangle_offset + v].normal0 = normals[3*v    ];
-			mesh_data->triangles[triangle_offset + v].normal1 = normals[3*v + 1];
-			mesh_data->triangles[triangle_offset + v].normal2 = normals[3*v + 2];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].normal0 = normals[3*v    ];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].normal1 = normals[3*v + 1];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].normal2 = normals[3*v + 2];
 
 			int material_id = shapes[s].mesh.material_ids[v];
 			if (material_id == INVALID) material_id = 0;
 			
 			assert(material_id < material_count);
 
-			mesh_data->triangles[triangle_offset + v].material = &mesh_data->materials[material_id];
+			mesh_data->triangle_bvh.primitives[triangle_offset + v].material = &mesh_data->materials[material_id];
 		}
 		
 		triangle_offset += vertex_count / 3;
 	}
 
-	assert(triangle_offset == mesh_data->triangle_count);
+	assert(triangle_offset == mesh_data->triangle_bvh.primitive_count);
 
-	printf("Loaded Mesh %s from disk, consisting of %u triangles.\n", file_path, mesh_data->triangle_count);
+	printf("Loaded Mesh %s from disk, consisting of %u triangles.\n", file_path, mesh_data->triangle_bvh.primitive_count);
 	
 	delete [] positions;
 	delete [] tex_coords;
 	delete [] normals;
 
 	delete [] path;
+
+	for (int i = 0; i < mesh_data->triangle_bvh.primitive_count; i++) {
+		mesh_data->triangle_bvh.primitives[i].calc_aabb();
+	}
+
+#if MESH_ACCELERATOR == MESH_USE_BVH
+	{
+		ScopedTimer timer("Mesh BVH Construction");
+		mesh_data->triangle_bvh.build_bvh();
+	}
+#elif MESH_ACCELERATOR == MESH_USE_SBVH
+	{
+		ScopedTimer timer("Mesh SBVH Construction");
+		mesh_data->triangle_bvh.build_sbvh();
+	}
+#endif
 
 	return mesh_data;
 }
