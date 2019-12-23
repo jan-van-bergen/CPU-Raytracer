@@ -61,11 +61,13 @@ namespace BVHBuilders {
 		node_index += 2;
 
 		// Object Split information
-		float full_sah_split_cost;
-		int   full_sah_split_dimension;
-		AABB  full_sah_aabb_left;
-		AABB  full_sah_aabb_right;
-		int   full_sah_split_index = BVHPartitions::partition_object(triangles, indices, first_index, index_count, sah, full_sah_split_dimension, full_sah_split_cost, node_aabb, full_sah_aabb_left, full_sah_aabb_right);
+		float object_split_cost;
+		int   object_split_dimension;
+		AABB  object_split_aabb_left;
+		AABB  object_split_aabb_right;
+		int   object_split_index = BVHPartitions::partition_object(triangles, indices, first_index, index_count, sah, object_split_dimension, object_split_cost, node_aabb, object_split_aabb_left, object_split_aabb_right);
+
+		assert(object_split_index != -1);
 
 		// Spatial Split information
 		float spatial_split_cost = INFINITY;
@@ -78,7 +80,7 @@ namespace BVHBuilders {
 
 		// Calculate the overlap between the child bounding boxes resulting from the Object Split
 		float lamba = 0.0f;
-		AABB overlap = AABB::overlap(full_sah_aabb_left, full_sah_aabb_right);
+		AABB overlap = AABB::overlap(object_split_aabb_left, object_split_aabb_right);
 		if (overlap.is_valid()) {
 			lamba = overlap.surface_area();
 		}
@@ -98,7 +100,7 @@ namespace BVHBuilders {
 
 		// Check SAH termination condition
 		float parent_cost = node.aabb.surface_area() * float(index_count); 
-		if (parent_cost <= full_sah_split_cost && parent_cost <= spatial_split_cost) {
+		if (parent_cost <= object_split_cost && parent_cost <= spatial_split_cost) {
 			node.first = first_index;
 			node.count = index_count;
 			
@@ -106,7 +108,7 @@ namespace BVHBuilders {
 		} 
 
 		// From this point on it is decided that this Node will NOT be a leaf Node
-		node.count = (full_sah_split_dimension + 1) << 30;
+		node.count = (object_split_dimension + 1) << 30;
 		
 		int * children_left [3] { indices[0] + first_index, indices[1] + first_index, indices[2] + first_index };
 		int * children_right[3] { new int[index_count],     new int[index_count],     new int[index_count]     };
@@ -119,28 +121,28 @@ namespace BVHBuilders {
 		AABB child_aabb_left;
 		AABB child_aabb_right;
 
-		if (full_sah_split_cost <= spatial_split_cost) {
+		if (object_split_cost <= spatial_split_cost) {
 			// Perform Object Split
 
 			// Obtain split plane
-			float split = triangles[indices[full_sah_split_dimension][full_sah_split_index]].get_position()[full_sah_split_dimension];
+			float split = triangles[indices[object_split_dimension][object_split_index]].get_position()[object_split_dimension];
 
 			for (int dimension = 0; dimension < 3; dimension++) {
 				for (int i = first_index; i < first_index + index_count; i++) {
 					int index = indices[dimension][i];
 
-					bool goes_left = triangles[index].get_position()[full_sah_split_dimension] < split;
+					bool goes_left = triangles[index].get_position()[object_split_dimension] < split;
 
-					if (triangles[index].get_position()[full_sah_split_dimension] == split) {
+					if (triangles[index].get_position()[object_split_dimension] == split) {
 						// In case the current primitive has the same coordianate as the one we split on along the split dimension,
 						// We don't know whether the primitive should go left or right.
 						// In this case check all primitive indices on the left side of the split that 
 						// have the same split coordinate for equality with the current primitive index i
 
-						int j = full_sah_split_index - 1;
+						int j = object_split_index - 1;
 						// While we can go left and the left primitive has the same coordinate along the split dimension as the split itself
-						while (j >= first_index && triangles[indices[full_sah_split_dimension][j]].get_position()[full_sah_split_dimension] == split) {
-							if (indices[full_sah_split_dimension][j] == index) {
+						while (j >= first_index && triangles[indices[object_split_dimension][j]].get_position()[object_split_dimension] == split) {
+							if (indices[object_split_dimension][j] == index) {
 								goes_left = true;
 
 								break;
@@ -167,11 +169,11 @@ namespace BVHBuilders {
 
 			// Using object split, no duplicates can occur. 
 			// Thus, left + right should equal the total number of triangles
-			assert(first_index + n_left == full_sah_split_index);
+			assert(first_index + n_left == object_split_index);
 			assert(n_left + n_right == index_count);
 			
-			child_aabb_left  = full_sah_aabb_left;
-			child_aabb_right = full_sah_aabb_right;
+			child_aabb_left  = object_split_aabb_left;
+			child_aabb_right = object_split_aabb_right;
 		} else {
 			// Perform Spatial Split
 

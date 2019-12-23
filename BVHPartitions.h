@@ -284,19 +284,19 @@ namespace BVHPartitions {
 							for (int j = i + 1; j < 3; j++) {
 								float vertex_j = vertices[j][dimension];
 
-								float bin_delta = vertex_j - vertex_i;
+								float delta_ij = vertex_j - vertex_i;
 
 								// Check if edge between Vertex i and j intersects the left plane
 								if (vertex_i < plane_left_distance && plane_left_distance <= vertex_j) { 
 									// Lerp to obtain exact intersection point
-									float t = (plane_left_distance - vertex_i) / bin_delta;
+									float t = (plane_left_distance - vertex_i) / delta_ij;
 									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 								}
 
 								// Check if edge between Vertex i and j intersects the right plane
 								if (vertex_i < plane_right_distance && plane_right_distance <= vertex_j) { 
 									// Lerp to obtain exact intersection point
-									float t = (plane_right_distance - vertex_i) / bin_delta;
+									float t = (plane_right_distance - vertex_i) / delta_ij;
 									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 								}
 							}

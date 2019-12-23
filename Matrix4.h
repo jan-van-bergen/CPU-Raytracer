@@ -51,9 +51,9 @@ struct Matrix4 {
 		SIMD_float matrix_32 = SIMD_float(matrix(3, 2));
 
 		return SIMD_Vector3(
-			matrix_00 * direction.x + matrix_10 * direction.y + matrix_20 * direction.z + matrix_30,
-			matrix_01 * direction.x + matrix_11 * direction.y + matrix_21 * direction.z + matrix_31,
-			matrix_02 * direction.x + matrix_12 * direction.y + matrix_22 * direction.z + matrix_32
+			SIMD_float::madd(matrix_00, direction.x, SIMD_float::madd(matrix_10, direction.y, SIMD_float::madd(matrix_20, direction.z, matrix_30))),
+			SIMD_float::madd(matrix_01, direction.x, SIMD_float::madd(matrix_11, direction.y, SIMD_float::madd(matrix_21, direction.z, matrix_31))),
+			SIMD_float::madd(matrix_02, direction.x, SIMD_float::madd(matrix_12, direction.y, SIMD_float::madd(matrix_22, direction.z, matrix_32)))
 		);
 	}
 
@@ -78,9 +78,9 @@ struct Matrix4 {
 		SIMD_float matrix_22 = SIMD_float(matrix(2, 2));
 
 		return SIMD_Vector3(
-			matrix_00 * direction.x + matrix_10 * direction.y + matrix_20 * direction.z,
-			matrix_01 * direction.x + matrix_11 * direction.y + matrix_21 * direction.z,
-			matrix_02 * direction.x + matrix_12 * direction.y + matrix_22 * direction.z
+			SIMD_float::madd(matrix_00, direction.x, SIMD_float::madd(matrix_10, direction.y, matrix_20 * direction.z)),
+			SIMD_float::madd(matrix_01, direction.x, SIMD_float::madd(matrix_11, direction.y, matrix_21 * direction.z)),
+			SIMD_float::madd(matrix_02, direction.x, SIMD_float::madd(matrix_12, direction.y, matrix_22 * direction.z))
 		);
 	}
 
