@@ -125,9 +125,9 @@ struct SIMD_float4 {
 	
 	static FORCEINLINE SIMD_float4 clamp(SIMD_float4 val, SIMD_float4 min, SIMD_float4 max);
 
-	inline static FORCEINLINE SIMD_float4 rcp(SIMD_float4 floats) { return SIMD_float4(_mm_rcp_ps(floats.data)); }
+	static FORCEINLINE SIMD_float4 rcp(SIMD_float4 floats);
 
-	inline static FORCEINLINE SIMD_float4 sqrt    (SIMD_float4 floats) { return SIMD_float4(_mm_sqrt_ps   (floats.data)); }
+	inline static FORCEINLINE SIMD_float4     sqrt(SIMD_float4 floats) { return SIMD_float4(_mm_sqrt_ps   (floats.data)); }
 	inline static FORCEINLINE SIMD_float4 inv_sqrt(SIMD_float4 floats) { return SIMD_float4(_mm_invsqrt_ps(floats.data)); }
 	
 	inline static FORCEINLINE SIMD_float4 madd(SIMD_float4 a, SIMD_float4 b, SIMD_float4 c) { return SIMD_float4(_mm_fmadd_ps(a.data, b.data, c.data)); } // Computes a*b + c
@@ -176,6 +176,8 @@ inline FORCEINLINE SIMD_float4 operator<=(SIMD_float4 left, SIMD_float4 right) {
 inline FORCEINLINE SIMD_float4 operator==(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmpeq_ps (left.data, right.data)); }
 inline FORCEINLINE SIMD_float4 operator!=(SIMD_float4 left, SIMD_float4 right) { return SIMD_float4(_mm_cmpneq_ps(left.data, right.data)); }
 
+inline FORCEINLINE SIMD_float4 SIMD_float4::rcp(SIMD_float4 floats) { return SIMD_float4(1.0f) / floats; }
+
 // Represents 8 floats
 struct SIMD_float8 {
 	union { __m256 data; float floats[8]; };
@@ -211,9 +213,9 @@ struct SIMD_float8 {
 
 	static FORCEINLINE SIMD_float8 clamp(SIMD_float8 val, SIMD_float8 min, SIMD_float8 max);
 
-	inline static FORCEINLINE SIMD_float8 rcp(SIMD_float8 floats) { return SIMD_float8(_mm256_rcp_ps(floats.data)); }
+	static FORCEINLINE SIMD_float8 rcp(SIMD_float8 floats);
 
-	inline static FORCEINLINE SIMD_float8 sqrt    (SIMD_float8 floats) { return SIMD_float8(_mm256_sqrt_ps   (floats.data)); }
+	inline static FORCEINLINE SIMD_float8     sqrt(SIMD_float8 floats) { return SIMD_float8(_mm256_sqrt_ps   (floats.data)); }
 	inline static FORCEINLINE SIMD_float8 inv_sqrt(SIMD_float8 floats) { return SIMD_float8(_mm256_invsqrt_ps(floats.data)); }
 
 	inline static FORCEINLINE SIMD_float8 madd(SIMD_float8 a, SIMD_float8 b, SIMD_float8 c) { return SIMD_float8(_mm256_fmadd_ps(a.data, b.data, c.data)); } // Computes a*b + c
@@ -261,6 +263,8 @@ inline FORCEINLINE SIMD_float8 operator<=(SIMD_float8 left, SIMD_float8 right) {
 
 inline FORCEINLINE SIMD_float8 operator==(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_EQ_OQ)); }
 inline FORCEINLINE SIMD_float8 operator!=(SIMD_float8 left, SIMD_float8 right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_NEQ_OQ)); }
+
+inline FORCEINLINE SIMD_float8 SIMD_float8::rcp(SIMD_float8 floats) { return SIMD_float8(1.0f) / floats; }
 
 // Represents 1 int
 struct SIMD_int1 {
