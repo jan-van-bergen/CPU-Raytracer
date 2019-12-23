@@ -112,10 +112,10 @@ namespace BVHPartitions {
 		for (int dimension = 0; dimension < 3; dimension++) {
 			assert(is_sorted(primitives, indices, first_index, index_count));
 
+			AABB aabb_left  = AABB::create_empty();
+			AABB aabb_right = AABB::create_empty();
+
 			// First traverse left to right along the current dimension to evaluate first half of the SAH
-			AABB aabb_left;
-			aabb_left.min = Vector3(+INFINITY);
-			aabb_left.max = Vector3(-INFINITY);
 			for (int i = 0; i < index_count - 1; i++) {
 				aabb_left.expand(primitives[indices[dimension][first_index + i]].aabb);
 				
@@ -123,9 +123,6 @@ namespace BVHPartitions {
 			}
 
 			// Then traverse right to left along the current dimension to evaluate second half of the SAH
-			AABB aabb_right;
-			aabb_right.min = Vector3(+INFINITY);
-			aabb_right.max = Vector3(-INFINITY);
 			for (int i = index_count - 1; i > 0; i--) {
 				aabb_right.expand(primitives[indices[dimension][first_index + i]].aabb);
 
@@ -304,6 +301,9 @@ namespace BVHPartitions {
 								}
 							}
 						}
+
+						// There must be either 2 or 4 inersections with the two planes
+						assert(intersection_count == 2 || intersection_count == 4);
 
 						// All intersection points should be included in the AABB
 						box = AABB::from_points(intersections, intersection_count);
