@@ -12,7 +12,7 @@
 #define SCENE SCENE_DYNAMIC
 
 #if SCENE == SCENE_DYNAMIC
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
@@ -75,7 +75,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	camera.rotation = Quaternion(0.268476f, 0.423740f, -0.133092f, 0.854779f);
 }
 #else
-Scene::Scene() : camera(110.0f), spheres(0), planes(0), skybox(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+Scene::Scene() : camera(110.0f), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	top_level_bvh.init(1);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 
@@ -172,7 +172,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 	// If any of the Rays did not hit
 	if (!SIMD_float::all_true(closest_hit.hit)) {
-		result = SIMD_Vector3::blend(skybox.sample(ray.direction), result, closest_hit.hit);
+		result = SIMD_Vector3::blend(sky.sample(ray.direction), result, closest_hit.hit);
 		distance = inf;
 
 		// If none of the Rays hit, early out
