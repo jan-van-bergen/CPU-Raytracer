@@ -234,6 +234,20 @@ namespace BVHPartitions {
 			for (int i = first_index; i < first_index + index_count; i++) {
 				const Triangle & triangle = triangles[indices[dimension][i]];
 				
+				Vector3 vertices[3] = { 
+					triangle.position0,
+					triangle.position1, 
+					triangle.position2 
+				};
+				
+				// Sort the vertices along the current dimension using unrolled Bubble Sort
+				if (vertices[0][dimension] > vertices[1][dimension]) Util::swap(vertices[0], vertices[1]);
+				if (vertices[1][dimension] > vertices[2][dimension]) Util::swap(vertices[1], vertices[2]);
+				if (vertices[0][dimension] > vertices[1][dimension]) Util::swap(vertices[0], vertices[1]);
+
+				float vertex_min = vertices[0][dimension];
+				float vertex_max = vertices[2][dimension];
+		
 				float plane_left_distance = bounds_min;
 				float plane_right_distance;
 
@@ -255,8 +269,59 @@ namespace BVHPartitions {
 					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 
 					// Calculate relevant portion of the AABB with regard to the two planes that define the current Bin
-					AABB box = Math::triangle_binned_aabb(triangle, dimension, plane_left_distance, plane_right_distance);
-					
+					AABB box;
+
+					// If all vertices lie on one side of either plane the AABB is empty
+					if (vertex_min >= plane_right_distance || vertex_max <= plane_left_distance) {
+						box = AABB::create_empty();
+					// If all verticies lie between the two planes, the AABB is just the Triangle's entire AABB
+					} else if (vertex_min >= plane_left_distance && vertex_max <= plane_right_distance) {
+						box = triangle.aabb;
+					} else {
+						Vector3 intersections[4];
+						int     intersection_count = 0;
+
+						for (int i = 0; i < 3; i++) {
+							float vertex_i = vertices[i][dimension];
+
+							for (int j = i + 1; j < 3; j++) {
+								float vertex_j = vertices[j][dimension];
+
+								float bin_delta = vertex_j - vertex_i;
+
+								// Check if edge between Vertex i and j intersects the left plane
+								if (vertex_i < plane_left_distance && plane_left_distance <= vertex_j) { 
+									// Lerp to obtain exact intersection point
+									float t = (plane_left_distance - vertex_i) / bin_delta;
+									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
+								}
+
+								// Check if edge between Vertex i and j intersects the right plane
+								if (vertex_i < plane_right_distance && plane_right_distance <= vertex_j) { 
+									// Lerp to obtain exact intersection point
+									float t = (plane_right_distance - vertex_i) / bin_delta;
+									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
+								}
+							}
+						}
+
+						// All intersection points should be included in the AABB
+						box = AABB::from_points(intersections, intersection_count);
+
+						// If the middle vertex lies between the two planes it should be included in the AABB
+						if (vertices[1][dimension] >= plane_left_distance && vertices[1][dimension] < plane_right_distance) {
+							box.expand(vertices[1]);
+						}
+
+						// In case we have only two intersections with either plane it must be the case that
+						// either the leftmost or the rightmost vertex lies between the two planes
+						if (intersection_count == 2) {
+							box.expand(vertex_max < plane_right_distance ? vertices[2] : vertices[0]);
+						}
+
+						box.fix_if_needed();
+					}
+
 					// Clip the AABB against the parent bounds
 					bin.aabb.expand(box);
 					bin.aabb = AABB::overlap(bin.aabb, bounds);
