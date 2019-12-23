@@ -10,10 +10,12 @@ SBVH was implemented, including reference unsplitting. BVH and SBVH use the same
 
 SBVH improves average frame time in the Sponza scene from 81 ms to 64 ms, compared to the regular BVH.
 
-The SBVH is used when the ``MESH_ACCELERATOR`` define in Mesh.h is set to ``MESH_USE_SBVH``.
+The SBVH is used when the ``MESH_ACCELERATOR`` define in MeshData.cpp is set to ``MESH_USE_SBVH``.
 
 ### Two Levels of BVH
-There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with rigid motion.
+There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with rigid motion. 
+Triangle level BVH's are computed once per Mesh, meaning multiple instances of the same Mesh can reuse the same BVH using different world transforms.
+
 The SBVH only supports Triangle primitives, so it cannot be used as a Top Level BVH.
 
 ### Fast BVH Construction
