@@ -33,7 +33,7 @@ private:
 	DirectionalLight * directional_lights      = nullptr;
 	int                directional_light_count = 0;
 
-	Vector3 ambient_lighting = Vector3(0.25f);
+	Vector3 ambient_lighting = Vector3(0.1f);
 	
 	Sky skybox;
 

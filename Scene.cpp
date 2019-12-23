@@ -68,7 +68,7 @@ Scene::Scene() : camera(110.0f), spheres(2), planes(1), skybox(DATA_PATH("Sky_Pr
 	};
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
+		DirectionalLight(Vector3(0.5f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 
 	camera.position = Vector3(-4.694016f, 6.446100f, -0.572288f);
@@ -123,6 +123,8 @@ void Scene::update(float delta) {
 	top_level_bvh.primitives[3].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), delta * 0.5f) * top_level_bvh.primitives[3].transform.rotation;
 
 	top_level_bvh.primitives[4].transform.rotation = Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), delta) * top_level_bvh.primitives[4].transform.rotation;
+
+	top_level_bvh.primitives[5].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 0.0f, 1.0f), delta * 0.5f) * top_level_bvh.primitives[5].transform.rotation;
 #endif
 
 	spheres.update();

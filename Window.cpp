@@ -33,6 +33,8 @@ Window::Window(int width, int height, const char * title) :
 	glDisable(GL_DEPTH_TEST);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
+	glEnable(GL_FRAMEBUFFER_SRGB);
+
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
