@@ -1,7 +1,5 @@
 #include "Mesh.h"
 
-#include <immintrin.h>
-
 #include "Math.h"
 
 void Mesh::init(const char * file_path) {

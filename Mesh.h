@@ -7,8 +7,6 @@
 #include "Ray.h"
 #include "RayHit.h"
 
-#include "BVH.h"
-
 struct Mesh {
 	Transform transform;
 
