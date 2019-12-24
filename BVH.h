@@ -29,7 +29,7 @@ struct BVHNode {
 
 	inline bool should_visit_left_first(const Ray & ray) const {
 #if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE
-		return true;
+		return true; // Naive always goes left first
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		switch (count & BVH_AXIS_MASK) {
 			case BVH_AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
@@ -135,33 +135,32 @@ struct BVH {
 			primitives[i].trace(ray, ray_hit, world, 0);
 		}
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
-		const BVHNode<PrimitiveType> * stack[128];
-		int                            stack_size = 1;
+		int stack[128];
+		int stack_size = 1;
 
-		stack[0] = &nodes[0];
+		// Push root on stack
+		stack[0] = 0;
 
 		int step = 0;
 
 		while (stack_size > 0) {
 			// Pop Node of the stack
-			const BVHNode<PrimitiveType> * node = stack[--stack_size];
+			const BVHNode<PrimitiveType> & node = nodes[stack[--stack_size]];
 
-			SIMD_float mask = node->aabb.intersect(ray, ray_hit.distance);
+			SIMD_float mask = node.aabb.intersect(ray, ray_hit.distance);
 			if (SIMD_float::all_false(mask)) continue;
 
-			if (node->is_leaf()) {
-				for (int i = node->first; i < node->first + node->count; i++) {
+			if (node.is_leaf()) {
+				for (int i = node.first; i < node.first + node.count; i++) {
 					primitives[indices_x[i]].trace(ray, ray_hit, world, step);
 				}
 			} else {
-				if (node->should_visit_left_first(ray)) {
-					// Visit left Node first, then visit right Node
-					stack[stack_size++] = &nodes[node->left];
-					stack[stack_size++] = &nodes[node->left+1];
+				if (node.should_visit_left_first(ray)) {
+					stack[stack_size++] = node.left;
+					stack[stack_size++] = node.left + 1;
 				} else {
-					// Visit right Node first, then visit left Node
-					stack[stack_size++] = &nodes[node->left+1];
-					stack[stack_size++] = &nodes[node->left];
+					stack[stack_size++] = node.left + 1;
+					stack[stack_size++] = node.left;
 				}
 			}
 
@@ -182,10 +181,11 @@ struct BVH {
 
 		return result;
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
-		const BVHNode<PrimitiveType> * stack[128];
-		int                            stack_size = 1;
+		int stack[128];
+		int stack_size = 1;
 
-		stack[0] = &nodes[0];
+		// Push root on stack
+		stack[0] = 0;
 
 		int step = 0;
 
@@ -193,24 +193,24 @@ struct BVH {
 
 		while (stack_size > 0) {
 			// Pop Node of the stack
-			const BVHNode<PrimitiveType> * node = stack[--stack_size];
+			const BVHNode<PrimitiveType> & node = nodes[stack[--stack_size]];
 
-			SIMD_float mask = node->aabb.intersect(ray, max_distance);
+			SIMD_float mask = node.aabb.intersect(ray, max_distance);
 			if (SIMD_float::all_false(mask)) continue;
 
-			if (node->is_leaf()) {
-				for (int i = node->first; i < node->first + node->count; i++) {
+			if (node.is_leaf()) {
+				for (int i = node.first; i < node.first + node.count; i++) {
 					hit = hit | primitives[indices_x[i]].intersect(ray, max_distance);
 
 					if (SIMD_float::all_true(hit)) return hit;
 				}
 			} else {
-				if (node->should_visit_left_first(ray)) {
-					stack[stack_size++] = &nodes[node->left];
-					stack[stack_size++] = &nodes[node->left+1];
+				if (node.should_visit_left_first(ray)) {
+					stack[stack_size++] = node.left;
+					stack[stack_size++] = node.left + 1;
 				} else {
-					stack[stack_size++] = &nodes[node->left+1];
-					stack[stack_size++] = &nodes[node->left];
+					stack[stack_size++] = node.left + 1;
+					stack[stack_size++] = node.left;
 				}
 			}
 
