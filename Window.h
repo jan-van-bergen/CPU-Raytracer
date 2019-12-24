@@ -14,8 +14,9 @@ inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, 
 	__debugbreak();
 }
 
-#define SCREEN_WIDTH  900
-#define SCREEN_HEIGHT 600
+// NOTE: width and height should be multiples of tile_width and tile_height
+#define SCREEN_WIDTH  928
+#define SCREEN_HEIGHT 608
 
 struct Window {
 private:
