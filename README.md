@@ -22,7 +22,7 @@ Regular BVH Construction of a scene with > 100000 triangles is done in under one
 
 The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp to ``SCENE_SPONZA`` and the ``MESH_ACCELERATOR`` define in MeshData.cpp to ``MESH_USE_BVH``. The time it takes to construct a Triangle BVH is always reported for every Mesh.
 
-SBVH construction of Sponza takes about 12 seconds on my machine.
+SBVH construction of Sponza takes about 9 seconds on my machine.
 
 ### Fast BVH Traversal
 BVH and SBVH traversal is optimized by expanding child nodes in order, based on the split axis and the Ray's direction. The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` and ``SBVHNode`` to ensure the fact that those structs are still 32 bytes.
