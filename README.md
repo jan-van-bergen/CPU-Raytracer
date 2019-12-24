@@ -11,8 +11,6 @@ The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluat
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same class ``BVH``, you can switch between them by  changing the ``MESH_ACCELERATOR`` define in MeshData.cpp to either ``MESH_USE_BVH`` or ``MESH_USE_SBVH``. 
 I used the same settings as described in the paper (alpha=10^-5 and 256 bins).
 
-SBVH improves average frame time in the Sponza scene from 53 ms to 46 ms, compared to the regular BVH.
-
 The SBVH is used when the ``MESH_ACCELERATOR`` define in MeshData.cpp is set to ``MESH_USE_SBVH``.
 
 ### Two Levels of BVH
