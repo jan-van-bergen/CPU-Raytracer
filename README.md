@@ -26,7 +26,8 @@ The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp t
 SBVH construction of Sponza takes about 9 seconds on my machine.
 
 ### Fast BVH Traversal
-BVH and SBVH traversal is optimized by expanding child nodes in order, based on the split axis and the Ray's direction. The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` and ``SBVHNode`` to ensure the fact that those structs are still 32 bytes.
+BVH and SBVH traversal is optimized by visiting child nodes in order from nearest to furthest, based on the split axis and the Ray's direction. 
+The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` to ensure that the size of this struct is still 32 bytes.
 
 You can switch between Naive (left first) and Ordered (nearest first) traversal strategies using the ``BVH_TRAVERSAL_STRATEGY`` define in BVH.h.
 
