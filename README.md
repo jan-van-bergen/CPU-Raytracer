@@ -29,7 +29,9 @@ BVH and SBVH traversal is optimized by expanding child nodes in order, based on 
 
 You can switch between Naive (left first) and Ordered (nearest first) traversal strategies using the ``BVH_TRAVERSAL_STRATEGY`` define in BVH.h.
 
-Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays. This results in a speedup of about 6x over scalar code!. You can switch between scalar flow, and vector flow by changing the ``SIMD_LANE_SIZE``define in SIMD.h.
+BVH and SBVH traversal is done using a while loop and a stack, meaning no recursion.
+
+Both the BVH and SBVH are traversed using SIMD, allowing for 4 simulateous Rays. This results in a speedup of about 6x over scalar code! You can switch between scalar flow, and vector flow by changing the ``SIMD_LANE_SIZE``define in SIMD.h.
 
 ## General
 
