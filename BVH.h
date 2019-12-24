@@ -40,58 +40,6 @@ struct BVHNode {
 		}
 #endif
 	}
-
-	inline void trace(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int step) const {
-		SIMD_float mask = aabb.intersect(ray, ray_hit.distance);
-		if (SIMD_float::all_false(mask)) return;
-
-		if (is_leaf()) {
-			for (int i = first; i < first + count; i++) {
-				primitives[indices[i]].trace(ray, ray_hit, world, step + count);
-			}
-		} else {
-			if (should_visit_left_first(ray)) {
-				// Visit left Node first, then visit right Node
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
-			} else {
-				// Visit right Node first, then visit left Node
-				nodes[left + 1].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
-				nodes[left    ].trace(primitives, indices, nodes, ray, ray_hit, world, step + 1);
-			}
-		}
-	}
-
-	inline SIMD_float intersect(const PrimitiveType * primitives, const int * indices, const BVHNode nodes[], const Ray & ray, SIMD_float max_distance) const {
-		SIMD_float mask = aabb.intersect(ray, max_distance);
-		if (SIMD_float::all_false(mask)) return mask;
-
-		if (is_leaf()) {
-			SIMD_float hit(0.0f);
-
-			for (int i = first; i < first + count; i++) {
-				hit = hit | primitives[indices[i]].intersect(ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-			}
-
-			return hit;
-		} else {
-			if (should_visit_left_first(ray)) {
-				SIMD_float hit = nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-
-				return hit | nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
-			} else {
-				SIMD_float hit = nodes[left + 1].intersect(primitives, indices, nodes, ray, max_distance);
-
-				if (SIMD_float::all_true(hit)) return hit;
-
-				return hit | nodes[left].intersect(primitives, indices, nodes, ray, max_distance);
-			}
-		}
-	}
 };
 
 template<typename PrimitiveType>
@@ -187,7 +135,38 @@ struct BVH {
 			primitives[i].trace(ray, ray_hit, world, 0);
 		}
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
-		nodes[0].trace(primitives, indices_x, nodes, ray, ray_hit, world, 0);
+		const BVHNode<PrimitiveType> * stack[128];
+		int                            stack_size = 1;
+
+		stack[0] = &nodes[0];
+
+		int step = 0;
+
+		while (stack_size > 0) {
+			// Pop Node of the stack
+			const BVHNode<PrimitiveType> * node = stack[--stack_size];
+
+			SIMD_float mask = node->aabb.intersect(ray, ray_hit.distance);
+			if (SIMD_float::all_false(mask)) continue;
+
+			if (node->is_leaf()) {
+				for (int i = node->first; i < node->first + node->count; i++) {
+					primitives[indices_x[i]].trace(ray, ray_hit, world, step);
+				}
+			} else {
+				if (node->should_visit_left_first(ray)) {
+					// Visit left Node first, then visit right Node
+					stack[stack_size++] = &nodes[node->left];
+					stack[stack_size++] = &nodes[node->left+1];
+				} else {
+					// Visit right Node first, then visit left Node
+					stack[stack_size++] = &nodes[node->left+1];
+					stack[stack_size++] = &nodes[node->left];
+				}
+			}
+
+			step++;
+		}
 #endif
 	}
 
@@ -203,7 +182,42 @@ struct BVH {
 
 		return result;
 #elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
-		return nodes[0].intersect(primitives, indices_x, nodes, ray, max_distance);
+		const BVHNode<PrimitiveType> * stack[128];
+		int                            stack_size = 1;
+
+		stack[0] = &nodes[0];
+
+		int step = 0;
+
+		SIMD_float hit(0.0f);
+
+		while (stack_size > 0) {
+			// Pop Node of the stack
+			const BVHNode<PrimitiveType> * node = stack[--stack_size];
+
+			SIMD_float mask = node->aabb.intersect(ray, max_distance);
+			if (SIMD_float::all_false(mask)) continue;
+
+			if (node->is_leaf()) {
+				for (int i = node->first; i < node->first + node->count; i++) {
+					hit = hit | primitives[indices_x[i]].intersect(ray, max_distance);
+
+					if (SIMD_float::all_true(hit)) return hit;
+				}
+			} else {
+				if (node->should_visit_left_first(ray)) {
+					stack[stack_size++] = &nodes[node->left];
+					stack[stack_size++] = &nodes[node->left+1];
+				} else {
+					stack[stack_size++] = &nodes[node->left+1];
+					stack[stack_size++] = &nodes[node->left];
+				}
+			}
+
+			step++;
+		}
+
+		return hit;
 #endif
 	}
 };
