@@ -5,7 +5,7 @@ Student: Jan van Bergen - 5656877
 ## Features
 
 ### Surface Area Heuristic
-The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here.
+The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here. 
 
 ### SBVH
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same class ``BVH``, you can switch between them by  changing the ``MESH_ACCELERATOR`` define in MeshData.cpp to either ``MESH_USE_BVH`` or ``MESH_USE_SBVH``. 
@@ -19,6 +19,7 @@ The SBVH only supports Triangle primitives, so it cannot be used as a Top Level 
 
 ### Fast BVH Construction
 Regular BVH Construction of a scene with > 100000 triangles is done in under one second, even without binning. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
+Regular BVH construction was optimized by only sorting once (at the start of construction) along all 3 dimensions, and only heap allocating once. 
 
 The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp to ``SCENE_SPONZA`` and the ``MESH_ACCELERATOR`` define in MeshData.cpp to ``MESH_USE_BVH``. The time it takes to construct a Triangle BVH is always reported for every Mesh.
 
