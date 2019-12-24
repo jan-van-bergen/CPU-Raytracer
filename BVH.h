@@ -35,8 +35,6 @@ struct BVHNode {
 			case BVH_AXIS_X_BITS: return ray.direction.x[0] > 0.0f;
 			case BVH_AXIS_Y_BITS: return ray.direction.y[0] > 0.0f;
 			case BVH_AXIS_Z_BITS: return ray.direction.z[0] > 0.0f;
-
-			default: abort();
 		}
 #endif
 	}
@@ -156,11 +154,11 @@ struct BVH {
 				}
 			} else {
 				if (node.should_visit_left_first(ray)) {
-					stack[stack_size++] = node.left;
 					stack[stack_size++] = node.left + 1;
+					stack[stack_size++] = node.left;
 				} else {
-					stack[stack_size++] = node.left + 1;
 					stack[stack_size++] = node.left;
+					stack[stack_size++] = node.left + 1;
 				}
 			}
 
@@ -206,11 +204,11 @@ struct BVH {
 				}
 			} else {
 				if (node.should_visit_left_first(ray)) {
-					stack[stack_size++] = node.left;
 					stack[stack_size++] = node.left + 1;
+					stack[stack_size++] = node.left;
 				} else {
-					stack[stack_size++] = node.left + 1;
 					stack[stack_size++] = node.left;
+					stack[stack_size++] = node.left + 1;
 				}
 			}
 
