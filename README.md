@@ -1,5 +1,7 @@
 # Advanced Graphics - Assignment 2
 
+Student: Jan van Bergen - 5656877
+
 ## Features
 
 ### Surface Area Heuristic
