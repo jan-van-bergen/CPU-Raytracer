@@ -11,8 +11,6 @@ The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluat
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same class ``BVH``, you can switch between them by  changing the ``MESH_ACCELERATOR`` define in MeshData.cpp to either ``MESH_USE_BVH`` or ``MESH_USE_SBVH``. 
 I used the same settings as described in the paper (alpha=10^-5 and 256 bins).
 
-The SBVH is used when the ``MESH_ACCELERATOR`` define in MeshData.cpp is set to ``MESH_USE_SBVH``.
-
 ### Two Levels of BVH
 There is support for BVH at the Triangle level as well as at the Mesh level (Top Level BVH). The Top Level BVH is recomputed every frame, allowing for dynamic scenes with rigid motion. 
 Triangle level BVH's are computed once per Mesh, meaning multiple instances of the same Mesh can reuse the same BVH using different world transforms.
