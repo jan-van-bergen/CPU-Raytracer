@@ -5,7 +5,7 @@ Student: Jan van Bergen - 5656877
 ## Features
 
 ### Surface Area Heuristic
-The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here.
+The regular BVH uses the SAH to construct a good quality BVH. The SAH is evaluated on a per object basis, meaning no binning is used here. 
 
 ### SBVH
 SBVH was implemented, including reference unsplitting. BVH and SBVH use the same class ``BVH``, you can switch between them by  changing the ``MESH_ACCELERATOR`` define in MeshData.cpp to either ``MESH_USE_BVH`` or ``MESH_USE_SBVH``. 
@@ -19,13 +19,15 @@ The SBVH only supports Triangle primitives, so it cannot be used as a Top Level 
 
 ### Fast BVH Construction
 Regular BVH Construction of a scene with > 100000 triangles is done in under one second, even without binning. The Sponza scene (262205 triangles) takes less than 700 ms on my machine.
+Regular BVH construction was optimized by only sorting once (at the start of construction) along all 3 dimensions, and only heap allocating once. 
 
 The easiest way of verifying this is setting the ``SCENE`` define in Scene.cpp to ``SCENE_SPONZA`` and the ``MESH_ACCELERATOR`` define in MeshData.cpp to ``MESH_USE_BVH``. The time it takes to construct a Triangle BVH is always reported for every Mesh.
 
 SBVH construction of Sponza takes about 9 seconds on my machine.
 
 ### Fast BVH Traversal
-BVH and SBVH traversal is optimized by expanding child nodes in order, based on the split axis and the Ray's direction. The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` and ``SBVHNode`` to ensure the fact that those structs are still 32 bytes.
+BVH and SBVH traversal is optimized by visiting child nodes in order from nearest to furthest, based on the split axis and the Ray's direction. 
+The split axis is stored in the two highest bits of the ``count`` fields of ``BVHNode`` to ensure that the size of this struct is still 32 bytes.
 
 You can switch between Naive (left first) and Ordered (nearest first) traversal strategies using the ``BVH_TRAVERSAL_STRATEGY`` define in BVH.h.
 
