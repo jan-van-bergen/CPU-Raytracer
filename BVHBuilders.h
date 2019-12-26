@@ -261,11 +261,7 @@ namespace BVHBuilders {
 
 						rejected_left++;
 					} else {
-						goes_left  = false;
-						goes_right = false;
-
-						rejected_left++;
-						rejected_right++;
+						abort(); // Shouldn't ever happen
 					}
 				}
 
@@ -314,21 +310,20 @@ namespace BVHBuilders {
 		}
 		
 		// Do a depth first traversal, so that we know the amount of indices that were recursively created by the left child
-		int offset_left = build_sbvh(nodes[node.left], triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
+		int number_of_leaves_left = build_sbvh(nodes[node.left], triangles, indices, nodes, node_index, first_index, n_left, sah, temp, inv_root_surface_area, child_aabb_left);
 
 		// Using the depth first offset, we can now copy over the right references
-		memcpy(indices[0] + first_index + offset_left, children_right[0], n_right * sizeof(int));
-		memcpy(indices[1] + first_index + offset_left, children_right[1], n_right * sizeof(int));
-		memcpy(indices[2] + first_index + offset_left, children_right[2], n_right * sizeof(int));
+		memcpy(indices[0] + first_index + number_of_leaves_left, children_right[0], n_right * sizeof(int));
+		memcpy(indices[1] + first_index + number_of_leaves_left, children_right[1], n_right * sizeof(int));
+		memcpy(indices[2] + first_index + number_of_leaves_left, children_right[2], n_right * sizeof(int));
 			
 		// Now recurse on the right side
-		int offset_right = build_sbvh(nodes[node.left + 1], triangles, indices, nodes, node_index, first_index + offset_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
+		int number_of_leaves_right = build_sbvh(nodes[node.left + 1], triangles, indices, nodes, node_index, first_index + number_of_leaves_left, n_right, sah, temp, inv_root_surface_area, child_aabb_right);
 		
 		delete [] children_right[0];
 		delete [] children_right[1];
 		delete [] children_right[2];
 		
-		// Report the total number of leaves contained in the subtree
-		return offset_left + offset_right;
+		return number_of_leaves_left + number_of_leaves_right;
 	}
 }
