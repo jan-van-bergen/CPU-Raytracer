@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#define USE_MULTITHREADING true
+#define USE_MULTITHREADING true // When enabled will use the maximum amount of threads available
 
 int thread_count; 
 
@@ -72,9 +72,10 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 	DWORD buffer_length = 64 * sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
 	GetLogicalProcessorInformation(info, &buffer_length);
 	
-	// Count the number of physical cores
+	// Count the number of Logical Cores
 	for (int i = 0; i < buffer_length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
 		if (info[i].Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationProcessorCore) {
+			// For each Physical Core count its Logical Cores
 			for (int j = 0; j < 32; j++) {
 				if (info[i].ProcessorMask >> j & 1) {
 					thread_count++;
