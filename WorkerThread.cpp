@@ -3,10 +3,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#define THREAD_COUNT 8
+#define USE_MULTITHREADING true
 
-HANDLE go_signal  [THREAD_COUNT];
-HANDLE done_signal[THREAD_COUNT];
+int thread_count; 
+
+HANDLE * go_signal;
+HANDLE * done_signal;
 
 volatile LONG remaining;
 
@@ -14,7 +16,7 @@ struct Params {
 	int thread_id;
 	const Scene  * scene;
 	const Window * window;
-} parameters[THREAD_COUNT];
+} * parameters;
 
 // This is the actual function that will run on each Worker Thread
 // It will wait until work becomes available, execute it and notify when the work is done
@@ -28,17 +30,17 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 	SetThreadDescription(thread, thread_name);
 	
 	// Set the Thread Affinity to pin it to 1 logical core
-	if (THREAD_COUNT > 1) {
-		DWORD_PTR thread_affinity_mask     = 1 << params.thread_id;
-		DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
+#if USE_MULTITHREADING
+	DWORD_PTR thread_affinity_mask     = 1 << params.thread_id;
+	DWORD_PTR thread_affinity_mask_old = SetThreadAffinityMask(thread, thread_affinity_mask);
 
-		// Check validity of Thread Affinity
-		if ((thread_affinity_mask & thread_affinity_mask_old) == 0) {
-			printf("Unable to set Process Affinity Mask!\n");
+	// Check validity of Thread Affinity
+	if ((thread_affinity_mask & thread_affinity_mask_old) == 0) {
+		printf("Unable to set Process Affinity Mask!\n");
 
-			abort();
-		}
+		abort();
 	}
+#endif
 
 	while (true) {
 		// Wait until the Worker Thread is signalled by the main thread
@@ -63,8 +65,34 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 }
 
 void WorkerThreads::init(const Scene & scene, const Window & window) {
+#if USE_MULTITHREADING
+	thread_count = 0;
+
+	SYSTEM_LOGICAL_PROCESSOR_INFORMATION info[64];
+	DWORD buffer_length = 64 * sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+	GetLogicalProcessorInformation(info, &buffer_length);
+	
+	// Count the number of physical cores
+	for (int i = 0; i < buffer_length / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
+		if (info[i].Relationship == LOGICAL_PROCESSOR_RELATIONSHIP::RelationProcessorCore) {
+			for (int j = 0; j < 32; j++) {
+				if (info[i].ProcessorMask >> j & 1) {
+					thread_count++;
+				}
+			}
+		}
+	}
+#else
+	thread_count = 1;
+#endif
+
+	go_signal   = new HANDLE[thread_count];
+	done_signal = new HANDLE[thread_count];
+
+	parameters = new Params[thread_count];
+
 	// Spawn the appropriate number of Worker Threads.
-	for (int i = 0; i < THREAD_COUNT; i++) {
+	for (int i = 0; i < thread_count; i++) {
 		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
@@ -79,11 +107,11 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 void WorkerThreads::wake_up_worker_threads(int job_count) {
 	remaining = job_count;
 
-	for (int i = 0; i < THREAD_COUNT; i++) {
+	for (int i = 0; i < thread_count; i++) {
 		SetEvent(go_signal[i]);
 	}
 }
 
 void WorkerThreads::wait_on_worker_threads() {
-	WaitForMultipleObjects(THREAD_COUNT, done_signal, true, INFINITE);
+	WaitForMultipleObjects(thread_count, done_signal, true, INFINITE);
 }
