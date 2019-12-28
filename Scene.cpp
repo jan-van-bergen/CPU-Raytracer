@@ -12,7 +12,7 @@
 #define SCENE SCENE_DYNAMIC
 
 #if SCENE == SCENE_DYNAMIC
-Scene::Scene() : camera(110.0f), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	spheres[0].init(1.0f);
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);

@@ -18,7 +18,7 @@ struct Camera {
 	Vector3 x_axis,          x_axis_rotated;
 	Vector3 y_axis,          y_axis_rotated;
 
-	inline Camera(float fov) : fov(DEG_TO_RAD(fov)) { }
+	inline Camera(float fov) : fov(fov) { }
 
 	void resize(int width, int height);
 
