@@ -75,7 +75,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	camera.rotation = Quaternion(0.268476f, 0.423740f, -0.133092f, 0.854779f);
 }
 #else
-Scene::Scene() : camera(110.0f), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	top_level_bvh.init(1);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 
