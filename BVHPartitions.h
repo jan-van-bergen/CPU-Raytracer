@@ -244,10 +244,7 @@ namespace BVHPartitions {
 
 				float vertex_min = vertices[0][dimension];
 				float vertex_max = vertices[2][dimension];
-		
-				float plane_left_distance = bounds_min;
-				float plane_right_distance;
-
+				
 				int bin_min = int(SBVH_BIN_COUNT * ((triangle.aabb.min[dimension] - bounds_min) * inv_bounds_delta));
 				int bin_max = int(SBVH_BIN_COUNT * ((triangle.aabb.max[dimension] - bounds_min) * inv_bounds_delta));
 
@@ -260,8 +257,9 @@ namespace BVHPartitions {
 				// Iterate over bins that intersect the AABB along the current dimension
 				for (int b = bin_min; b <= bin_max; b++) {
 					Bin & bin = bins[b];
-
-					plane_right_distance = bounds_min + float(b+1) * bounds_step;
+					
+					float bin_left_plane  = bounds_min + float(b) * bounds_step;
+					float bin_right_plane = bin_left_plane + bounds_step;
 
 					assert(bin.aabb.is_valid() || bin.aabb.is_empty());
 
@@ -269,10 +267,10 @@ namespace BVHPartitions {
 					AABB box;
 
 					// If all vertices lie on one side of either plane the AABB is empty
-					if (vertex_min >= plane_right_distance || vertex_max <= plane_left_distance) {
-						box = AABB::create_empty();
+					if (vertex_min >= bin_right_plane || vertex_max <= bin_left_plane) {
+						continue;
 					// If all verticies lie between the two planes, the AABB is just the Triangle's entire AABB
-					} else if (vertex_min >= plane_left_distance && vertex_max <= plane_right_distance) {
+					} else if (vertex_min >= bin_left_plane && vertex_max <= bin_right_plane) {
 						box = triangle.aabb;
 					} else {
 						Vector3 intersections[4];
@@ -287,16 +285,16 @@ namespace BVHPartitions {
 								float delta_ij = vertex_j - vertex_i;
 
 								// Check if edge between Vertex i and j intersects the left plane
-								if (vertex_i < plane_left_distance && plane_left_distance <= vertex_j) { 
+								if (vertex_i < bin_left_plane && bin_left_plane <= vertex_j) { 
 									// Lerp to obtain exact intersection point
-									float t = (plane_left_distance - vertex_i) / delta_ij;
+									float t = (bin_left_plane - vertex_i) / delta_ij;
 									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 								}
 
 								// Check if edge between Vertex i and j intersects the right plane
-								if (vertex_i < plane_right_distance && plane_right_distance <= vertex_j) { 
+								if (vertex_i < bin_right_plane && bin_right_plane <= vertex_j) { 
 									// Lerp to obtain exact intersection point
-									float t = (plane_right_distance - vertex_i) / delta_ij;
+									float t = (bin_right_plane - vertex_i) / delta_ij;
 									intersections[intersection_count++] = (1.0f - t) * vertices[i] + t * vertices[j];
 								}
 							}
@@ -309,14 +307,14 @@ namespace BVHPartitions {
 						box = AABB::from_points(intersections, intersection_count);
 
 						// If the middle vertex lies between the two planes it should be included in the AABB
-						if (vertices[1][dimension] >= plane_left_distance && vertices[1][dimension] < plane_right_distance) {
+						if (vertices[1][dimension] >= bin_left_plane && vertices[1][dimension] < bin_right_plane) {
 							box.expand(vertices[1]);
 						}
 
 						// In case we have only two intersections with either plane it must be the case that
 						// either the leftmost or the rightmost vertex lies between the two planes
 						if (intersection_count == 2) {
-							box.expand(vertex_max < plane_right_distance ? vertices[2] : vertices[0]);
+							box.expand(vertex_max < bin_right_plane ? vertices[2] : vertices[0]);
 						}
 
 						box.fix_if_needed();
@@ -331,16 +329,13 @@ namespace BVHPartitions {
 					
 					// The AABB of the current Bin cannot exceed the planes of the current Bin
 					const float epsilon = 0.01f;
-					assert(bin.aabb.min[dimension] > plane_left_distance  - epsilon);
-					assert(bin.aabb.max[dimension] < plane_right_distance + epsilon);
+					assert(bin.aabb.min[dimension] > bin_left_plane  - epsilon);
+					assert(bin.aabb.max[dimension] < bin_right_plane + epsilon);
 
 					// The AABB of the current Bin cannot exceed the bounds of the Node's AABB
 					assert(bin.aabb.min[0] > bounds.min[0] - epsilon && bin.aabb.max[0] < bounds.max[0] + epsilon);
 					assert(bin.aabb.min[1] > bounds.min[1] - epsilon && bin.aabb.max[1] < bounds.max[1] + epsilon);
 					assert(bin.aabb.min[2] > bounds.min[2] - epsilon && bin.aabb.max[2] < bounds.max[2] + epsilon);
-					
-					// Advance to next Bin
-					plane_left_distance = plane_right_distance;
 				}
 			}
 

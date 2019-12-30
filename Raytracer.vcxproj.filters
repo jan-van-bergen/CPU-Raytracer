@@ -160,5 +160,8 @@
     <ClInclude Include="BVHBuilders.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
+    <ClInclude Include="Spline.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
