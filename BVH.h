@@ -14,7 +14,6 @@
 #define BVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
 #define BVH_AXIS_MASK   0xc0000000 // 11 00 zeroes...
 
-template<typename PrimitiveType>
 struct BVHNode {
 	AABB aabb;
 	union {  // A Node can either be a leaf or have children. A leaf Node means count = 0
@@ -49,7 +48,7 @@ struct BVH {
 	int * indices_y;
 	int * indices_z;
 
-	BVHNode<PrimitiveType> * nodes;
+	BVHNode * nodes;
 
 	inline void init(int count) {
 		assert(count > 0);
@@ -72,7 +71,7 @@ struct BVH {
 		}
 
 		// Construct Node pool
-		nodes = reinterpret_cast<BVHNode<PrimitiveType> *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode<PrimitiveType>), 64));
+		nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), 64));
 		assert((unsigned long long)nodes % 64 == 0);
 	}
 
@@ -110,7 +109,7 @@ struct BVH {
 		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices[0], 0, primitive_count);
 
 		int node_index = 2;
-		int leaf_count = BVHBuilders::build_sbvh(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
+		int leaf_count = BVHBuilders::build_sbvh<PrimitiveType>(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
 
 		printf("Leaf count: %i\n", leaf_count);
 
@@ -143,7 +142,7 @@ struct BVH {
 
 		while (stack_size > 0) {
 			// Pop Node of the stack
-			const BVHNode<PrimitiveType> & node = nodes[stack[--stack_size]];
+			const BVHNode & node = nodes[stack[--stack_size]];
 
 			SIMD_float mask = node.aabb.intersect(ray, ray_hit.distance);
 			if (SIMD_float::all_false(mask)) continue;
@@ -191,7 +190,7 @@ struct BVH {
 
 		while (stack_size > 0) {
 			// Pop Node of the stack
-			const BVHNode<PrimitiveType> & node = nodes[stack[--stack_size]];
+			const BVHNode & node = nodes[stack[--stack_size]];
 
 			SIMD_float mask = node.aabb.intersect(ray, max_distance);
 			if (SIMD_float::all_false(mask)) continue;
