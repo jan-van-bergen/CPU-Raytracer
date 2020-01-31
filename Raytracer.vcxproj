@@ -212,6 +212,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Spline.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="BVHBuilders.h" />

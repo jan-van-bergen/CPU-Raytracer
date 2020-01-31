@@ -2,7 +2,7 @@
 
 #include "BVHPartitions.h"
 
-struct BVHNode; // Forward Declaration
+#include "BVHNode.h"
 
 namespace BVHBuilders {
 	template<typename PrimitiveType>
