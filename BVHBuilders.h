@@ -95,7 +95,7 @@ namespace BVHBuilders {
 
 		// If ratio between overlap area and root area is large enough, consider a Spatial Split
 		if (ratio > alpha) { 
-			BVHPartitions::partition_spatial(triangles, indices, first_index, index_count, sah, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
+			BVHPartitions::partition_spatial(triangles, indices, first_index, index_count, spatial_split_dimension, spatial_split_cost, spatial_split_plane_distance, spatial_split_aabb_left, spatial_split_aabb_right, spatial_split_count_left, spatial_split_count_right, node_aabb);
 		}
 
 		// Check SAH termination condition

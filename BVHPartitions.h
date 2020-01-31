@@ -207,7 +207,7 @@ namespace BVHPartitions {
 		return min_split_index;
 	}
 
-	inline int partition_spatial(const Triangle * triangles, int * indices[3], int first_index, int index_count, float * sah, int & split_dimension, float & split_cost, float & plane_distance, AABB & aabb_left, AABB & aabb_right, int & n_left, int & n_right, AABB bounds) {
+	inline int partition_spatial(const Triangle * triangles, int * indices[3], int first_index, int index_count, int & split_dimension, float & split_cost, float & plane_distance, AABB & aabb_left, AABB & aabb_right, int & n_left, int & n_right, AABB bounds) {
 		const int SBVH_BIN_COUNT = 256;
 		
 		float min_bin_cost = INFINITY;
