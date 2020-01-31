@@ -1,7 +1,7 @@
 # CPU Raytracer
 
 ![Sponza](Screenshots/Sponza.png)
-*Sponza scene (262205 triangles) rendered at ~77 ms frame time on an Intel i7-4710HQ*
+*Crytek Sponza scene (262205 triangles) rendered at ~77 ms frame time on an Intel i7-4710HQ*
 
 Implementation of a Whitted-Style CPU Raytracer.
 The project uses multithreading, a high quality acceleration structure ([SBVH](https://www.nvidia.com/docs/IO/77714/sbvh.pdf)), SIMD vectors, and data-oriented design to achieve high frame rates, even in scenes with large triangle counts.
