@@ -11,6 +11,7 @@ The project uses multithreading, a high quality acceleration structure ([SBVH](h
 ![Dynamic Scene](Screenshots/Dynamic.png)
 *Dynamic Scene rendered at ~38 ms frame time. The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share MeshData and the SBVH.*
 
+- Supports Plane, Sphere, and Triangle primitives.
 - Supports diffuse, specular/mirror, and dielectric materials.
 - Supports Point Lights, Spot Lights, and Directional Lights that can all cast shadows.
 - Supports standard BVH's, constructed using the Surface Area Heuristic
