@@ -10,7 +10,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_DYNAMIC
+#define SCENE SCENE_SPONZA
 
 #if SCENE == SCENE_DYNAMIC
 Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
@@ -404,24 +404,24 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 
 			// Apply Beer's Law
 #if SIMD_LANE_SIZE == 1
-			SIMD_Vector3 material_absorption(closest_hit.material_id[0] ? Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f) : Vector3(0.0f));
+			SIMD_Vector3 material_absorption(Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f));
 #elif SIMD_LANE_SIZE == 4
 			SIMD_Vector3 material_absorption(
-				closest_hit.material_id[3] ? Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[2] ? Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[1] ? Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[0] ? Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f) : Vector3(0.0f)
+				Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
 			);
 #elif SIMD_LANE_SIZE == 8
 			SIMD_Vector3 material_absorption(
-				closest_hit.material_id[7] ? Material::materials[closest_hit.material_id[7]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[6] ? Material::materials[closest_hit.material_id[6]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[5] ? Material::materials[closest_hit.material_id[5]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[4] ? Material::materials[closest_hit.material_id[4]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[3] ? Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[2] ? Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[1] ? Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f) : Vector3(0.0f),
-				closest_hit.material_id[0] ? Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f) : Vector3(0.0f)
+				Material::materials[closest_hit.material_id[7]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[6]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[5]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[4]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
+				Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
 			);
 #endif
 			SIMD_float beer_x = SIMD_float::exp(material_absorption.x * refraction_distance);
