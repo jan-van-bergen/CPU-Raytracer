@@ -111,9 +111,6 @@
     <ClInclude Include="Mesh.h">
       <Filter>Raytracing\Primitives</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Raytracing</Filter>
-    </ClInclude>
     <ClInclude Include="Util.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -165,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="BVHNode.h">
       <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
