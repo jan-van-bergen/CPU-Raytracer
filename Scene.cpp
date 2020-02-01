@@ -300,8 +300,8 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 		SIMD_Vector3 colour_refraction;
 
 #if SIMD_LANE_SIZE == 1
-		SIMD_Vector3 material_reflection   (Material::materials[closest_hit.material_id[0]]->reflection);
-		SIMD_Vector3 material_transmittance(Material::materials[closest_hit.material_id[0]]->transmittance);
+		SIMD_Vector3 material_reflection   (Material::materials[closest_hit.material_id[0]].reflection);
+		SIMD_Vector3 material_transmittance(Material::materials[closest_hit.material_id[0]].transmittance);
 #elif SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_reflection(
 			Material::materials[closest_hit.material_id[3]].reflection,
