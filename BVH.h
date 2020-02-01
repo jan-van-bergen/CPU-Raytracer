@@ -73,7 +73,7 @@ struct BVH {
 		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices[0], 0, primitive_count);
 
 		int node_index = 2;
-		int leaf_count = BVHBuilders::build_sbvh<PrimitiveType>(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
+		int leaf_count = BVHBuilders::build_sbvh(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
 
 		printf("Leaf count: %i\n", leaf_count);
 
