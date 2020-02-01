@@ -57,8 +57,6 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 				int tile_height = y + params.window->tile_height < params.window->height ? params.window->tile_height : params.window->height - y;
 
 				params.scene->render_tile(*params.window, x, y, tile_width, tile_height);
-
-				//printf("Task %i done\n", task);
 			} 
 		}
 		
