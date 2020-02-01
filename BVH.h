@@ -91,11 +91,6 @@ struct BVH {
 	}
 
 	inline void trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
-#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_BRUTE_FORCE
-		for (int i = 0; i < primitive_count; i++) {
-			primitives[i].trace(ray, ray_hit, world, 0);
-		}
-#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		int stack[128];
 		int stack_size = 1;
 
@@ -127,21 +122,9 @@ struct BVH {
 
 			step++;
 		}
-#endif
 	}
 
 	inline SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const {
-#if BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_BRUTE_FORCE
-		SIMD_float result(0.0f);
-
-		for (int i = 0; i < primitive_count; i++) {
-			result = result | primitives[i].intersect(ray, max_distance);
-
-			if (SIMD_float::all_true(result)) break;
-		}
-
-		return result;
-#elif BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_NAIVE || BVH_TRAVERSAL_STRATEGY == BVH_TRAVERSE_TREE_ORDERED
 		int stack[128];
 		int stack_size = 1;
 
@@ -179,6 +162,5 @@ struct BVH {
 		}
 
 		return hit;
-#endif
 	}
 };
