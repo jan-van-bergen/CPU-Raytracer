@@ -50,5 +50,5 @@ public:
 
 	void update(float delta);
 	
-	void render_tile(const Window & window, int x, int y) const;
+	void render_tile(const Window & window, int x, int y, int tile_width, int tile_height) const;
 };

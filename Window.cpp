@@ -4,8 +4,8 @@
 
 Window::Window(int width, int height, const char * title) : 
 	width(width), height(height), 
-	tile_count_x(width  / tile_width), 
-	tile_count_y(height / tile_height)
+	tile_count_x((width  + tile_width  - 1) / tile_width), 
+	tile_count_y((height + tile_height - 1) / tile_height)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 

@@ -15,8 +15,8 @@ inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, 
 }
 
 // NOTE: width and height should be multiples of tile_width and tile_height
-#define SCREEN_WIDTH  928
-#define SCREEN_HEIGHT 608
+#define SCREEN_WIDTH  900
+#define SCREEN_HEIGHT 600
 
 struct Window {
 private:
@@ -50,6 +50,9 @@ public:
 	}
 
 	inline void plot(int x, int y, const Vector3 & colour) const {
+		assert(x < width);
+		assert(y < height);
+
 		int r = int(Math::clamp(colour.x * 255.0f, 0.0f, 255.0f));
 		int g = int(Math::clamp(colour.y * 255.0f, 0.0f, 255.0f));
 		int b = int(Math::clamp(colour.z * 255.0f, 0.0f, 255.0f));

@@ -458,7 +458,7 @@ SIMD_Vector3 Scene::bounce(const Ray & ray, int bounces_left, SIMD_float & dista
 	return result; 
 }
 
-void Scene::render_tile(const Window & window, int x, int y) const {
+void Scene::render_tile(const Window & window, int x, int y, int tile_width, int tile_height) const {
 	Ray ray;
 	ray.origin.x = SIMD_float(camera.position.x);
 	ray.origin.y = SIMD_float(camera.position.y);
@@ -478,8 +478,8 @@ void Scene::render_tile(const Window & window, int x, int y) const {
 	int step_y = 2;
 	int step_x = 4;
 #endif
-	for (int j = y; j < y + window.tile_height; j += step_y) {
-		for (int i = x; i < x + window.tile_width; i += step_x) {
+	for (int j = y; j < y + tile_height; j += step_y) {
+		for (int i = x; i < x + tile_width; i += step_x) {
 			float i_f = float(i);
 			float j_f = float(j);
 
