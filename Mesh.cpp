@@ -4,20 +4,12 @@
 
 void Mesh::init(const char * file_path) {
 	mesh_data = MeshData::load(file_path);
-
-	aabb_model = AABB::create_empty();
-
-	for (int i = 0; i < mesh_data->triangle_bvh.primitive_count; i++) {
-		aabb_model.expand(mesh_data->triangle_bvh.primitives[i].aabb);
-	}
-
-	aabb_model.fix_if_needed();
 }
 
 void Mesh::update() {
 	transform.calc_world_matrix();
 
-	aabb = AABB::transform(aabb_model, transform.world_matrix);
+	aabb = AABB::transform(mesh_data->triangle_bvh.nodes[0].aabb, transform.world_matrix);
 
 	transform_inv = Matrix4::invert(transform.world_matrix);
 }
