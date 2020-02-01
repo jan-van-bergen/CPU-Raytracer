@@ -23,6 +23,8 @@ int main(int argument_count, char ** arguments) {
 	glDebugMessageCallback(glMessageCallback, NULL);
 #endif
 
+	Material::init();
+
 	Debug::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
 
 	// Initialize timing stuff

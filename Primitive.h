@@ -3,6 +3,6 @@
 #include "Transform.h"
 
 struct Primitive {
-	Material material;
+	int material_id = Material::add_material();
 	Transform transform;
 };

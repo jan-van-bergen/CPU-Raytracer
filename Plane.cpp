@@ -36,7 +36,7 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (int_mask & (1 << i)) {
-			ray_hit.material[i] = &material;
+			ray_hit.material_id[i] = material_id;
 		}
 	}
 }

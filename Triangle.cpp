@@ -70,7 +70,7 @@ void Triangle::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world, i
 
 	for (int j = 0; j < SIMD_LANE_SIZE; j++) {
 		if (int_mask & (1 << j)) {
-			ray_hit.material[j] = material;
+			ray_hit.material_id[j] = material_id;
 		}
 	}
 }

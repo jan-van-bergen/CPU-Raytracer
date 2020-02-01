@@ -20,7 +20,7 @@ struct alignas(64) Triangle {
 	Vector3 normal1;
 	Vector3 normal2;
 
-	const Material * material;
+	int material_id;
 
 	inline void update() { }
 
