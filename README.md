@@ -28,3 +28,8 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 - Plane, Sphere, and Triangle primitives.
 - Diffuse, specular/mirror, and dielectric materials.
 - Point Lights, Spot Lights, and Directional Lights that can all cast shadows.
+
+## Dependencies
+
+The project uses SDL and GLEW. Their dll's for both x86 and x64 targets are included in the repositories, as well as all required headers.
+The project is dependent on CUDA 10.2 and requires that the ```CUDA_PATH``` system variable is set to the path where CUDA 10.2 is installed.
