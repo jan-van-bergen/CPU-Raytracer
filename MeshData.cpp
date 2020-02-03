@@ -8,7 +8,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
 #include "Util.h"
-#include "ScopedTimer.h"
+#include "ScopeTimer.h"
 
 #define MESH_USE_BVH  0
 #define MESH_USE_SBVH 1
@@ -172,12 +172,12 @@ const MeshData * MeshData::load(const char * file_path) {
 
 #if MESH_ACCELERATOR == MESH_USE_BVH
 		{
-			ScopedTimer timer("Mesh BVH Construction");
+			ScopeTimer timer("Mesh BVH Construction");
 			mesh_data->triangle_bvh.build_bvh();
 		}
 #elif MESH_ACCELERATOR == MESH_USE_SBVH
 		{
-			ScopedTimer timer("Mesh SBVH Construction");
+			ScopeTimer timer("Mesh SBVH Construction");
 			mesh_data->triangle_bvh.build_sbvh();
 		}
 #endif

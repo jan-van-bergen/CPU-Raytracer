@@ -233,7 +233,7 @@
     <ClInclude Include="Ray.h" />
     <ClInclude Include="RayHit.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="ScopedTimer.h" />
+    <ClInclude Include="ScopeTimer.h" />
     <ClInclude Include="SIMD.h" />
     <ClInclude Include="Sky.h" />
     <ClInclude Include="Sphere.h" />

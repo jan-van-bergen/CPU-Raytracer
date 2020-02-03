@@ -133,9 +133,6 @@
     <ClInclude Include="BVH.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
-    <ClInclude Include="ScopedTimer.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="MeshData.h">
       <Filter>Assets</Filter>
     </ClInclude>
@@ -165,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="ScopeTimer.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
