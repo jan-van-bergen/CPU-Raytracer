@@ -32,3 +32,5 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 ## Dependencies
 
 The project uses SDL and GLEW. Their dll's for both x86 and x64 targets are included in the repositories, as well as all required headers.
+
+The project requires Intel's SVML library. This is included with Visual Studio 2019, other compilers will need to link against SVML. 
