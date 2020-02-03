@@ -1,6 +1,11 @@
 #pragma once
 #include "Vector3.h"
 
+#define TEXTURE_SAMPLE_MODE_NEAREST  0
+#define TEXTURE_SAMPLE_MODE_BILINEAR 1
+
+#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_NEAREST
+
 struct Texture {
 private:
 	unsigned * data = nullptr;

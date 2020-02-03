@@ -14,7 +14,11 @@ struct Material {
 
 	inline Vector3 get_colour(float u, float v) const {
 		if (texture) {
+#if TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_NEAREST
+			return diffuse * texture->sample(u, v);
+#elif TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_BILINEAR
 			return diffuse * texture->sample_bilinear(u, v);
+#endif
 		}
 
 		return diffuse;
