@@ -15,8 +15,8 @@ struct BottomLevelBVH {
 	Vector3 * normal_edge1;
 	Vector3 * normal_edge2;
 
-	int * material_id;
-	int   material_offset;
+	int * material_id;     // Material id as obtained from the obj file
+	int   material_offset; // Offset in the Material buffer for all Triangles in this BVH
 
 	int primitive_count;
 
