@@ -111,10 +111,6 @@ BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 			}
 		}
 
-		Vector3 * positions  = new Vector3[max_vertex_count];
-		Vector2 * tex_coords = new Vector2[max_vertex_count];
-		Vector3 * normals    = new Vector3[max_vertex_count];
-
 		int        triangle_count = total_vertex_count / 3;
 		Triangle * triangles = new Triangle[triangle_count];
 
@@ -126,62 +122,63 @@ BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 			int vertex_count = shapes[s].mesh.indices.size();
 			assert(vertex_count % 3 == 0);
 
-			// Iterate over vertices and assign attributes
-			for (int v = 0; v < vertex_count; v++) {
-				int vertex_index    = shapes[s].mesh.indices[v].vertex_index;
-				int tex_coord_index = shapes[s].mesh.indices[v].texcoord_index;
-				int normal_index    = shapes[s].mesh.indices[v].normal_index;
-			
-				if (vertex_index != INVALID) {
-					positions[v] = Vector3(
-						attrib.vertices[3*vertex_index    ], 
-						attrib.vertices[3*vertex_index + 1], 
-						attrib.vertices[3*vertex_index + 2]
-					);
-				}
-				if (tex_coord_index != INVALID) {
-					tex_coords[v] = Vector2(
-							   attrib.texcoords[2*tex_coord_index    ], 
-						1.0f - attrib.texcoords[2*tex_coord_index + 1] // Flip uv along y
-					);
-				}
-				if (normal_index != INVALID) {
-					normals[v] = Vector3(
-						attrib.normals[3*normal_index    ], 
-						attrib.normals[3*normal_index + 1], 
-						attrib.normals[3*normal_index + 2]
-					);
-				}
-			}
-
 			// Iterate over faces
-			for (int v = 0; v < vertex_count / 3; v++) {
-				int index = triangle_offset + v;
+			for (int f = 0; f < vertex_count / 3; f++) {
+				int index_triangle = triangle_offset + f;
 
-				triangles[index].position0 = positions[3*v];
-				triangles[index].position1 = positions[3*v + 1];
-				triangles[index].position2 = positions[3*v + 2];
+				// Get indices for the positions, texcoords, and normals for the current Triangle face
+				int index_position0 = 3 * shapes[s].mesh.indices[3*f    ].vertex_index;
+				int index_position1 = 3 * shapes[s].mesh.indices[3*f + 1].vertex_index;
+				int index_position2 = 3 * shapes[s].mesh.indices[3*f + 2].vertex_index;
 
-				triangles[index].calc_aabb();
+				int index_tex_coord0 = 2 * shapes[s].mesh.indices[3*f    ].texcoord_index;
+				int index_tex_coord1 = 2 * shapes[s].mesh.indices[3*f + 1].texcoord_index;
+				int index_tex_coord2 = 2 * shapes[s].mesh.indices[3*f + 2].texcoord_index;
 
-				bvh->position0     [index] = positions[3*v];
-				bvh->position_edge1[index] = positions[3*v + 1] - positions[3*v];
-				bvh->position_edge2[index] = positions[3*v + 2] - positions[3*v];
+				int index_normal0 = 3 * shapes[s].mesh.indices[3*f    ].normal_index;
+				int index_normal1 = 3 * shapes[s].mesh.indices[3*f + 1].normal_index;
+				int index_normal2 = 3 * shapes[s].mesh.indices[3*f + 2].normal_index;
 
-				bvh->tex_coord0     [index] = tex_coords[3*v];
-				bvh->tex_coord_edge1[index] = tex_coords[3*v + 1] - tex_coords[3*v];
-				bvh->tex_coord_edge2[index] = tex_coords[3*v + 2] - tex_coords[3*v];
+				// Obtain positions, texcoords, and normals by indexing the buffers
+				Vector3 position0 = Vector3(attrib.vertices[index_position0], attrib.vertices[index_position0 + 1], attrib.vertices[index_position0 + 2]);
+				Vector3 position1 = Vector3(attrib.vertices[index_position1], attrib.vertices[index_position1 + 1], attrib.vertices[index_position1 + 2]);
+				Vector3 position2 = Vector3(attrib.vertices[index_position2], attrib.vertices[index_position2 + 1], attrib.vertices[index_position2 + 2]);
+				
+				Vector2 tex_coord0 = Vector2(attrib.texcoords[index_tex_coord0], 1.0f - attrib.texcoords[index_tex_coord0 + 1]);
+				Vector2 tex_coord1 = Vector2(attrib.texcoords[index_tex_coord1], 1.0f - attrib.texcoords[index_tex_coord1 + 1]);
+				Vector2 tex_coord2 = Vector2(attrib.texcoords[index_tex_coord2], 1.0f - attrib.texcoords[index_tex_coord2 + 1]);
 
-				bvh->normal0     [index] = normals[3*v];
-				bvh->normal_edge1[index] = normals[3*v + 1] - normals[3*v];
-				bvh->normal_edge2[index] = normals[3*v + 2] - normals[3*v];
+				Vector3 normal0 = Vector3(attrib.normals[index_normal0], attrib.normals[index_normal0 + 1], attrib.normals[index_normal0 + 2]);
+				Vector3 normal1 = Vector3(attrib.normals[index_normal1], attrib.normals[index_normal1 + 1], attrib.normals[index_normal1 + 2]);
+				Vector3 normal2 = Vector3(attrib.normals[index_normal2], attrib.normals[index_normal2 + 1], attrib.normals[index_normal2 + 2]);
 
-				int material_id = shapes[s].mesh.material_ids[v];
+				// Store positions in the AoS buffer used for BVH construction
+				triangles[index_triangle].position0 = position0;
+				triangles[index_triangle].position1 = position1;
+				triangles[index_triangle].position2 = position2;
+
+				triangles[index_triangle].calc_aabb();
+
+				// Store positions, texcoords, and normals in SoA layout in the BVH itself
+				bvh->position0     [index_triangle] = position0;
+				bvh->position_edge1[index_triangle] = position1 - position0;
+				bvh->position_edge2[index_triangle] = position2 - position0;
+
+				bvh->tex_coord0     [index_triangle] = tex_coord0;
+				bvh->tex_coord_edge1[index_triangle] = tex_coord1 - tex_coord0;
+				bvh->tex_coord_edge2[index_triangle] = tex_coord2 - tex_coord0;
+
+				bvh->normal0     [index_triangle] = normal0;
+				bvh->normal_edge1[index_triangle] = normal1 - normal0;
+				bvh->normal_edge2[index_triangle] = normal2 - normal0;
+
+				// Lookup and store material id
+				int material_id = shapes[s].mesh.material_ids[f];
 				if (material_id == INVALID) material_id = 0;
 			
 				assert(material_id < material_count);
 
-				bvh->material_id[index] = material_id;
+				bvh->material_id[index_triangle] = material_id;
 			}
 		
 			triangle_offset += vertex_count / 3;
@@ -190,11 +187,7 @@ BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 		assert(triangle_offset == triangle_count);
 
 		printf("Loaded Mesh %s from disk, consisting of %u triangles.\n", filename, triangle_count);
-	
-		delete [] positions;
-		delete [] tex_coords;
-		delete [] normals;
-		
+
 #if MESH_ACCELERATOR == MESH_USE_BVH
 		{
 			ScopeTimer timer("Mesh BVH Construction");
