@@ -8,9 +8,7 @@ struct BVH {
 	PrimitiveType * primitives;
 	int             primitive_count;
 
-	int * indices_x;
-	int * indices_y;
-	int * indices_z;
+	int * indices;
 	
 	int       node_count;
 	BVHNode * nodes;
@@ -23,19 +21,7 @@ struct BVH {
 		primitive_count = count; 
 		primitives = new PrimitiveType[primitive_count];
 
-		int overallocation = 2; // SBVH requires more space
-
-		// Construct index array
-		int * all_indices  = new int[3 * overallocation * primitive_count];
-		indices_x = all_indices;
-		indices_y = all_indices + primitive_count * overallocation;
-		indices_z = all_indices + primitive_count * overallocation * 2;
-
-		for (int i = 0; i < primitive_count; i++) {
-			indices_x[i] = i;
-			indices_y[i] = i;
-			indices_z[i] = i;
-		}
+		indices = nullptr;
 
 		// Construct Node pool
 		nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), 64));
@@ -43,49 +29,78 @@ struct BVH {
 	}
 
 	inline void build_bvh() {
-		float * sah = new float[primitive_count];
-		
+		int * indices_x = new int[primitive_count];
+		int * indices_y = new int[primitive_count];
+		int * indices_z = new int[primitive_count];
+
+		for (int i = 0; i < primitive_count; i++) {
+			indices_x[i] = i;
+			indices_y[i] = i;
+			indices_z[i] = i;
+		}
+
 		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
 		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
 		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
 		
-		int * indices[3] = { indices_x, indices_y, indices_z };
+		float * sah = new float[primitive_count];
+		
+		int * indices_xyz[3] = { indices_x, indices_y, indices_z };
 
 		int * temp = new int[primitive_count];
 
-		int node_index = 2;
-		BVHBuilders::build_bvh(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp);
+		node_count = 2;
+		BVHBuilders::build_bvh(nodes[0], primitives, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp);
 
-		assert(node_index <= 2 * primitive_count);
+		assert(node_count <= 2 * primitive_count);
 
-		node_count = node_index;
 		leaf_count = primitive_count;
+
+		// Use indices_x to index the Primitives array, and delete the other two
+		indices = indices_x;
+		delete [] indices_y;
+		delete [] indices_z;
 
 		delete [] temp;
 		delete [] sah;
 	}
 
 	inline void build_sbvh() {
-		float * sah = new float[primitive_count];
+		const int overallocation = 2; // SBVH requires more space
+
+		int * indices_x = new int[overallocation * primitive_count];
+		int * indices_y = new int[overallocation * primitive_count];
+		int * indices_z = new int[overallocation * primitive_count];
+
+		for (int i = 0; i < primitive_count; i++) {
+			indices_x[i] = i;
+			indices_y[i] = i;
+			indices_z[i] = i;
+		}
 		
 		std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
 		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
 		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
+
+		float * sah = new float[primitive_count];
 		
-		int * indices[3] = { indices_x, indices_y, indices_z };
+		int * indices_xyz[3] = { indices_x, indices_y, indices_z };
 
 		int * temp[2] = { new int[primitive_count], new int[primitive_count] };
 
-		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices[0], 0, primitive_count);
+		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices_xyz[0], 0, primitive_count);
 
-		int node_index = 2;
-		leaf_count = BVHBuilders::build_sbvh(nodes[0], primitives, indices, nodes, node_index, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
+		node_count = 2;
+		leaf_count = BVHBuilders::build_sbvh(nodes[0], primitives, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
 
 		printf("SBVH Leaf count: %i\n", leaf_count);
 
-		assert(node_index <= 2 * primitive_count);
+		assert(node_count <= 2 * primitive_count);
 
-		node_count = node_index;
+		// Use indices_x to index the Primitives array, and delete the other two
+		indices = indices_x;
+		delete [] indices_y;
+		delete [] indices_z;
 
 		delete [] temp[0];
 		delete [] temp[1];
@@ -106,7 +121,7 @@ struct BVH {
 
 		fwrite(reinterpret_cast<const char *>(&leaf_count), sizeof(int), 1, file);
 		
-		fwrite(reinterpret_cast<const char *>(indices_x), sizeof(int), leaf_count, file);
+		fwrite(reinterpret_cast<const char *>(indices), sizeof(int), leaf_count, file);
 
 		fclose(file);
 	}
@@ -129,8 +144,8 @@ struct BVH {
 
 		fread(reinterpret_cast<char *>(&leaf_count), sizeof(int), 1, file);
 			
-		indices_x = new int[leaf_count];
-		fread(reinterpret_cast<char *>(indices_x), sizeof(int), leaf_count, file);
+		indices = new int[leaf_count];
+		fread(reinterpret_cast<char *>(indices), sizeof(int), leaf_count, file);
 
 		fclose(file);
 	}
@@ -159,7 +174,7 @@ struct BVH {
 
 			if (node.is_leaf()) {
 				for (int i = node.first; i < node.first + node.count; i++) {
-					primitives[indices_x[i]].trace(ray, ray_hit, world, step);
+					primitives[indices[i]].trace(ray, ray_hit, world, step);
 				}
 			} else {
 				if (node.should_visit_left_first(ray)) {
@@ -195,7 +210,7 @@ struct BVH {
 
 			if (node.is_leaf()) {
 				for (int i = node.first; i < node.first + node.count; i++) {
-					hit = hit | primitives[indices_x[i]].intersect(ray, max_distance);
+					hit = hit | primitives[indices[i]].intersect(ray, max_distance);
 
 					if (SIMD_float::all_true(hit)) return hit;
 				}
