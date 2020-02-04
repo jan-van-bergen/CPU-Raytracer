@@ -5,9 +5,6 @@
 
 #include "BottomLevelBVH.h"
 
-#include "Ray.h"
-#include "RayHit.h"
-
 struct Mesh {
 	Transform transform;
 	Matrix4 transform_inv;

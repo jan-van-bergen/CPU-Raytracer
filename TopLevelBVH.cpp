@@ -13,12 +13,11 @@ void TopLevelBVH::init(int count) {
 	// Construct Node pool
 	nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), 64));
 	assert((unsigned long long)nodes % 64 == 0);
-}
 
-void TopLevelBVH::build_bvh() {
-	int * indices_x = new int[primitive_count];
-	int * indices_y = new int[primitive_count];
-	int * indices_z = new int[primitive_count];
+	// Used for rebuilding, allocated once so we don't have to heap allocate/destroy every frame
+	indices_x = new int[primitive_count];
+	indices_y = new int[primitive_count];
+	indices_z = new int[primitive_count];
 
 	for (int i = 0; i < primitive_count; i++) {
 		indices_x[i] = i;
@@ -26,14 +25,18 @@ void TopLevelBVH::build_bvh() {
 		indices_z[i] = i;
 	}
 
+	sah  = new float[primitive_count];
+	temp = new int[primitive_count];
+
+	indices = indices_x;
+}
+
+void TopLevelBVH::build_bvh() {
 	std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return primitives[a].get_position().x < primitives[b].get_position().x; });
 	std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
 	std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
 		
 	int * indices_xyz[3] = { indices_x, indices_y, indices_z };
-
-	float * sah  = new float[primitive_count];
-	int   * temp = new int[primitive_count];
 
 	node_count = 2;
 	BVHBuilders::build_bvh(nodes[0], primitives, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp);
@@ -41,16 +44,8 @@ void TopLevelBVH::build_bvh() {
 	assert(node_count <= 2 * primitive_count);
 
 	leaf_count = primitive_count;
-
-	// Use indices_x to index the Primitives array, and delete the other two
-	indices = indices_x;
-	delete [] indices_y;
-	delete [] indices_z;
-
-	delete [] temp;
-	delete [] sah;
 }
-	
+
 void TopLevelBVH::update() const {
 	for (int i = 0; i < primitive_count; i++) {
 		primitives[i].update();
