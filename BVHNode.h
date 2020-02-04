@@ -14,7 +14,7 @@
 
 struct BVHNode {
 	AABB aabb;
-	union {  // A Node can either be a leaf or have children. A leaf Node means count = 0
+	union {  // A Node can either be a leaf or have 2 children. A leaf Node means count > 0
 		int left;  // Left contains index of left child if the current Node is not a leaf Node
 		int first; // First constains index of first primtive if the current Node is a leaf Node
 	};

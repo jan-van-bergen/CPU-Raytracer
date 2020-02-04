@@ -126,15 +126,11 @@ namespace BVHPartitions {
 			for (int i = index_count - 1; i > 0; i--) {
 				aabb_right.expand(primitives[indices[dimension][first_index + i]].aabb);
 
-				sah[i - 1] += aabb_right.surface_area() * float(index_count - i);
-			}
+				float cost = sah[i - 1] + aabb_right.surface_area() * float(index_count - i);
 
-			// Find the minimum of the SAH
-			for (int i = 0; i < index_count - 1; i++) {
-				float cost = sah[i];
 				if (cost < min_split_cost) {
 					min_split_cost = cost;
-					min_split_index = first_index + i + 1;
+					min_split_index = first_index + i;
 					min_split_dimension = dimension;
 				}
 			}
@@ -178,12 +174,8 @@ namespace BVHPartitions {
 				bounds_right[i].expand(primitives[indices[dimension][first_index + i]].aabb);
 				bounds_right[i] = AABB::overlap(bounds_right[i], node_aabb);
 				
-				sah[i] += bounds_right[i].surface_area() * float(index_count - i);
-			}
-			
-			// Find the minimum of the SAH
-			for (int i = 1; i < index_count; i++) {
-				float cost = sah[i];
+				float cost = sah[i] + bounds_right[i].surface_area() * float(index_count - i);
+
 				if (cost < min_split_cost) {
 					min_split_cost = cost;
 					min_split_index = first_index + i;
