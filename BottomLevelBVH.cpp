@@ -67,7 +67,8 @@ BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 		printf("Loading BVH %s from disk.\n", bvh_filename.c_str());
 
 		bvh->load_from_disk(bvh_filename.c_str());
-		
+
+		// Load only the mtl file
 		std::map<std::string, int> material_map;
 		std::vector<tinyobj::material_t> materials;
 
@@ -77,14 +78,13 @@ BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 		std::string str(filename);
 
 		std::filebuf fb;
-		fb.open(str.substr(0, str.length() - 4) + ".mtl", std::ios::in);
+		if (!fb.open(str.substr(0, str.length() - 4) + ".mtl", std::ios::in)) abort();
 		std::istream is(&fb);
 
 		tinyobj::LoadMtl(&material_map, &materials, &is, &warning, &error);
 
 		load_materials(bvh, materials, path);
 	} else {
-		// Otherwise, load new MeshData
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
@@ -429,7 +429,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	SIMD_Vector3 point  = Matrix4::transform_position (world, ray.origin + ray.direction * t);
+	SIMD_Vector3 point  = Matrix4::transform_position(world, ray.origin + ray.direction * t);
 	SIMD_Vector3 normal = Matrix4::transform_direction(world, 
 		SIMD_Vector3::normalize(Math::barycentric(
 			SIMD_Vector3(normal0[index]), 
