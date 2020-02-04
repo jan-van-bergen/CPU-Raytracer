@@ -43,11 +43,10 @@ struct BVH {
 		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
 		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
 		
-		float * sah = new float[primitive_count];
-		
 		int * indices_xyz[3] = { indices_x, indices_y, indices_z };
 
-		int * temp = new int[primitive_count];
+		float * sah  = new float[primitive_count];
+		int   * temp = new int[primitive_count];
 
 		node_count = 2;
 		BVHBuilders::build_bvh(nodes[0], primitives, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp);
@@ -82,11 +81,10 @@ struct BVH {
 		std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return primitives[a].get_position().y < primitives[b].get_position().y; });
 		std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return primitives[a].get_position().z < primitives[b].get_position().z; });
 
-		float * sah = new float[primitive_count];
-		
 		int * indices_xyz[3] = { indices_x, indices_y, indices_z };
-
-		int * temp[2] = { new int[primitive_count], new int[primitive_count] };
+		
+		float * sah     = new float[primitive_count];
+		int   * temp[2] = { new int[primitive_count], new int[primitive_count] };
 
 		AABB root_aabb = BVHPartitions::calculate_bounds(primitives, indices_xyz[0], 0, primitive_count);
 
