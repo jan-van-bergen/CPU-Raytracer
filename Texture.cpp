@@ -49,7 +49,7 @@ Vector3 Texture::fetch_texel(int x, int y) const {
 	return Vector3(r, g, b);
 }
 
-Vector3 Texture::sample(float u, float v) const {
+Vector3 Texture::sample_nearest(float u, float v) const {
 	int x = Math::mod(int(u * width_f  + 0.5f), width);
 	int y = Math::mod(int(v * height_f + 0.5f), height);
 
