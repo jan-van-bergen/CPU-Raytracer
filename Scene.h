@@ -4,7 +4,7 @@
 #include "Mesh.h"
 #include "PrimitiveList.h"
 
-#include "BVH.h"
+#include "TopLevelBVH.h"
 
 #include "PointLight.h"
 #include "SpotLight.h"
@@ -21,7 +21,7 @@ private:
 	PrimitiveList<Sphere> spheres;
 	PrimitiveList<Plane>  planes;
 
-	BVH<Mesh> top_level_bvh;
+	TopLevelBVH top_level_bvh;
 
 	// Lights
 	PointLight * point_lights      = nullptr;

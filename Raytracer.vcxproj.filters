@@ -48,17 +48,17 @@
     <ClCompile Include="AABB.cpp">
       <Filter>Raytracing\BVH</Filter>
     </ClCompile>
-    <ClCompile Include="MeshData.cpp">
-      <Filter>Assets</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <Filter>Raytracing\Primitives</Filter>
-    </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
     <ClCompile Include="Sky.cpp">
       <Filter>Raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="BottomLevelBVH.cpp">
+      <Filter>Raytracing\BVH</Filter>
+    </ClCompile>
+    <ClCompile Include="TopLevelBVH.cpp">
+      <Filter>Raytracing\BVH</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -130,15 +130,6 @@
     <ClInclude Include="AABB.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
-    <ClInclude Include="BVH.h">
-      <Filter>Raytracing\BVH</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshData.h">
-      <Filter>Assets</Filter>
-    </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Raytracing\Primitives</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
@@ -165,6 +156,15 @@
     </ClInclude>
     <ClInclude Include="ScopeTimer.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="TopLevelBVH.h">
+      <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="BottomLevelBVH.h">
+      <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Raytracing\BVH</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

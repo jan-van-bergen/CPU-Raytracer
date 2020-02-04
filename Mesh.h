@@ -1,8 +1,9 @@
 #pragma once
 #include <cassert>
 
-#include "MeshData.h"
 #include "Transform.h"
+
+#include "BottomLevelBVH.h"
 
 #include "Ray.h"
 #include "RayHit.h"
@@ -13,7 +14,7 @@ struct Mesh {
 
 	AABB aabb;
 	
-	const MeshData * mesh_data = nullptr;
+	const BottomLevelBVH * bvh = nullptr;
 	
 	void init(const char * file_path);
 

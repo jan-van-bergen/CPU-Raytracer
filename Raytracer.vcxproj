@@ -196,25 +196,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AABB.cpp" />
+    <ClCompile Include="BottomLevelBVH.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshData.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sky.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="TopLevelBVH.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WorkerThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="BottomLevelBVH.h" />
     <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Spline.h" />
-    <ClInclude Include="BVH.h" />
     <ClInclude Include="BVHBuilders.h" />
     <ClInclude Include="BVHPartitions.h" />
     <ClInclude Include="Camera.h" />
@@ -224,7 +224,6 @@
     <ClInclude Include="Math.h" />
     <ClInclude Include="Matrix4.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshData.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="PointLight.h" />
     <ClInclude Include="Primitive.h" />
@@ -240,6 +239,7 @@
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TopLevelBVH.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Util.h" />

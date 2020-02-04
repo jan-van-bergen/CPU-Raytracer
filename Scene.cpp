@@ -33,7 +33,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	Material::materials[planes[0].material_id].reflection = 0.25f;
 	
 	top_level_bvh.init(6);
-	Mesh * diamond   = top_level_bvh.primitives + 0;
+	Mesh * diamond   = top_level_bvh.primitives;
 	Mesh * monkey    = top_level_bvh.primitives + 1;
 	Mesh * icosphere = top_level_bvh.primitives + 2;
 	Mesh * rock      = top_level_bvh.primitives + 3;
@@ -56,7 +56,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 
 	int triangle_count = 0;
 	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
-		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_bvh.primitive_count;
+		triangle_count += top_level_bvh.primitives[p].bvh->primitive_count;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
@@ -85,7 +85,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 
 	int triangle_count = 0;
 	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
-		triangle_count += top_level_bvh.primitives[p].mesh_data->triangle_bvh.primitive_count;
+		triangle_count += top_level_bvh.primitives[p].bvh->primitive_count;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 

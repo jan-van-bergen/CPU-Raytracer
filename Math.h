@@ -19,8 +19,8 @@ namespace Math {
 
 	// Interpolate between a,b,c given barycentric coordinates u,v
 	template<typename T, typename Real>
-	inline T barycentric(const T & a, const T & b, const T & c, Real u, Real v) {
-		return a + (u * (b - a)) + (v * (c - a));
+	inline T barycentric(const T & base, const T & edge1, const T & edge2, Real u, Real v) {
+		return base + u * edge1 + v * edge2;
 	}
 
 	// Reflects the vector in the normal

@@ -7,27 +7,11 @@
 
 #include "AABB.h"
 
-struct alignas(64) Triangle {
+struct Triangle {
 	Vector3 position0;
 	Vector3 position1;
 	Vector3 position2;
 
-	Vector2 tex_coord0;
-	Vector2 tex_coord1;
-	Vector2 tex_coord2;
-
-	Vector3 normal0;
-	Vector3 normal1;
-	Vector3 normal2;
-
-	int material_id;
-
-	inline void update() { }
-
-	void       trace    (const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const;
-	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
-
-	// BVH Related
 	AABB aabb;
 
 	inline void calc_aabb() {
@@ -47,5 +31,4 @@ struct alignas(64) Triangle {
 
 		fprintf(file, "f %i %i %i\n", 3*index + 1, 3*index + 2, 3*index + 3);
 	}
-
 };

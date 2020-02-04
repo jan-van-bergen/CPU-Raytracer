@@ -3,13 +3,13 @@
 #include "Math.h"
 
 void Mesh::init(const char * file_path) {
-	mesh_data = MeshData::load(file_path);
+	bvh = BottomLevelBVH::load(file_path);
 }
 
 void Mesh::update() {
 	transform.calc_world_matrix();
 
-	aabb = AABB::transform(mesh_data->triangle_bvh.nodes[0].aabb, transform.world_matrix);
+	aabb = AABB::transform(bvh->nodes[0].aabb, transform.world_matrix);
 
 	transform_inv = Matrix4::invert(transform.world_matrix);
 }
@@ -20,7 +20,7 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int b
 	ray_model_space.origin    = Matrix4::transform_position (transform_inv, ray.origin);
 	ray_model_space.direction = Matrix4::transform_direction(transform_inv, ray.direction);
 
-	mesh_data->triangle_bvh.trace(ray_model_space, ray_hit, transform.world_matrix);
+	bvh->trace(ray_model_space, ray_hit, transform.world_matrix);
 }
 
 SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
@@ -29,6 +29,6 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 	ray_model_space.origin    = Matrix4::transform_position (transform_inv, ray.origin);
 	ray_model_space.direction = Matrix4::transform_direction(transform_inv, ray.direction);
 
-	return mesh_data->triangle_bvh.intersect(ray_model_space, max_distance);
+	return bvh->intersect(ray_model_space, max_distance);
 }
 	
