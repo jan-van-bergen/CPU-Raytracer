@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "BVHBuilders.h"
-
 void TopLevelBVH::init(int count) {
 	assert(count > 0);
 
