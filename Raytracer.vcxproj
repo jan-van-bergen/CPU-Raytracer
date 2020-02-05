@@ -201,6 +201,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Sky.cpp" />
     <ClCompile Include="Sphere.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="BottomLevelBVH.h" />
     <ClInclude Include="BVHNode.h" />
+    <ClInclude Include="Raytracer.h" />
     <ClInclude Include="Spline.h" />
     <ClInclude Include="BVHBuilders.h" />
     <ClInclude Include="BVHPartitions.h" />

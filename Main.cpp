@@ -1,10 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "Window.h"
-#include "Scene.h"
-
-#include "Debug.h"
+#include "Raytracer.h"
 
 #include "WorkerThread.h"
 
@@ -41,8 +38,11 @@ int main(int argument_count, char ** arguments) {
 	Scene scene;
 	scene.camera.resize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+	Raytracer raytracer;
+	raytracer.scene = &scene;
+
 	// Initialize multi threading stuff
-	WorkerThreads::init(scene, window);
+	WorkerThreads::init(raytracer, window);
 
 	last = SDL_GetPerformanceCounter();
 

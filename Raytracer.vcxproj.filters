@@ -60,6 +60,9 @@
     <ClCompile Include="TopLevelBVH.cpp">
       <Filter>Raytracing\BVH</Filter>
     </ClCompile>
+    <ClCompile Include="Raytracer.cpp">
+      <Filter>Raytracing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -165,6 +168,9 @@
     </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Raytracing\BVH</Filter>
+    </ClInclude>
+    <ClInclude Include="Raytracer.h">
+      <Filter>Raytracing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

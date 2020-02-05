@@ -66,8 +66,8 @@ namespace BVHPartitions {
 
 				memcpy(indices[dimension] + first_index, temp, index_count * sizeof(int));
 
-				assert(is_sorted(primitives, indices, first_index,        left ));
-				assert(is_sorted(primitives, indices, first_index + left, right));
+				//assert(is_sorted(primitives, indices, first_index,        left ));
+				//assert(is_sorted(primitives, indices, first_index + left, right));
 			}
 		}
 	}
@@ -81,7 +81,7 @@ namespace BVHPartitions {
 
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
-			assert(is_sorted(primitives, indices, first_index, index_count));
+			//assert(is_sorted(primitives, indices, first_index, index_count));
 
 			AABB aabb_left  = AABB::create_empty();
 			AABB aabb_right = AABB::create_empty();
@@ -125,7 +125,7 @@ namespace BVHPartitions {
 		
 		// Check splits along all 3 dimensions
 		for (int dimension = 0; dimension < 3; dimension++) {
-			assert(is_sorted(primitives, indices, first_index, index_count));
+			//assert(is_sorted(primitives, indices, first_index, index_count));
 
 			bounds_left [0]           = AABB::create_empty();
 			bounds_right[index_count] = AABB::create_empty();

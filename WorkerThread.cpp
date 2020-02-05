@@ -14,8 +14,8 @@ volatile LONG remaining;
 
 struct Params {
 	int thread_id;
-	const Scene  * scene;
-	const Window * window;
+	const Raytracer * raytracer;
+	const Window    * window;
 } * parameters;
 
 // This is the actual function that will run on each Worker Thread
@@ -56,7 +56,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 				int tile_width  = x + params.window->tile_width  < params.window->width  ? params.window->tile_width  : params.window->width  - x;
 				int tile_height = y + params.window->tile_height < params.window->height ? params.window->tile_height : params.window->height - y;
 
-				params.scene->render_tile(*params.window, x, y, tile_width, tile_height);
+				params.raytracer->render_tile(*params.window, x, y, tile_width, tile_height);
 			} 
 		}
 		
@@ -65,7 +65,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 	}
 }
 
-void WorkerThreads::init(const Scene & scene, const Window & window) {
+void WorkerThreads::init(const Raytracer & raytracer, const Window & window) {
 #if USE_MULTITHREADING
 	thread_count = 0;
 
@@ -99,7 +99,7 @@ void WorkerThreads::init(const Scene & scene, const Window & window) {
 		done_signal[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
 		parameters[i].thread_id = i;
-		parameters[i].scene     = &scene;
+		parameters[i].raytracer = &raytracer;
 		parameters[i].window    = &window;
 		
 		CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
