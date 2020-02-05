@@ -15,15 +15,19 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
 	
 #if SIMD_LANE_SIZE == 1
-	int step_y = 1;
-	int step_x = 1;
+	const int step_x = 1;
+	const int step_y = 1;
 #elif SIMD_LANE_SIZE == 4
-	int step_y = 2;
-	int step_x = 2;
+	const int step_x = 2;
+	const int step_y = 2;
 #elif SIMD_LANE_SIZE == 8
-	int step_y = 2;
-	int step_x = 4;
+	const int step_x = 4;
+	const int step_y = 2;
 #endif
+
+	assert(tile_width  % step_x == 0);
+	assert(tile_height % step_y == 0);
+	
 	for (int j = y; j < y + tile_height; j += step_y) {
 		for (int i = x; i < x + tile_width; i += step_x) {
 			float i_f = float(i);
@@ -48,26 +52,22 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float   distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
-			alignas(SIMD_float) float xs[SIMD_LANE_SIZE]; SIMD_float::store(xs, colour.x);
-			alignas(SIMD_float) float ys[SIMD_LANE_SIZE]; SIMD_float::store(ys, colour.y);
-			alignas(SIMD_float) float zs[SIMD_LANE_SIZE]; SIMD_float::store(zs, colour.z);
-
 #if SIMD_LANE_SIZE == 1
-			window.plot(i, j, Vector3(xs[0], ys[0], zs[0]));
+			window.plot(i, j, Vector3(colour.x[0], colour.y[0], colour.z[0]));
 #elif SIMD_LANE_SIZE == 4
-			window.plot(i,     j,     Vector3(xs[3], ys[3], zs[3]));
-			window.plot(i + 1, j,     Vector3(xs[2], ys[2], zs[2]));
-			window.plot(i,     j + 1, Vector3(xs[1], ys[1], zs[1]));
-			window.plot(i + 1, j + 1, Vector3(xs[0], ys[0], zs[0]));
+			window.plot(i,     j,     Vector3(colour.x[3], colour.y[3], colour.z[3]));
+			window.plot(i + 1, j,     Vector3(colour.x[2], colour.y[2], colour.z[2]));
+			window.plot(i,     j + 1, Vector3(colour.x[1], colour.y[1], colour.z[1]));
+			window.plot(i + 1, j + 1, Vector3(colour.x[0], colour.y[0], colour.z[0]));
 #elif SIMD_LANE_SIZE == 8
-			window.plot(i,     j,     Vector3(xs[7], ys[7], zs[7]));
-			window.plot(i + 1, j,     Vector3(xs[6], ys[6], zs[6]));
-			window.plot(i + 2, j,     Vector3(xs[5], ys[5], zs[5]));
-			window.plot(i + 3, j,     Vector3(xs[4], ys[4], zs[4]));
-			window.plot(i,     j + 1, Vector3(xs[3], ys[3], zs[3]));
-			window.plot(i + 1, j + 1, Vector3(xs[2], ys[2], zs[2]));
-			window.plot(i + 2, j + 1, Vector3(xs[1], ys[1], zs[1]));
-			window.plot(i + 3, j + 1, Vector3(xs[0], ys[0], zs[0]));
+			window.plot(i,     j,     Vector3(colour.x[7], colour.y[7], colour.z[7]));
+			window.plot(i + 1, j,     Vector3(colour.x[6], colour.y[6], colour.z[6]));
+			window.plot(i + 2, j,     Vector3(colour.x[5], colour.y[5], colour.z[5]));
+			window.plot(i + 3, j,     Vector3(colour.x[4], colour.y[4], colour.z[4]));
+			window.plot(i,     j + 1, Vector3(colour.x[3], colour.y[3], colour.z[3]));
+			window.plot(i + 1, j + 1, Vector3(colour.x[2], colour.y[2], colour.z[2]));
+			window.plot(i + 2, j + 1, Vector3(colour.x[1], colour.y[1], colour.z[1]));
+			window.plot(i + 3, j + 1, Vector3(colour.x[0], colour.y[0], colour.z[0]));
 #endif
 		}
 	}
