@@ -43,4 +43,49 @@ namespace Debug {
 		
 		return approx_equal(lhs, rhs);
 	}
+	
+	// Writes an Triangle to the given FILE in obj format
+	inline void obj_write_triangle(const Triangle & triangle, FILE * file, int & index) {
+		fprintf(file, "v %f %f %f\n", triangle.position0.x, triangle.position0.y, triangle.position0.z);
+		fprintf(file, "v %f %f %f\n", triangle.position1.x, triangle.position1.y, triangle.position1.z);
+		fprintf(file, "v %f %f %f\n", triangle.position2.x, triangle.position2.y, triangle.position2.z);
+
+		fprintf(file, "f %i %i %i\n", index, index + 1, index + 2);
+
+		index += 3;
+	}
+	
+	// Writes an AABB to the given FILE in obj format
+	inline void obj_write_aabb(const AABB & aabb, FILE * file, int & index) {
+		Vector3 vertices[8] = {
+			Vector3(aabb.min.x, aabb.min.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.min.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.min.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.min.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.max.y, aabb.min.z),
+			Vector3(aabb.min.x, aabb.max.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.max.y, aabb.max.z),
+			Vector3(aabb.max.x, aabb.max.y, aabb.min.z)
+		};
+
+		int faces[36] = {
+			0, 1, 2, 0, 2, 3,
+			0, 1, 5, 0, 5, 4,
+			0, 4, 7, 0, 7, 3,
+			3, 7, 6, 3, 6, 2,
+			2, 6, 5, 2, 5, 1,
+			4, 5, 6, 4, 6, 7
+		};
+
+		fprintf(file, "o Debug_AABB_%i\n", index);
+		for (int v = 0; v < 8; v++) {
+			fprintf(file, "v %f %f %f\n", vertices[v].x, vertices[v].y, vertices[v].z);
+		}
+
+		for (int f = 0; f < 36; f += 3) {
+			fprintf(file, "f %i %i %i\n", 8*index + faces[f], 8*index + faces[f+1], 8*index + faces[f+2]);
+		}
+
+		index += 8;
+	}
 }

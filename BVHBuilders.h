@@ -251,16 +251,18 @@ namespace BVHBuilders {
 
 							spatial_split_aabb_right.expand(triangle.aabb);
 						}
-					} else if (valid_left) {
-						goes_right = false;
-
-						rejected_right++;
-					} else if (valid_right) {
-						goes_left = false;
-
-						rejected_left++;
 					} else {
-						abort(); // Shouldn't ever happen
+						if (!valid_right) {
+							goes_right = false;
+
+							rejected_right++;
+						}
+
+						if (!valid_left) {
+							goes_left = false;
+
+							rejected_left++;
+						}
 					}
 				}
 

@@ -6,7 +6,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_DYNAMIC
+#define SCENE SCENE_SPONZA
 
 #if SCENE == SCENE_DYNAMIC
 Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
@@ -77,7 +77,7 @@ CatmullRomSpline spline_path;
 
 Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	top_level_bvh.init(1);
-	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
+	top_level_bvh.primitives[0].init(DATA_PATH("Sponza/sponza.obj"));
 
 	int triangle_count = 0;
 	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
