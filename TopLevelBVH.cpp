@@ -60,12 +60,14 @@ void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world
 	stack[0] = 0;
 
 	int step = 0;
+	
+	SIMD_Vector3 inv_direction = SIMD_Vector3::rcp(ray.direction);
 
 	while (stack_size > 0) {
 		// Pop Node of the stack
 		const BVHNode & node = nodes[stack[--stack_size]];
 
-		SIMD_float mask = node.aabb.intersect(ray, ray_hit.distance);
+		SIMD_float mask = node.aabb.intersect(ray, inv_direction, ray_hit.distance);
 		if (SIMD_float::all_false(mask)) continue;
 
 		if (node.is_leaf()) {
@@ -96,12 +98,14 @@ SIMD_float TopLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) cons
 	int step = 0;
 
 	SIMD_float hit(0.0f);
+	
+	SIMD_Vector3 inv_direction = SIMD_Vector3::rcp(ray.direction);
 
 	while (stack_size > 0) {
 		// Pop Node of the stack
 		const BVHNode & node = nodes[stack[--stack_size]];
 
-		SIMD_float mask = node.aabb.intersect(ray, max_distance);
+		SIMD_float mask = node.aabb.intersect(ray, inv_direction, max_distance);
 		if (SIMD_float::all_false(mask)) continue;
 
 		if (node.is_leaf()) {

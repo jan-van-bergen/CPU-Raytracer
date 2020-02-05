@@ -51,7 +51,7 @@ struct AABB {
 
 	static AABB overlap(const AABB & b1, const AABB & b2);
 	
-	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
+	SIMD_float intersect(const Ray & ray, const SIMD_Vector3 & inv_direction, SIMD_float max_distance) const;
 
 	static AABB transform(const AABB & aabb, const Matrix4 & transformation);
 };
