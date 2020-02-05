@@ -25,7 +25,7 @@ The project uses multithreading, a high quality acceleration structure ([SBVH](h
 Each logical core gets assigned a Worker Thread and uses work stealing (among the other threads) by atomically requesting the next tile to render. This continues until all tiles are rendered.
 
 ### Other
-- Plane, Sphere, and Triangle primitives.
+- Plane, Sphere, and Triangle Mesh primitives.
 - Diffuse, specular/mirror, and dielectric materials.
 - Point Lights, Spot Lights, and Directional Lights that can all cast shadows.
 
