@@ -36,13 +36,13 @@ struct Scene {
 	
 	Sky sky;
 
-	void       trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
-	SIMD_float intersect_primitives(const Ray & ray, SIMD_float max_distance) const;
-	
 	Camera camera;
 
 	Scene();
 	~Scene();
-
+	
 	void update(float delta);
+	
+	void       trace_primitives    (const Ray & ray, RayHit & ray_hit) const;
+	SIMD_float intersect_primitives(const Ray & ray, SIMD_float max_distance) const;
 };
