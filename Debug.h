@@ -5,7 +5,7 @@
 #include "Texture.h"
 
 namespace Debug {
-	inline const Texture * heat_palette;
+	inline const Texture * heat_palette; // Used to visualize the number of steps through a BVH
 
 	template<typename Float>
 	inline bool approx_equal(Float a, Float b, Float epsilon = static_cast<Float>(0.01)) {

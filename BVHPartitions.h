@@ -23,35 +23,6 @@ namespace BVHPartitions {
 		return aabb;
 	} 
 
-	// Used for debugging
-	template<typename PrimitiveType>
-	inline bool is_sorted(const PrimitiveType * primitives, int * indices[3], int first, int last) {
-		for (int dimension = 0; dimension < 3; dimension++) {
-			for (int i = first + 1; i < last; i++) {
-				float prev = primitives[indices[dimension][i-1]].get_position()[dimension];
-				float curr = primitives[indices[dimension][i  ]].get_position()[dimension];
-
-				if (prev > curr) return false;
-			}
-		}
-
-		return true;
-	}
-
-	// Used for debugging
-	template<typename PrimitiveType>
-	inline bool is_unique(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count) {
-		for (int dimension = 0; dimension < 3; dimension++) {
-			for (int i = first_index; i < first_index + index_count; i++) {
-				for (int j = first_index; j < i; j++) {
-					if (indices[dimension][j] == indices[dimension][i]) return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
 	// Reorders indices arrays such that indices on the left side of the splitting dimension end up on the left partition in the other dimensions as well
 	template<typename PrimitiveType>
 	inline void split_indices(const PrimitiveType * primitives, int * indices[3], int first_index, int index_count, int * temp, int split_dimension, int split_index, float split) {
