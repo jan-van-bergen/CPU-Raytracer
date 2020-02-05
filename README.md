@@ -1,7 +1,7 @@
 # CPU Raytracer
 
 ![Sponza](Screenshots/Sponza.png)
-*Crytek Sponza scene (262205 triangles) rendered at ~77 ms frame time on an Intel i7-4710HQ*
+*Crytek Sponza scene (262205 triangles) rendered at ~50 ms frame time (20 FPS) on an Intel i7-4710HQ*
 
 Implementation of a Whitted-Style CPU Raytracer.
 The project uses multithreading, a high quality acceleration structure ([SBVH](https://www.nvidia.com/docs/IO/77714/sbvh.pdf)), SIMD vectors, and data-oriented design to achieve high frame rates, even in scenes with large triangle counts.
@@ -9,7 +9,7 @@ The project uses multithreading, a high quality acceleration structure ([SBVH](h
 ## Features
 
 ![Dynamic Scene](Screenshots/Dynamic.png)
-*Dynamic Scene rendered at ~38 ms frame time. The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share MeshData and the SBVH.*
+*Dynamic Scene rendered at ~29 ms frame time (34 FPS). The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share MeshData and the SBVH.*
 
 ### BVH
 
