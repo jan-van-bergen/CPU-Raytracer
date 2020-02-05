@@ -14,7 +14,7 @@ The project uses multithreading, a high quality acceleration structure ([SBVH](h
 ### BVH
 
 - Supports standard BVH's, constructed using the Surface Area Heuristic
-- Supports SBVH's, which add the possibility for spatial splits, thereby improving performance in non-uniform scenes.
+- Supports SBVH's, which add the possibility for spatial splits, thereby improving performance in scenes with a non-uniform Triangle distribution.
 - A Top Level BVH is constructed at the Scene Graph level. This structure is rebuild every frame, allowing different objects to move or rotate throughout the scene.
 
 ### Optimizations
