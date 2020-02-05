@@ -29,8 +29,8 @@ namespace Debug {
 		assert(approx_equal(SIMD_float::blend(one, SIMD_Vector3::length(direction_out), mask), one));
 		assert(approx_equal(SIMD_float::blend(one, SIMD_Vector3::length(normal),        mask), one));
 		
-		assert(SIMD_float::all_true(SIMD_float::blend(one, SIMD_Vector3::dot(-direction_in,   normal), mask) > zero)); // Opposite of incoming direction and normal should point in the same direction
-		assert(SIMD_float::all_true(SIMD_float::blend(one, SIMD_Vector3::dot( direction_out, -normal), mask) > zero)); // Outgoing direction and opposite of normal should point in the same direction
+		assert(SIMD_float::all_true(SIMD_float::blend(one, SIMD_Vector3::dot(-direction_in,   normal), mask) >= SIMD_float(-1e8))); // Opposite of incoming direction and normal should point in the same direction
+		assert(SIMD_float::all_true(SIMD_float::blend(one, SIMD_Vector3::dot( direction_out, -normal), mask) >= SIMD_float(-1e8))); // Outgoing direction and opposite of normal should point in the same direction
 		
 		SIMD_float dot_1 = SIMD_Vector3::dot(-direction_in,   normal);
 		SIMD_float dot_2 = SIMD_Vector3::dot( direction_out, -normal);
