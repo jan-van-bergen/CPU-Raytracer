@@ -49,9 +49,12 @@ struct SIMD_float1 {
 	
 	inline static FORCEINLINE SIMD_float1 sin(SIMD_float1 floats) { return SIMD_float1(sinf(floats.data)); }
 	inline static FORCEINLINE SIMD_float1 cos(SIMD_float1 floats) { return SIMD_float1(cosf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 tan(SIMD_float1 floats) { return SIMD_float1(tanf(floats.data)); }
 	
-	inline static FORCEINLINE SIMD_float1 atan2(SIMD_float1 y, SIMD_float1 x) { return SIMD_float1(atan2f(y.data, x.data)); }
+	inline static FORCEINLINE SIMD_float1 asin (SIMD_float1 floats)           { return SIMD_float1(asinf(floats.data)); }
 	inline static FORCEINLINE SIMD_float1 acos (SIMD_float1 floats)           { return SIMD_float1(acosf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 atan (SIMD_float1 floats)           { return SIMD_float1(atanf(floats.data)); }
+	inline static FORCEINLINE SIMD_float1 atan2(SIMD_float1 y, SIMD_float1 x) { return SIMD_float1(atan2f(y.data, x.data)); }
 
 	inline static FORCEINLINE SIMD_float1 exp(SIMD_float1 floats) { return SIMD_float1(expf(floats.data)); }
 
@@ -135,9 +138,12 @@ struct SIMD_float4 {
 	
 	inline static FORCEINLINE SIMD_float4 sin(const SIMD_float4 & floats) { return SIMD_float4(_mm_sin_ps(floats.data)); }
 	inline static FORCEINLINE SIMD_float4 cos(const SIMD_float4 & floats) { return SIMD_float4(_mm_cos_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float4 tan(const SIMD_float4 & floats) { return SIMD_float4(_mm_tan_ps(floats.data)); }
 	
+	inline static FORCEINLINE SIMD_float4 asin (const SIMD_float4 & floats)                   { return SIMD_float4(_mm_asin_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float4 acos (const SIMD_float4 & floats)                   { return SIMD_float4(_mm_acos_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float4 atan (const SIMD_float4 & floats)                   { return SIMD_float4(_mm_atan_ps(floats.data)); }
 	inline static FORCEINLINE SIMD_float4 atan2(const SIMD_float4 & y, const SIMD_float4 & x) { return SIMD_float4(_mm_atan2_ps(y.data, x.data)); }
-	inline static FORCEINLINE SIMD_float4 acos (const SIMD_float4 & floats)           { return SIMD_float4(_mm_acos_ps(floats.data)); }
 
 	inline static FORCEINLINE SIMD_float4 exp(const SIMD_float4 & floats) { return SIMD_float4(_mm_exp_ps(floats.data)); }
 
@@ -223,9 +229,12 @@ struct SIMD_float8 {
 	
 	inline static FORCEINLINE SIMD_float8 sin(const SIMD_float8 & floats) { return SIMD_float8(_mm256_sin_ps(floats.data)); }
 	inline static FORCEINLINE SIMD_float8 cos(const SIMD_float8 & floats) { return SIMD_float8(_mm256_cos_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float8 tan(const SIMD_float8 & floats) { return SIMD_float8(_mm256_tan_ps(floats.data)); }
 	
+	inline static FORCEINLINE SIMD_float8 asin (const SIMD_float8 & floats)                   { return SIMD_float8(_mm256_asin_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float8 acos (const SIMD_float8 & floats)                   { return SIMD_float8(_mm256_acos_ps(floats.data)); }
+	inline static FORCEINLINE SIMD_float8 atan (const SIMD_float8 & floats)                   { return SIMD_float8(_mm256_atan_ps(floats.data)); }
 	inline static FORCEINLINE SIMD_float8 atan2(const SIMD_float8 & y, const SIMD_float8 & x) { return SIMD_float8(_mm256_atan2_ps(y.data, x.data)); }
-	inline static FORCEINLINE SIMD_float8 acos (const SIMD_float8 & floats)           { return SIMD_float8(_mm256_acos_ps(floats.data)); }
 
 	inline static FORCEINLINE SIMD_float8 exp(const SIMD_float8 & floats) { return SIMD_float8(_mm256_exp_ps(floats.data)); }
 
