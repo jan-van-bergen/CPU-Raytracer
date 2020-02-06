@@ -443,6 +443,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
+	// See Chapter 20 of Ray Tracing Gems "Texture Level of Detail Strategies for Real-Time Ray Tracing"
 	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge1, edge2), ray.direction); 
 
 	SIMD_Vector3 _q = ray.dO_dx + t * ray.dD_dx;
@@ -456,10 +457,10 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	SIMD_float dv_dx = one_over_k * SIMD_Vector3::dot(c_v, _q);
 	SIMD_float dv_dy = one_over_k * SIMD_Vector3::dot(c_v, _r);
 
-	ray_hit.ds_dx = du_dx * tex_coord_b.x + dv_dx * tex_coord_c.x;
-	ray_hit.ds_dy = du_dy * tex_coord_b.x + dv_dy * tex_coord_c.x;
-	ray_hit.dt_dx = du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y;
-	ray_hit.dt_dy = du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y;
+	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, du_dx * tex_coord_b.x + dv_dx * tex_coord_c.x, mask);
+	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * tex_coord_b.x + dv_dy * tex_coord_c.x, mask);
+	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y, mask);
+	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y, mask);
 
 	ray_hit.bvh_steps = SIMD_float::blend(ray_hit.bvh_steps, SIMD_float(bvh_step), mask);
 

@@ -1,5 +1,6 @@
 #include "Texture.h"
 
+#include <algorithm>
 #include <unordered_map>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -29,31 +30,48 @@ const Texture * Texture::load(const char * file_path) {
 	}
 
 	texture->data = new unsigned[2 * texture->width * texture->height];
-	//memcpy(texture->data, data, texture->width * texture->height);
+	memcpy(texture->data, data, texture->width * texture->height * sizeof(unsigned));
 
 	delete [] data;
 
-	/*for (int j = 0; j < texture->height; j++) {
-		for (int i = 0; i < texture->width; i++) {
-			texture[]
-		}
-	}*/
+	int offset      = texture->width * texture->height;
+	int offset_prev = 0;
 
-	int offset = 0;
-	int size = texture->width;
-	int lod  = 0;
-
-	unsigned colours[] = { 0x0000ff, 0x00ffff, 0x00ff00, 0xffff00, 0xff0000, 0xff00ff, 0xffffff };
+	int size      = texture->width >> 1;
+	int size_prev = texture->width;
+	
+	texture->mip_levels = 0;
 
 	while (size >= 1) {
-		for (int i = 0; i < size * size; i++) {
-			texture->data[offset + i] = colours[lod];
+		for (int j = 0; j < size; j++) {
+			for (int i = 0; i < size; i++) {
+				int i_prev = i << 1;
+				int j_prev = j << 1;
+
+				unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * size_prev];
+				unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * size_prev];
+				unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * size_prev];
+				unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * size_prev];
+
+				unsigned sum_rb = (colour0 & 0xff00ff) + (colour1 & 0xff00ff) + (colour2 & 0xff00ff) + (colour3 & 0xff00ff);
+				unsigned sum_g  = (colour0 & 0x00ff00) + (colour1 & 0x00ff00) + (colour2 & 0x00ff00) + (colour3 & 0x00ff00);
+
+				unsigned average = ((sum_rb >> 2) & 0xff00ff) | ((sum_g >> 2) & 0x00ff00);
+
+				texture->data[offset + i + j * size] = average;
+			}
 		}
 
+		offset_prev = offset;
 		offset += size * size;
+
+		size_prev = size;
 		size >>= 1;
-		lod++;
+
+		texture->mip_levels++;
 	}
+
+	//texture->mip_levels = 1 + int(log2f(texture->width));
 
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
@@ -61,12 +79,23 @@ const Texture * Texture::load(const char * file_path) {
 	return texture;
 }
 
-Vector3 Texture::fetch_texel(int x, int y) const {
-	assert(x >= 0 && x < width);
-	assert(y >= 0 && y < height);
+Vector3 Texture::fetch_texel(int x, int y, int level) const {
+	//static Vector3 colours[] = { Vector3(1,0,0), Vector3(1,1,0), Vector3(0,1,0), Vector3(0,1,1), Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1) };
+	//return colours[level < 6 ? level : 6];
+
+	int offset = 0;
+	int size   = width;
+
+	for (int i = 0; i < level; i++) {
+		offset += size * size;
+		size >>= 1;
+	}
+
+	assert(x >= 0 && x < size);
+	assert(y >= 0 && y < size);
 
 	assert(data);
-	unsigned colour = data[x + y * width];
+	unsigned colour = data[offset + x + y * size];
 
 	const float one_over_255 = 0.00392156862f;
 	float r = float((colour)       & 0xff) * one_over_255;
@@ -83,19 +112,27 @@ Vector3 Texture::sample_nearest(float u, float v) const {
 	return fetch_texel(x, y);
 }
 
-Vector3 Texture::sample_bilinear(float u, float v) const {
+Vector3 Texture::sample_bilinear(float u, float v, int level) const {
+	int offset = 0;
+	int size   = width;
+
+	for (int i = 0; i < level; i++) {
+		offset += size * size;
+		size >>= 1;
+	}
+
 	// Convert normalized (u,v) to pixel space
-	u *= width_f;
-	v *= height_f;
+	u = u * size - 0.5f;
+	v = v * size - 0.5f;
 
 	// Convert pixel coordinates to integers
 	int u_i = int(u);
 	int v_i = int(v);
 	
-	int u0_i = Math::mod(u_i,     width);
-	int u1_i = Math::mod(u_i + 1, width);
-	int v0_i = Math::mod(v_i,     height);
-	int v1_i = Math::mod(v_i + 1, height);
+	int u0_i = Math::mod(u_i,     size);
+	int u1_i = Math::mod(u_i + 1, size);
+	int v0_i = Math::mod(v_i,     size);
+	int v1_i = Math::mod(v_i + 1, size);
 
 	// Calculate bilinear weights
 	float fractional_u = u - floor(u);
@@ -111,50 +148,35 @@ Vector3 Texture::sample_bilinear(float u, float v) const {
 
 	// Blend everything together using the weights
 	return 
-		w0 * fetch_texel(u0_i, v0_i) +
-		w1 * fetch_texel(u1_i, v0_i) +
-		w2 * fetch_texel(u0_i, v1_i) +
-		w3 * fetch_texel(u1_i, v1_i);
+		w0 * fetch_texel(u0_i, v0_i, level) +
+		w1 * fetch_texel(u1_i, v0_i, level) +
+		w2 * fetch_texel(u0_i, v1_i, level) +
+		w3 * fetch_texel(u1_i, v1_i, level);
 }
 
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+	//float rho = 2.0f * std::max(
+	//	std::max(std::abs(ds_dx), std::abs(ds_dy)), 
+	//	std::max(std::abs(dt_dx), std::abs(dt_dy))
+	//);
+
+	//float lambda = mip_levels - 1.0f + int(log2f(std::max(rho, 1e-8f)));
+
 	ds_dx *= width_f;
 	ds_dy *= width_f;
 	dt_dx *= height_f;
 	dt_dy *= height_f;
 
-	float left  = sqrtf(ds_dx*ds_dx + dt_dx*dt_dx);
-	float right = sqrtf(ds_dy*ds_dy + dt_dy*dt_dy);
+	float rho = std::max(sqrtf(ds_dx*ds_dx + dt_dx*dt_dx), sqrtf(ds_dy*ds_dy + dt_dy*dt_dy));
 
-	float rho = left > right ? left : right;
+	float lambda = log2f(rho);
 
-	int lambda = int(log2f(ceil(rho)));
+	int level = ceilf(lambda);
 
-	int w = width  >> lambda;
-	int h = height >> lambda;
+	if (level < 0)           return sample_bilinear(u, v);
+	if (level >= mip_levels) return fetch_texel(0, 0, mip_levels);
 
-	if (w < 1) w = 1;
-	if (h < 1) h = 1;
+	float t = lambda - floorf(lambda);
 
-	int x = Math::mod(int(u * w + 0.5f), w);
-	int y = Math::mod(int(v * h + 0.5f), h);
-
-	//int offset = width * height * 4 * (1.0f - powf(4.0f, -lambda)) / 3;
-
-	int offset = 0;
-	int size   = width;
-
-	for (int i = 0; i < lambda; i++) {
-		offset += size * size;
-		size >>= 1;
-	}
-
-	unsigned colour = data[offset + x + y * w];
-
-	const float one_over_255 = 0.00392156862f;
-	float r = float((colour)       & 0xff) * one_over_255;
-	float g = float((colour >> 8)  & 0xff) * one_over_255;
-	float b = float((colour >> 16) & 0xff) * one_over_255;
-
-	return Vector3(r, g, b);
+	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
 }

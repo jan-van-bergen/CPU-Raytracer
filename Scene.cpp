@@ -124,6 +124,8 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	
 	camera.position = Vector3(0.0f, 10.0f, 0.0f);
 	camera.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), DEG_TO_RAD(-90.0f));
+	camera.position = Vector3(-16.797194f, 0.974546f, -0.000000f);
+	camera.rotation = Quaternion(0.018832f, -0.706855f, 0.018832f, 0.706855f);
 }
 #endif
 

@@ -10,14 +10,15 @@
 struct Texture {
 //private:
 	unsigned * data = nullptr;
+	int mip_levels = 0;
 
 	int   width,   height;
 	float width_f, height_f;
 
-	Vector3 fetch_texel(int x, int y) const;
+	Vector3 fetch_texel(int x, int y, int level = 0) const;
 
 	Vector3 sample_nearest (float u, float v) const;
-	Vector3 sample_bilinear(float u, float v) const;
+	Vector3 sample_bilinear(float u, float v, int level = 0) const;
 	Vector3 sample_mipmap  (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
 
 public:

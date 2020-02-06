@@ -17,8 +17,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
 	
-	SIMD_Vector3 right = SIMD_Vector3::normalize(camera_x_axis_rotated);
-	SIMD_Vector3 up    = SIMD_Vector3::normalize(camera_y_axis_rotated);
+	SIMD_Vector3 right = camera_x_axis_rotated; // SIMD_Vector3::normalize(camera_x_axis_rotated);
+	SIMD_Vector3 up    = camera_y_axis_rotated; // SIMD_Vector3::normalize(camera_y_axis_rotated);
 
 #if SIMD_LANE_SIZE == 1
 	const int step_x = 1;
@@ -60,8 +60,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float d_dot_d = SIMD_Vector3::dot(direction, direction);
 			SIMD_float denom   = SIMD_float::inv_sqrt(d_dot_d) / d_dot_d;
 
-			ray.dD_dx = (d_dot_d * right + SIMD_Vector3::dot(direction, right) * direction) * denom;
-			ray.dD_dy = (d_dot_d * up    + SIMD_Vector3::dot(direction, up)    * direction) * denom;
+			ray.dD_dx = (d_dot_d * right - SIMD_Vector3::dot(direction, right) * direction) * denom;
+			ray.dD_dy = (d_dot_d * up    - SIMD_Vector3::dot(direction, up)    * direction) * denom;
 			
 			SIMD_float distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
