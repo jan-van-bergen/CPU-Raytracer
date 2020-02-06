@@ -53,9 +53,9 @@ const Texture * Texture::load(const char * file_path) {
 		Vector3 colour = colour_unpack(data[i]);
 
 		texture->data[i] = colour_pack(Vector3(
-			powf(colour.x, 2.2f), 
-			powf(colour.y, 2.2f), 
-			powf(colour.z, 2.2f)
+			Math::gamma_to_linear(colour.x), 
+			Math::gamma_to_linear(colour.y), 
+			Math::gamma_to_linear(colour.z)
 		));
 	}
 
