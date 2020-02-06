@@ -53,9 +53,9 @@ const Texture * Texture::load(const char * file_path) {
 		Vector3 colour = colour_unpack(data[i]);
 
 		texture->data[i] = colour_pack(Vector3(
-			Math::gamma_to_linear(colour.x), 
-			Math::gamma_to_linear(colour.y), 
-			Math::gamma_to_linear(colour.z)
+			powf(colour.x, 2.2f), 
+			powf(colour.y, 2.2f), 
+			powf(colour.z, 2.2f)
 		));
 	}
 
@@ -120,6 +120,9 @@ const Texture * Texture::load(const char * file_path) {
 }
 
 Vector3 Texture::fetch_texel(int x, int y, int level) const {
+	//static Vector3 colours[] = { Vector3(1,0,0), Vector3(1,1,0), Vector3(0,1,0), Vector3(0,1,1), Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1) };
+	//return colours[level < 6 ? level : 6];
+
 	int offset = mip_offsets[level];
 	int size   = width >> level;
 
