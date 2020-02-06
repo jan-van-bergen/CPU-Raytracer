@@ -22,7 +22,7 @@ int main(int argument_count, char ** arguments) {
 
 	Material::init();
 
-	Debug::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
+	//Debug::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
 
 	// Initialize timing stuff
 	Uint64 now  = 0;
@@ -54,7 +54,28 @@ int main(int argument_count, char ** arguments) {
 		
 		WorkerThreads::wake_up_worker_threads(window.tile_count_x * window.tile_count_y);
 		WorkerThreads::wait_on_worker_threads();
-		
+
+		//const Texture * test = Texture::load(DATA_PATH("floor.png"));
+
+		//int offset = 0;
+		//int size = 32;
+		//int x = 0, y = 0;
+
+		//while (size >= 1) {
+		//	for (int j = 0; j < size; j++) {
+		//		for (int i = 0; i < size; i++) {
+		//			window.plot(x + i, y + j, test->data[offset + i + j * size]);
+		//		}
+		//	}
+
+		//	x += size;
+		//	y += size;
+
+		//	offset += size * size;
+		//	size >>= 1;
+
+		//}
+
 		window.update();
 
 		// Perform frame timing

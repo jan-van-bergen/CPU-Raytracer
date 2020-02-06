@@ -51,7 +51,7 @@ static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t>
 	return material_count;
 }
 
-BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
+const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 	BottomLevelBVH *& bvh = cache[filename];
 
 	// If the cache already contains the requested BVH simply return it

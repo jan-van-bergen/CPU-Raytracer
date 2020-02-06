@@ -26,7 +26,7 @@ struct BottomLevelBVH {
 	BVHNode * nodes;
 	int       node_count;
 
-	static BottomLevelBVH * load(const char * filename);
+	static const BottomLevelBVH * load(const char * filename);
 
 	void trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;

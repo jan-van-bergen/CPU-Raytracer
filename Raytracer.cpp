@@ -17,6 +17,9 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
 	
+	SIMD_Vector3 right = SIMD_Vector3::normalize(camera_x_axis_rotated);
+	SIMD_Vector3 up    = SIMD_Vector3::normalize(camera_y_axis_rotated);
+
 #if SIMD_LANE_SIZE == 1
 	const int step_x = 1;
 	const int step_y = 1;
@@ -57,8 +60,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float d_dot_d = SIMD_Vector3::dot(direction, direction);
 			SIMD_float denom   = SIMD_float::inv_sqrt(d_dot_d) / d_dot_d;
 
-			ray.dD_dx = (d_dot_d * camera_x_axis_rotated + SIMD_Vector3::dot(direction, camera_x_axis_rotated) * direction) * denom;
-			ray.dD_dy = (d_dot_d * camera_y_axis_rotated + SIMD_Vector3::dot(direction, camera_y_axis_rotated) * direction) * denom;
+			ray.dD_dx = (d_dot_d * right + SIMD_Vector3::dot(direction, right) * direction) * denom;
+			ray.dD_dy = (d_dot_d * up    + SIMD_Vector3::dot(direction, up)    * direction) * denom;
 			
 			SIMD_float distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
@@ -117,16 +120,13 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 	distance = SIMD_float::blend(distance, closest_hit.distance, closest_hit.hit);
 	
-	alignas(SIMD_float) float us[SIMD_LANE_SIZE]; SIMD_float::store(us, closest_hit.u);
-	alignas(SIMD_float) float vs[SIMD_LANE_SIZE]; SIMD_float::store(vs, closest_hit.v);
-	
 	SIMD_Vector3 material_diffuse;
 	
 	int hit_mask = SIMD_float::mask(closest_hit.hit);
 	
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
-			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_colour(us[i], vs[i]);
+			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_colour(closest_hit.u[i], closest_hit.v[i], closest_hit.ds_dx[i], closest_hit.ds_dy[i], closest_hit.dt_dx[i], closest_hit.dt_dy[i]);
 
 			material_diffuse.x[i] = diffuse.x;
 			material_diffuse.y[i] = diffuse.y;
