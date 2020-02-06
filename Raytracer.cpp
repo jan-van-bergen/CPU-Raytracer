@@ -55,14 +55,16 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 				+ is * camera_x_axis_rotated
 				+ js * camera_y_axis_rotated;
 
-			ray.direction = SIMD_Vector3::normalize(direction); // @SPEED: possible optimization, we calculate SIMD_float::inv_sqrt(d_dot_d) here already
+			SIMD_float          d_dot_d = SIMD_Vector3::dot(direction, direction);
+			SIMD_float inv_sqrt_d_dot_d = SIMD_float::inv_sqrt(d_dot_d);
 
-			SIMD_float d_dot_d = SIMD_Vector3::dot(direction, direction);
-			SIMD_float denom   = SIMD_float::inv_sqrt(d_dot_d) / d_dot_d;
+			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d;
 
 			ray.dD_dx = (d_dot_d * right - SIMD_Vector3::dot(direction, right) * direction) * denom;
 			ray.dD_dy = (d_dot_d * up    - SIMD_Vector3::dot(direction, up)    * direction) * denom;
 			
+			ray.direction = direction * inv_sqrt_d_dot_d; // Normalize direction
+
 			SIMD_float distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
