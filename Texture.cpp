@@ -10,6 +10,23 @@
 
 static std::unordered_map<std::string, Texture *> cache;
 
+static Vector3 colour_unpack(unsigned colour) {
+	const float one_over_255 = 0.00392156862f;
+	float r = float((colour)       & 0xff) * one_over_255;
+	float g = float((colour >> 8)  & 0xff) * one_over_255;
+	float b = float((colour >> 16) & 0xff) * one_over_255;
+
+	return Vector3(r, g, b);
+}
+
+static unsigned colour_pack(const Vector3 & colour) {
+	unsigned r = int(colour.x * 255.0f);
+	unsigned g = int(colour.y * 255.0f) << 8;
+	unsigned b = int(colour.z * 255.0f) << 16;
+
+	return r | g | b;
+}
+
 const Texture * Texture::load(const char * file_path) {
 	Texture *& texture = cache[file_path];
 
@@ -28,55 +45,73 @@ const Texture * Texture::load(const char * file_path) {
 
 		abort();
 	}
-
-	// Copy the data over into Mipmap level 0
+	
 	texture->data = new unsigned[2 * texture->width * texture->height];
-	memcpy(texture->data, data, texture->width * texture->height * sizeof(unsigned));
+
+	// Copy the data over into Mipmap level 0, and convert it to linear colour space
+	for (int i = 0; i < texture->width * texture->height; i++) {
+		Vector3 colour = colour_unpack(data[i]);
+
+		texture->data[i] = colour_pack(Vector3(
+			Math::gamma_to_linear(colour.x), 
+			Math::gamma_to_linear(colour.y), 
+			Math::gamma_to_linear(colour.z)
+		));
+	}
 
 	delete [] data;
 
-	int offset      = texture->width * texture->height;
-	int offset_prev = 0;
+	if (!Math::is_power_of_two(texture->width) || texture->width != texture->height) {
+		texture->mipmapped = false;
 
-	int size      = texture->width >> 1;
-	int size_prev = texture->width;
+		texture->mip_levels  = 1;
+		texture->mip_offsets = new int(0);
+	} else {
+		texture->mipmapped = true;
+
+		int offset      = texture->width * texture->height;
+		int offset_prev = 0;
+
+		int size      = texture->width >> 1;
+		int size_prev = texture->width;
 	
-	texture->mip_levels = 1 + (int)log2f(texture->width);
-	texture->mip_offsets  = new int[texture->mip_levels];
+		texture->mip_levels = 1 + (int)log2f(texture->width);
+		texture->mip_offsets  = new int[texture->mip_levels];
 
-	texture->mip_offsets[0] = 0;
-	int level = 1;
+		texture->mip_offsets[0] = 0;
+		int level = 1;
 
-	// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
-	while (size >= 1) {
-		for (int j = 0; j < size; j++) {
-			for (int i = 0; i < size; i++) {
-				int i_prev = i << 1;
-				int j_prev = j << 1;
+		// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
+		while (size >= 1) {
+			for (int j = 0; j < size; j++) {
+				for (int i = 0; i < size; i++) {
+					int i_prev = i << 1;
+					int j_prev = j << 1;
 
-				unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * size_prev];
-				unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * size_prev];
-				unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * size_prev];
-				unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * size_prev];
+					unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * size_prev];
+					unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * size_prev];
+					unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * size_prev];
+					unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * size_prev];
 
-				unsigned sum_rb = (colour0 & 0xff00ff) + (colour1 & 0xff00ff) + (colour2 & 0xff00ff) + (colour3 & 0xff00ff);
-				unsigned sum_g  = (colour0 & 0x00ff00) + (colour1 & 0x00ff00) + (colour2 & 0x00ff00) + (colour3 & 0x00ff00);
+					unsigned sum_rb = (colour0 & 0xff00ff) + (colour1 & 0xff00ff) + (colour2 & 0xff00ff) + (colour3 & 0xff00ff);
+					unsigned sum_g  = (colour0 & 0x00ff00) + (colour1 & 0x00ff00) + (colour2 & 0x00ff00) + (colour3 & 0x00ff00);
 
-				unsigned average = ((sum_rb >> 2) & 0xff00ff) | ((sum_g >> 2) & 0x00ff00);
+					unsigned average = ((sum_rb >> 2) & 0xff00ff) | ((sum_g >> 2) & 0x00ff00);
 
-				texture->data[offset + i + j * size] = average;
+					texture->data[offset + i + j * size] = average;
+				}
 			}
+
+			texture->mip_offsets[level++] = offset;
+
+			offset_prev = offset;
+			offset += size * size;
+
+			size_prev = size;
+			size >>= 1;
 		}
-
-		texture->mip_offsets[level++] = offset;
-
-		offset_prev = offset;
-		offset += size * size;
-
-		size_prev = size;
-		size >>= 1;
 	}
-	
+
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
 
@@ -87,8 +122,8 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	int offset = mip_offsets[level];
 	int size   = width >> level;
 
-	assert(x >= 0 && x < size);
-	assert(y >= 0 && y < size);
+	assert(x >= 0 && x < width  >> level);
+	assert(y >= 0 && y < height >> level);
 
 	assert(data);
 	unsigned colour = data[offset + x + y * size];
@@ -145,6 +180,8 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 }
 
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+	if (!mipmapped) return sample_bilinear(u, v);
+
 	ds_dx *= width_f;
 	ds_dy *= width_f;
 	dt_dx *= height_f;
@@ -152,9 +189,9 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 
 	float rho = std::max(sqrtf(ds_dx*ds_dx + dt_dx*dt_dx), sqrtf(ds_dy*ds_dy + dt_dy*dt_dy));
 
-	float lambda = log2f(rho);
+	float lambda = 1.0f + log2f(rho);
 
-	int level = ceilf(lambda);
+	int level = lambda;
 
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);

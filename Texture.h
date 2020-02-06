@@ -8,11 +8,13 @@
 #define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_MIPMAP
 
 struct Texture {
-private:
+//private:
 	unsigned * data = nullptr;
 
 	int   mip_levels = 0;
 	int * mip_offsets;
+
+	bool mipmapped = false;
 
 	int   width,   height;
 	float width_f, height_f;

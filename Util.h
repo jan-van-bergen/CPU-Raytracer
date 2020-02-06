@@ -1,5 +1,4 @@
 #pragma once
-
 #define INVALID -1
 
 #define DATA_PATH(file_name) "../Raytracer/Data/" file_name

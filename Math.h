@@ -52,6 +52,18 @@ namespace Math {
 		return result;
 	}
 
+	inline float linear_to_gamma(float l) {
+		if (l <= 0.0031308f) return l * 12.92f;
+
+		return 1.055f * powf(l, 1.0f/2.4f) - 0.055f;
+	}
+
+	inline float gamma_to_linear(float s) {
+		if (s <= 0.04045f) return s / 12.92;
+
+		return powf((s + 0.055f) / 1.055f, 2.4f);
+	}
+
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
 	template<int N> inline float pow2(float value);
 
