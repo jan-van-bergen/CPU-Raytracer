@@ -58,7 +58,7 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float          d_dot_d = SIMD_Vector3::dot(direction, direction);
 			SIMD_float inv_sqrt_d_dot_d = SIMD_float::inv_sqrt(d_dot_d);
 
-			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d;
+			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d; // d_dot_d ^ -3/2
 
 			ray.dD_dx = (d_dot_d * right - SIMD_Vector3::dot(direction, right) * direction) * denom;
 			ray.dD_dy = (d_dot_d * up    - SIMD_Vector3::dot(direction, up)    * direction) * denom;

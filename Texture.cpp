@@ -41,7 +41,11 @@ const Texture * Texture::load(const char * file_path) {
 	int size      = texture->width >> 1;
 	int size_prev = texture->width;
 	
-	texture->mip_levels = 0;
+	texture->mip_levels = 1 + (int)log2f(texture->width);
+	texture->mip_offsets  = new int[texture->mip_levels];
+
+	texture->mip_offsets[0] = 0;
+	int level = 1;
 
 	// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
 	while (size >= 1) {
@@ -64,15 +68,15 @@ const Texture * Texture::load(const char * file_path) {
 			}
 		}
 
+		texture->mip_offsets[level++] = offset;
+
 		offset_prev = offset;
 		offset += size * size;
 
 		size_prev = size;
 		size >>= 1;
-
-		texture->mip_levels++;
 	}
-
+	
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
 
@@ -80,13 +84,8 @@ const Texture * Texture::load(const char * file_path) {
 }
 
 Vector3 Texture::fetch_texel(int x, int y, int level) const {
-	int offset = 0;
-	int size   = width;
-
-	for (int i = 0; i < level; i++) {
-		offset += size * size;
-		size >>= 1;
-	}
+	int offset = mip_offsets[level];
+	int size   = width >> level;
 
 	assert(x >= 0 && x < size);
 	assert(y >= 0 && y < size);
@@ -110,17 +109,11 @@ Vector3 Texture::sample_nearest(float u, float v) const {
 }
 
 Vector3 Texture::sample_bilinear(float u, float v, int level) const {
-	int offset = 0;
-	int size   = width;
-
-	for (int i = 0; i < level; i++) {
-		offset += size * size;
-		size >>= 1;
-	}
+	int size = width >> level;
 
 	// Convert normalized (u,v) to pixel space
-	u = u * size - 0.5f;
-	v = v * size - 0.5f;
+	u = u * size - 1.5f;
+	v = v * size - 1.5f;
 
 	// Convert pixel coordinates to integers
 	int u_i = int(u);
@@ -163,8 +156,8 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 
 	int level = ceilf(lambda);
 
-	if (level < 0)           return sample_bilinear(u, v);
-	if (level >= mip_levels) return fetch_texel(0, 0, mip_levels);
+	if (level < 0)               return sample_bilinear(u, v);
+	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 
 	float t = lambda - floorf(lambda);
 
