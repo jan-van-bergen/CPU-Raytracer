@@ -29,6 +29,7 @@ const Texture * Texture::load(const char * file_path) {
 		abort();
 	}
 
+	// Copy the data over into Mipmap level 0
 	texture->data = new unsigned[2 * texture->width * texture->height];
 	memcpy(texture->data, data, texture->width * texture->height * sizeof(unsigned));
 
@@ -42,6 +43,7 @@ const Texture * Texture::load(const char * file_path) {
 	
 	texture->mip_levels = 0;
 
+	// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
 	while (size >= 1) {
 		for (int j = 0; j < size; j++) {
 			for (int i = 0; i < size; i++) {
@@ -71,8 +73,6 @@ const Texture * Texture::load(const char * file_path) {
 		texture->mip_levels++;
 	}
 
-	//texture->mip_levels = 1 + int(log2f(texture->width));
-
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
 
@@ -80,9 +80,6 @@ const Texture * Texture::load(const char * file_path) {
 }
 
 Vector3 Texture::fetch_texel(int x, int y, int level) const {
-	//static Vector3 colours[] = { Vector3(1,0,0), Vector3(1,1,0), Vector3(0,1,0), Vector3(0,1,1), Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1) };
-	//return colours[level < 6 ? level : 6];
-
 	int offset = 0;
 	int size   = width;
 
@@ -155,13 +152,6 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 }
 
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
-	//float rho = 2.0f * std::max(
-	//	std::max(std::abs(ds_dx), std::abs(ds_dy)), 
-	//	std::max(std::abs(dt_dx), std::abs(dt_dy))
-	//);
-
-	//float lambda = mip_levels - 1.0f + int(log2f(std::max(rho, 1e-8f)));
-
 	ds_dx *= width_f;
 	ds_dy *= width_f;
 	dt_dx *= height_f;
