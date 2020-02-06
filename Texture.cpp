@@ -69,16 +69,17 @@ const Texture * Texture::load(const char * file_path) {
 	} else {
 		texture->mipmapped = true;
 
+		texture->mip_levels  = 1 + (int)log2f(texture->width);
+		texture->mip_offsets = new int[texture->mip_levels];
+
+		texture->mip_offsets[0] = 0;
+
 		int offset      = texture->width * texture->height;
 		int offset_prev = 0;
 
 		int size      = texture->width >> 1;
 		int size_prev = texture->width;
 	
-		texture->mip_levels = 1 + (int)log2f(texture->width);
-		texture->mip_offsets  = new int[texture->mip_levels];
-
-		texture->mip_offsets[0] = 0;
 		int level = 1;
 
 		// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
