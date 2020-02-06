@@ -8,4 +8,10 @@ struct Ray {
 
 	SIMD_Vector3 origin;
 	SIMD_Vector3 direction;
+
+	// Ray Differentials
+	SIMD_Vector3 dO_dx;
+	SIMD_Vector3 dO_dy;
+	SIMD_Vector3 dD_dx;
+	SIMD_Vector3 dD_dy;
 };

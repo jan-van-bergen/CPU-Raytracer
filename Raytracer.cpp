@@ -9,7 +9,10 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	ray.origin.x = SIMD_float(scene->camera.position.x);
 	ray.origin.y = SIMD_float(scene->camera.position.y);
 	ray.origin.z = SIMD_float(scene->camera.position.z);
-
+	
+	ray.dO_dx = SIMD_Vector3(0.0f);
+	ray.dO_dy = SIMD_Vector3(0.0f);
+			
 	SIMD_Vector3 camera_top_left_corner_rotated(scene->camera.top_left_corner_rotated);
 	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
@@ -33,6 +36,7 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			float i_f = float(i);
 			float j_f = float(j);
 
+			// Calulcate pixel coordinates for all pixels in the current Ray Packet
 #if SIMD_LANE_SIZE == 1
 			SIMD_float is(i_f);
 			SIMD_float js(j_f);
@@ -43,13 +47,20 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float is(i_f, i_f + 1.0f, i_f + 2.0f, i_f + 3.0f, i_f,        i_f + 1.0f, i_f + 2.0f, i_f + 3.0f);
 			SIMD_float js(j_f, j_f,        j_f,        j_f,        j_f + 1.0f, j_f + 1.0f, j_f + 1.0f, j_f + 1.0f);
 #endif
-			ray.direction = SIMD_Vector3::normalize(
-				camera_top_left_corner_rotated
+
+			SIMD_Vector3 direction = camera_top_left_corner_rotated
 				+ is * camera_x_axis_rotated
-				+ js * camera_y_axis_rotated
-			);
+				+ js * camera_y_axis_rotated;
+
+			ray.direction = SIMD_Vector3::normalize(direction); // @SPEED: possible optimization, we calculate SIMD_float::inv_sqrt(d_dot_d) here already
+
+			SIMD_float d_dot_d = SIMD_Vector3::dot(direction, direction);
+			SIMD_float denom   = SIMD_float::inv_sqrt(d_dot_d) / d_dot_d;
+
+			ray.dD_dx = (d_dot_d * camera_x_axis_rotated + SIMD_Vector3::dot(direction, camera_x_axis_rotated) * direction) * denom;
+			ray.dD_dy = (d_dot_d * camera_y_axis_rotated + SIMD_Vector3::dot(direction, camera_y_axis_rotated) * direction) * denom;
 			
-			SIMD_float   distance;
+			SIMD_float distance;
 			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
 
 #if SIMD_LANE_SIZE == 1

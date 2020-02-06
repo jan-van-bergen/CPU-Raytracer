@@ -386,11 +386,11 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	const SIMD_float pos_epsilon( Ray::EPSILON);
 	const SIMD_float neg_epsilon(-Ray::EPSILON);
 
-	SIMD_Vector3 edge0(position_edge1[index]);
-	SIMD_Vector3 edge1(position_edge2[index]);
+	SIMD_Vector3 edge1(position_edge1[index]);
+	SIMD_Vector3 edge2(position_edge2[index]);
 
-	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
-	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
+	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge2);
+	SIMD_float   a = SIMD_Vector3::dot(edge1, h);
 
 	SIMD_float   f = SIMD_float::rcp(a);
 	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0[index]);
@@ -401,7 +401,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	SIMD_float mask = (u > zero) & (u < one);
 	if (SIMD_float::all_false(mask)) return;
 
-	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
+	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge1);
 	SIMD_float   v = f * SIMD_Vector3::dot(ray.direction, q);
 
 	// If the barycentric coordinate on the edge between vertices i and i+2 
@@ -410,7 +410,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	mask = mask & ((u + v) < one);
 	if (SIMD_float::all_false(mask)) return;
 
-	SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
+	SIMD_float t = f * SIMD_Vector3::dot(edge2, q);
 
 	// Check if we are in the right distance range
 	mask = mask & (t > pos_epsilon);
@@ -442,7 +442,25 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	SIMD_Vector3 tex_coords = Math::barycentric(tex_coord_a, tex_coord_b, tex_coord_c, u, v);
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
-		
+	
+	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge1, edge2), ray.direction); 
+
+	SIMD_Vector3 _q = ray.dO_dx + t * ray.dD_dx;
+	SIMD_Vector3 _r = ray.dO_dy + t * ray.dD_dy;
+
+	SIMD_Vector3 c_u = SIMD_Vector3::cross(edge2, ray.direction);
+	SIMD_Vector3 c_v = SIMD_Vector3::cross(ray.direction, edge1);
+
+	SIMD_float du_dx = one_over_k * SIMD_Vector3::dot(c_u, _q);
+	SIMD_float du_dy = one_over_k * SIMD_Vector3::dot(c_u, _r);
+	SIMD_float dv_dx = one_over_k * SIMD_Vector3::dot(c_v, _q);
+	SIMD_float dv_dy = one_over_k * SIMD_Vector3::dot(c_v, _r);
+
+	ray_hit.ds_dx = du_dx * tex_coord_b.x + dv_dx * tex_coord_c.x;
+	ray_hit.ds_dy = du_dy * tex_coord_b.x + dv_dy * tex_coord_c.x;
+	ray_hit.dt_dx = du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y;
+	ray_hit.dt_dy = du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y;
+
 	ray_hit.bvh_steps = SIMD_float::blend(ray_hit.bvh_steps, SIMD_float(bvh_step), mask);
 
 	for (int j = 0; j < SIMD_LANE_SIZE; j++) {
