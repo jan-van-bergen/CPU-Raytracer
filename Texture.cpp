@@ -37,7 +37,7 @@ const Texture * Texture::load(const char * file_path) {
 	texture = new Texture();
 
 	int channels;
-	unsigned * data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
+	const unsigned * data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
 
 	// Check if the Texture is valid
 	if (texture->width == 0 || texture->height == 0) {

@@ -9,7 +9,7 @@ struct Ray {
 	SIMD_Vector3 origin;
 	SIMD_Vector3 direction;
 
-	// Ray Differentials
+	// Ray Differentials with respect to screen space coordinates x, y
 	SIMD_Vector3 dO_dx;
 	SIMD_Vector3 dO_dy;
 	SIMD_Vector3 dD_dx;
