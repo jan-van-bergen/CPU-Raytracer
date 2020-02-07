@@ -17,7 +17,7 @@ struct Light {
 		SIMD_float mask = intensity > zero;
         if (SIMD_float::all_false(mask)) return SIMD_Vector3(0.0f);
 
-        SIMD_Vector3 half_angle = SIMD_Vector3::normalize(SIMD_float(0.5f) * (to_light + to_camera));
+        SIMD_Vector3 half_angle = SIMD_Vector3::normalize(to_light + to_camera);
 
         SIMD_float specular_factor = SIMD_Vector3::dot(normal, half_angle);
         intensity = intensity + Math::pow2<128>(specular_factor);

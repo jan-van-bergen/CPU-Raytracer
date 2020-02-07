@@ -32,7 +32,7 @@ struct Scene {
 	DirectionalLight * directional_lights      = nullptr;
 	int                directional_light_count = 0;
 
-	Vector3 ambient_lighting = Vector3(0.1f);
+	Vector3 ambient_lighting = Vector3(0.2f);
 	
 	Sky sky;
 

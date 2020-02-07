@@ -52,6 +52,30 @@ namespace Math {
 		return result;
 	}
 
+	inline float linear_to_gamma(float x) {
+		if (x <= 0.0f) {
+			return 0.0f;
+		} else if (x >= 1.0f) {
+			return 1.0f;
+		} else if (x < 0.0031308f) {
+			return x * 12.92f;
+		} else {
+			return powf(x, 1.0f / 2.4f) * 1.055f - 0.055f;
+		}
+	}
+
+	inline float gamma_to_linear(float x) {
+		if (x <= 0.0f) {
+			return 0.0f;
+		} else if (x >= 1.0f) {
+			return 1.0f;
+		} else if (x < 0.04045f) {
+			return x / 12.92f;
+		} else {
+			return powf((x + 0.055f) / 1.055f, 2.4f);
+		}
+	}
+
 	// Calculates N-th power by repeated squaring. This only works when N is a power of 2
 	template<int N> inline float pow2(float value);
 

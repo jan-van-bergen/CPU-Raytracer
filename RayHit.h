@@ -12,6 +12,11 @@ struct RayHit {
 	int material_id[SIMD_LANE_SIZE] = { 0 };
 	SIMD_float u, v;
 
+	// Derivatives of texture space coordinates s, t
+	// with respect to screen space coordinates x, y
+	SIMD_float ds_dx, ds_dy;
+	SIMD_float dt_dx, dt_dy;
+
 	SIMD_float bvh_steps;
 
 	inline RayHit() {
