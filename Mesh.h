@@ -17,7 +17,7 @@ struct Mesh {
 
 	void update();
 
-	void trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const;
+	void trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const;
 
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 

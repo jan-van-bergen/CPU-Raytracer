@@ -14,7 +14,7 @@ void Mesh::update() {
 	transform_inv = Matrix4::invert(transform.world_matrix);
 }
 
-void Mesh::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const {
+void Mesh::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 	// Transform the Ray into Model Space using the inverted World Space matrix of the Mesh
 	Ray ray_model_space;
 	ray_model_space.origin    = Matrix4::transform_position (transform_inv, ray.origin);

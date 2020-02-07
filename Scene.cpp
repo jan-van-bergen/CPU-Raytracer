@@ -165,7 +165,7 @@ void Scene::update(float delta) {
 void Scene::trace_primitives(const Ray & ray, RayHit & ray_hit) const {
 	spheres.trace(ray, ray_hit);
 	planes.trace(ray, ray_hit);
-	top_level_bvh.trace(ray, ray_hit, Matrix4());
+	top_level_bvh.trace(ray, ray_hit);
 }
 
 SIMD_float Scene::intersect_primitives(const Ray & ray, SIMD_float max_distance) const {

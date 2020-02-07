@@ -27,7 +27,7 @@ struct TopLevelBVH {
 
 	void update() const;
 
-	void trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
+	void trace(const Ray & ray, RayHit & ray_hit) const;
 
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 };

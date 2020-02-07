@@ -52,7 +52,7 @@ void TopLevelBVH::update() const {
 	}
 }
 
-void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
+void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit) const {
 	int stack[128];
 	int stack_size = 1;
 
@@ -72,7 +72,7 @@ void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world
 
 		if (node.is_leaf()) {
 			for (int i = node.first; i < node.first + node.count; i++) {
-				primitives[indices[i]].trace(ray, ray_hit, world, step);
+				primitives[indices[i]].trace(ray, ray_hit, step);
 			}
 		} else {
 			if (node.should_visit_left_first(ray)) {

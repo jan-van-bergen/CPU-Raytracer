@@ -2,6 +2,8 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
+#include "Config.h"
+
 struct Texture {
 private:
 	unsigned * data = nullptr;
