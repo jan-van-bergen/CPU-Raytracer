@@ -148,10 +148,7 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 }
 
 Vector3 Texture::sample_nearest(float u, float v) const {
-	int x = Math::mod(int(u * width_f  + 0.5f), width);
-	int y = Math::mod(int(v * height_f + 0.5f), height);
-
-	return fetch_texel(x, y);
+	return fetch_texel(u * width_f, v * height_f);
 }
 
 Vector3 Texture::sample_bilinear(float u, float v, int level) const {
@@ -162,14 +159,9 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 	v = v * size - 0.5f;
 
 	// Convert pixel coordinates to integers
-	int u_i = int(u);
-	int v_i = int(v);
+	int u0_i = int(u);
+	int v0_i = int(v);
 	
-	int u0_i = Math::mod(u_i,     size);
-	int u1_i = Math::mod(u_i + 1, size);
-	int v0_i = Math::mod(v_i,     size);
-	int v1_i = Math::mod(v_i + 1, size);
-
 	// Calculate bilinear weights
 	float fractional_u = u - floor(u);
 	float fractional_v = v - floor(v);
@@ -184,10 +176,10 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 
 	// Blend everything together using the weights
 	return 
-		w0 * fetch_texel(u0_i, v0_i, level) +
-		w1 * fetch_texel(u1_i, v0_i, level) +
-		w2 * fetch_texel(u0_i, v1_i, level) +
-		w3 * fetch_texel(u1_i, v1_i, level);
+		w0 * fetch_texel(u0_i,     v0_i,     level) +
+		w1 * fetch_texel(u0_i + 1, v0_i,     level) +
+		w2 * fetch_texel(u0_i,     v0_i + 1, level) +
+		w3 * fetch_texel(u0_i + 1, v0_i + 1, level);
 }
 
 // Code based on PBRT chapter 10.4

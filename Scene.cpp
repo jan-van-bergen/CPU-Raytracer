@@ -114,7 +114,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	spot_light_count  = 0;
 
 	directional_lights = new DirectionalLight[directional_light_count = 1] {
-		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
+		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.1f, -1.0f, 0.1f)))
 	};
 	
 	camera.position = Vector3(0.0f, 10.0f, 0.0f);
