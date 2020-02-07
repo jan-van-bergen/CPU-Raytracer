@@ -459,7 +459,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y, mask);
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y, mask);
 
-	ray_hit.bvh_steps = SIMD_float::blend(ray_hit.bvh_steps, SIMD_float(bvh_step), mask);
+	ray_hit.bvh_steps = bvh_step;
 }
 
 SIMD_float BottomLevelBVH::triangle_soa_intersect(int index, const Ray & ray, SIMD_float max_distance) const {

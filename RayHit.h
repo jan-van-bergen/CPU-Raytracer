@@ -17,12 +17,12 @@ struct RayHit {
 	SIMD_float ds_dx, ds_dy;
 	SIMD_float dt_dx, dt_dy;
 
-	SIMD_float bvh_steps;
+	int bvh_steps;
 
 	inline RayHit() {
 		hit      = SIMD_float(0.0f);
 		distance = SIMD_float(INFINITY);
 
-		bvh_steps = SIMD_float(0);
+		bvh_steps = 0;
 	}
 };
