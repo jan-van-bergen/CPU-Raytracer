@@ -130,6 +130,9 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	int offset = mip_offsets[level];
 	int size   = width >> level;
 
+	x = Math::mod(x, size);
+	y = Math::mod(y, size);
+
 	assert(x >= 0 && x < width  >> level);
 	assert(y >= 0 && y < height >> level);
 
@@ -155,8 +158,8 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 	int size = width >> level;
 
 	// Convert normalized (u,v) to pixel space
-	u = u * size - 1.5f;
-	v = v * size - 1.5f;
+	u = u * size - 0.5f;
+	v = v * size - 0.5f;
 
 	// Convert pixel coordinates to integers
 	int u_i = int(u);
@@ -190,6 +193,7 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	if (!mipmapped) return sample_bilinear(u, v);
 
+#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR
 	float width = 2.0f * std::max(
 		std::max(std::abs(ds_dx), std::abs(ds_dy)),
 		std::max(std::abs(dt_dx), std::abs(dt_dy))
@@ -214,4 +218,93 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float t = lambda - floorf(lambda);
 
 	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
+#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
+	// Elliptical Weighted Average code based on PBRT chapter 10.4
+
+	Vector2 major_axis = Vector2(ds_dx, dt_dx);
+	Vector2 minor_axis = Vector2(ds_dy, dt_dy);
+
+	if (Vector2::length_squared(minor_axis) > Vector2::length_squared(major_axis)) { // @SPEED
+		Util::swap(minor_axis, major_axis);
+	}
+
+	float major_length = Vector2::length(major_axis);
+	float minor_length = Vector2::length(minor_axis);
+	
+	if (minor_length == 0.0f) return sample_bilinear(u, v);
+
+	// Clamp ellipse eccentricity when it is too large
+	if (minor_length * MAX_ANISOTROPY < major_length && minor_length > 0.0f) {
+		float scale = major_length / (minor_length * MAX_ANISOTROPY);
+
+		minor_axis   *= scale;
+		minor_length *= scale;
+	}
+
+	float lambda = std::max(0.0f, mip_levels - 1.0f + log2f(minor_length));
+	int   level  = lambda;
+
+	float t = lambda - floorf(lambda);
+
+	return (1.0f - t) * sample_ewa(u, v, level, major_axis, minor_axis) + t * sample_ewa(u, v, level + 1, major_axis, minor_axis);
+
+#endif
+}
+
+Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_axis, const Vector2 & minor_axis) const {
+	if (level >= mip_levels) return fetch_texel(0, 0, mip_levels - 1);
+
+	float size = float(width >> level);
+
+	// Convert EWA coordinates to appropriate scale for level
+	u = u * size - 0.5f;
+	v = v * size - 0.5f;
+
+	Vector2 major_axis_scaled = major_axis * size;
+	Vector2 minor_axis_scaled = minor_axis * size;
+
+	// Compute ellipse coefficients to bound EWA filter region
+	float a =  1.0f + (major_axis_scaled.y * major_axis_scaled.y + minor_axis_scaled.y * minor_axis_scaled.y);
+	float b = -2.0f * (major_axis_scaled.x * major_axis_scaled.y + minor_axis_scaled.x * minor_axis_scaled.y);
+	float c =  1.0f + (major_axis_scaled.x * major_axis_scaled.x + minor_axis_scaled.x * minor_axis_scaled.x);
+	float one_over_f = 1.0f / (a * c - b * b * 0.25f);
+	a *= one_over_f;
+	b *= one_over_f;
+	c *= one_over_f;
+
+	// Compute the ellipse's bounding box in texture space
+	float det     = -b * b + 4.0f * a * c;
+	float inv_det = 1.0f / det;
+
+	float sqrt_u = std::sqrt(det * c);
+	float sqrt_v = std::sqrt(det * a);
+
+	int s0 = ceilf (u - 2.0f * inv_det * sqrt_u);
+	int s1 = floorf(u + 2.0f * inv_det * sqrt_u);
+	int t0 = ceilf (v - 2.0f * inv_det * sqrt_v);
+	int t1 = floorf(v + 2.0f * inv_det * sqrt_v);
+
+	// Scan over ellipse bound and compute quadratic equation
+	Vector3 sum(0.0f);
+	float sum_weights = 0.0f;
+
+	for (int it = t0; it <= t1; ++it) {
+		float tt = it - v;
+
+		for (int is = s0; is <= s1; ++is) {
+			float ss = is - u;
+
+			// Compute squared radius and filter texel if inside ellipse
+			float r2 = a * ss * ss + b * ss * tt + c * tt * tt;
+			if (r2 < 1.0f) {
+				int index = std::min((int)(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
+				float weight = ewa_weight_table[index];
+
+				sum         += weight * fetch_texel(is, it, level);
+				sum_weights += weight;
+			}
+		}
+	}
+
+	return sum / sum_weights;
 }
