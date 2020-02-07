@@ -46,7 +46,15 @@ const Texture * Texture::load(const char * file_path) {
 		abort();
 	}
 	
-	texture->data = new unsigned[2 * texture->width * texture->height];
+	bool use_mipmapping = Math::is_power_of_two(texture->width) && texture->width == texture->height;
+
+	texture->mipmapped = use_mipmapping;
+
+	if (use_mipmapping) {
+		texture->data = new unsigned[texture->width * texture->height + (texture->width * texture->height) / 3];
+	} else {
+		texture->data = new unsigned[texture->width * texture->height];
+	}
 
 	// Copy the data over into Mipmap level 0, and convert it to linear colour space
 	for (int i = 0; i < texture->width * texture->height; i++) {
@@ -61,14 +69,7 @@ const Texture * Texture::load(const char * file_path) {
 
 	delete [] data;
 
-	if (!Math::is_power_of_two(texture->width) || texture->width != texture->height) {
-		texture->mipmapped = false;
-
-		texture->mip_levels  = 1;
-		texture->mip_offsets = new int(0);
-	} else {
-		texture->mipmapped = true;
-
+	if (use_mipmapping) {
 		texture->mip_levels  = 1 + (int)log2f(texture->width);
 		texture->mip_offsets = new int[texture->mip_levels];
 
@@ -111,6 +112,9 @@ const Texture * Texture::load(const char * file_path) {
 			size_prev = size;
 			size >>= 1;
 		}
+	} else {
+		texture->mip_levels  = 1;
+		texture->mip_offsets = new int(0);
 	}
 
 	texture->width_f  = float(texture->width);
