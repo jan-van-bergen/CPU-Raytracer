@@ -190,6 +190,7 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 		w3 * fetch_texel(u1_i, v1_i, level);
 }
 
+// Code based on PBRT chapter 10.4
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	if (!mipmapped) return sample_bilinear(u, v);
 
@@ -219,18 +220,17 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 
 	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
 #elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
-	// Elliptical Weighted Average code based on PBRT chapter 10.4
-
 	Vector2 major_axis = Vector2(ds_dx, dt_dx);
 	Vector2 minor_axis = Vector2(ds_dy, dt_dy);
-
-	if (Vector2::length_squared(minor_axis) > Vector2::length_squared(major_axis)) { // @SPEED
-		Util::swap(minor_axis, major_axis);
-	}
-
+	
 	float major_length = Vector2::length(major_axis);
 	float minor_length = Vector2::length(minor_axis);
 	
+	if (minor_length > major_length) {
+		std::swap(minor_axis,   major_axis);
+		std::swap(minor_length, major_length);
+	}
+
 	if (minor_length == 0.0f) return sample_bilinear(u, v);
 
 	// Clamp ellipse eccentricity when it is too large
@@ -267,7 +267,9 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 	float a =  1.0f + (major_axis_scaled.y * major_axis_scaled.y + minor_axis_scaled.y * minor_axis_scaled.y);
 	float b = -2.0f * (major_axis_scaled.x * major_axis_scaled.y + minor_axis_scaled.x * minor_axis_scaled.y);
 	float c =  1.0f + (major_axis_scaled.x * major_axis_scaled.x + minor_axis_scaled.x * minor_axis_scaled.x);
+	
 	float one_over_f = 1.0f / (a * c - b * b * 0.25f);
+	
 	a *= one_over_f;
 	b *= one_over_f;
 	c *= one_over_f;
@@ -286,7 +288,7 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 
 	// Scan over ellipse bound and compute quadratic equation
 	Vector3 sum(0.0f);
-	float sum_weights = 0.0f;
+	float   sum_weights = 0.0f;
 
 	for (int it = t0; it <= t1; ++it) {
 		float tt = it - v;
