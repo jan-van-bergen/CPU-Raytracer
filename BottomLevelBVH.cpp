@@ -433,6 +433,8 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  point,  mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal, mask);
+	
+	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + material_id[index]), *reinterpret_cast<SIMD_int *>(&mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
 	SIMD_Vector3 tex_coord_a(Vector3(tex_coord0     [index].x, tex_coord0     [index].y, 1.0f));
@@ -463,12 +465,6 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y, mask);
 
 	ray_hit.bvh_steps = SIMD_float::blend(ray_hit.bvh_steps, SIMD_float(bvh_step), mask);
-
-	for (int j = 0; j < SIMD_LANE_SIZE; j++) {
-		if (int_mask & (1 << j)) {
-			ray_hit.material_id[j] = material_offset + material_id[index];
-		}
-	}
 }
 
 SIMD_float BottomLevelBVH::triangle_soa_intersect(int index, const Ray & ray, SIMD_float max_distance) const {

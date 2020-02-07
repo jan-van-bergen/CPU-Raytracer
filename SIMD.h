@@ -282,6 +282,10 @@ struct SIMD_int1 {
 	inline SIMD_int1() { /* leave uninitialized */ }
 
 	inline explicit SIMD_int1(int i) : data(i) { }
+	
+	inline static FORCEINLINE SIMD_int1 blend(SIMD_int1 case_false, SIMD_int1 case_true, SIMD_int1 mask) {
+		return SIMD_int1(mask.data ? case_true.data : case_false.data);
+	}
 
 	inline static FORCEINLINE SIMD_int1 min(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data < b.data ? a.data : b.data); }
 	inline static FORCEINLINE SIMD_int1 max(SIMD_int1 a, SIMD_int1 b) { return SIMD_int1(a.data > b.data ? a.data : b.data); }
@@ -313,6 +317,10 @@ struct SIMD_int4 {
 
 	inline explicit SIMD_int4(int i) : data(_mm_set1_epi32(i)) { }
 	inline explicit SIMD_int4(int a, int b, int c, int d) : data(_mm_set_epi32(a, b, c, d)) { }
+	
+	inline static FORCEINLINE SIMD_int4 blend(const SIMD_int4 & case_false, const SIMD_int4 & case_true, const SIMD_int4 & mask) {
+		return SIMD_int4(_mm_blendv_epi8(case_false.data, case_true.data, mask.data));
+	}
 
 	inline static FORCEINLINE SIMD_int4 min(const SIMD_int4 & a, const SIMD_int4 & b) { return SIMD_int4(_mm_min_epi32(a.data, b.data)); }
 	inline static FORCEINLINE SIMD_int4 max(const SIMD_int4 & a, const SIMD_int4 & b) { return SIMD_int4(_mm_max_epi32(a.data, b.data)); }
@@ -342,6 +350,10 @@ struct SIMD_int8 {
 	inline SIMD_int8() { /* leave uninitialized */ }
 
 	inline explicit SIMD_int8(__m256i data) : data(data) { }
+	
+	inline static FORCEINLINE SIMD_int8 blend(const SIMD_int8 & case_false, const SIMD_int8 & case_true, const SIMD_int8 & mask) {
+		return SIMD_int8(_mm256_blendv_epi8(case_false.data, case_true.data, mask.data));
+	}
 
 	inline explicit SIMD_int8(int i) : data(_mm256_set1_epi32(i)) { }
 	inline explicit SIMD_int8(int a, int b, int c, int d, int e, int f, int g, int h) : data(_mm256_set_epi32(a, b, c, d, e, f, g, h)) { }

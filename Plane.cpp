@@ -27,18 +27,14 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + t * ray.direction, mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal,                         mask);
 
+	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_id), *reinterpret_cast<SIMD_int *>(&mask));
+
 	SIMD_Vector3 u(u_axis);
 	SIMD_Vector3 v(v_axis);
 
 	// Obtain u,v by projecting the hit point onto the u and v axes
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_Vector3::dot(ray_hit.point, u), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_Vector3::dot(ray_hit.point, v), mask);
-
-	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
-		if (int_mask & (1 << i)) {
-			ray_hit.material_id[i] = material_id;
-		}
-	}
 }
 
 SIMD_float Plane::intersect(const Ray & ray, SIMD_float max_distance) const {

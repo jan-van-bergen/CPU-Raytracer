@@ -47,6 +47,8 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + t * ray.direction,                  mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, SIMD_Vector3::normalize(ray_hit.point - center), mask);
+	
+	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_id), *reinterpret_cast<SIMD_int *>(&mask));
 
 	// Obtain u,v by converting the normal direction to spherical coordinates
 	SIMD_Vector3 neg_normal = -ray_hit.normal;
@@ -57,12 +59,6 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(neg_normal.z, neg_normal.x), one_over_two_pi, half), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (neg_normal.y),               one_over_pi,     half), mask);
-
-	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
-		if (int_mask & (1 << i)) {
-			ray_hit.material_id[i] = material_id;
-		}
-	}
 }
 
 SIMD_float Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {

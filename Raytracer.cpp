@@ -128,7 +128,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
-			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_colour(closest_hit.u[i], closest_hit.v[i], closest_hit.ds_dx[i], closest_hit.ds_dy[i], closest_hit.dt_dx[i], closest_hit.dt_dy[i]);
+			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], closest_hit.ds_dx[i], closest_hit.ds_dy[i], closest_hit.dt_dx[i], closest_hit.dt_dy[i]);
 
 			material_diffuse.x[i] = diffuse.x;
 			material_diffuse.y[i] = diffuse.y;

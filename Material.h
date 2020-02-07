@@ -12,7 +12,7 @@ struct Material {
 	Vector3 transmittance       = 0.0f;
 	float   index_of_refraction = 1.0f;
 
-	inline Vector3 get_colour(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+	inline Vector3 get_albedo(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 		if (texture) {
 			return diffuse * texture->sample(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
 		}
