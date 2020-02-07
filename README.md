@@ -31,7 +31,7 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 
 ## Usage
 
-The camera can be moved using the WASD keys and oriented using the arrow keys. 
+The camera can be moved using the WASD keys and oriented using the arrow keys. Vertical movement of the camera is done using the shift and spacebar keys.
 
 Various options and settings are available in Config.h.
 
