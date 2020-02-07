@@ -1,9 +1,5 @@
 #include "Raytracer.h"
 
-#define NUMBER_OF_BOUNCES 3
-
-#define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
-
 void Raytracer::render_tile(const Window & window, int x, int y, int tile_width, int tile_height) const {
 	Ray ray;
 	ray.origin.x = SIMD_float(scene->camera.position.x);

@@ -172,5 +172,6 @@
     <ClInclude Include="Raytracer.h">
       <Filter>Raytracing</Filter>
     </ClInclude>
+    <ClInclude Include="Config.h" />
   </ItemGroup>
 </Project>

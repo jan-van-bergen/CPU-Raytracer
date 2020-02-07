@@ -2,19 +2,6 @@
 #include "Vector2.h"
 #include "Vector3.h"
 
-#define TEXTURE_SAMPLE_MODE_NEAREST  0
-#define TEXTURE_SAMPLE_MODE_BILINEAR 1
-#define TEXTURE_SAMPLE_MODE_MIPMAP   2
-
-#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_MIPMAP
-
-#define MIPMAP_FILTER_TRILINEAR 0
-#define MIPMAP_FILTER_EWA       1
-
-#define MIPMAP_FILTER MIPMAP_FILTER_EWA
-
-#define MAX_ANISOTROPY 8.0f
-
 struct Texture {
 private:
 	unsigned * data = nullptr;

@@ -3,8 +3,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#define USE_MULTITHREADING true // When enabled will use the maximum amount of threads available
-
 int thread_count; 
 
 HANDLE * go_signal;

@@ -215,6 +215,7 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="BottomLevelBVH.h" />
     <ClInclude Include="BVHNode.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="Spline.h" />
     <ClInclude Include="BVHBuilders.h" />

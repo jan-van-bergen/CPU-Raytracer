@@ -2,11 +2,6 @@
 #include "AABB.h"
 #include "Ray.h"
 
-#define BVH_TRAVERSE_TREE_NAIVE   0 // Traverses the BVH in a naive way, always checking the left Node before the right Node
-#define BVH_TRAVERSE_TREE_ORDERED 1 // Traverses the BVH based on the split axis and the direction of the Ray
-
-#define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_ORDERED
-
 #define BVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
 #define BVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
 #define BVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...

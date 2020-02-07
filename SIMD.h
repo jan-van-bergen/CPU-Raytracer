@@ -3,6 +3,8 @@
 #include <cassert>
 #include <immintrin.h>
 
+#include "Config.h"
+
 #include "Util.h"
 #include "Vector3.h"
 
@@ -378,8 +380,6 @@ inline FORCEINLINE SIMD_int8 operator> (const SIMD_int8 & left, const SIMD_int8 
 //inline FORCEINLINE SIMD_int8 operator< (SIMD_int8 left, SIMD_int8 right) { return SIMD_int8(_mm256_cmplt_epi32(left.data, right.data)); }
 
 inline FORCEINLINE SIMD_int8 operator==(const SIMD_int8 & left, const SIMD_int8 & right) { return SIMD_int8(_mm256_cmpeq_epi32 (left.data, right.data)); }
-
-#define SIMD_LANE_SIZE 8
 
 #if SIMD_LANE_SIZE == 1
 typedef SIMD_float1 SIMD_float;

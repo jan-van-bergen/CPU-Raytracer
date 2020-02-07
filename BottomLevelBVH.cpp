@@ -9,11 +9,6 @@
 
 #include "ScopeTimer.h"
 
-#define MESH_USE_BVH  0
-#define MESH_USE_SBVH 1
-
-#define MESH_ACCELERATOR MESH_USE_SBVH
-
 static std::unordered_map<std::string, BottomLevelBVH *> cache;
 
 static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t> & materials, const char * path) {
