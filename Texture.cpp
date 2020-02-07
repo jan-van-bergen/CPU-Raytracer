@@ -190,15 +190,22 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	if (!mipmapped) return sample_bilinear(u, v);
 
-	ds_dx *= width_f;
-	ds_dy *= width_f;
-	dt_dx *= height_f;
-	dt_dy *= height_f;
+	float width = 2.0f * std::max(
+		std::max(std::abs(ds_dx), std::abs(ds_dy)),
+		std::max(std::abs(dt_dx), std::abs(dt_dy))
+	);
+	
+	float lambda = float(mip_levels) - 1.0f + log2f(std::max(width, 1e-8f));
 
-	float rho = std::max(sqrtf(ds_dx*ds_dx + dt_dx*dt_dx), sqrtf(ds_dy*ds_dy + dt_dy*dt_dy));
+	//ds_dx *= width_f;
+	//ds_dy *= width_f;
+	//dt_dx *= height_f;
+	//dt_dy *= height_f;
 
-	float lambda = 1.0f + log2f(rho);
+	//float rho = std::max(sqrtf(ds_dx*ds_dx + dt_dx*dt_dx), sqrtf(ds_dy*ds_dy + dt_dy*dt_dy));
 
+	//float lambda = 1.0f + log2f(rho);
+	
 	int level = lambda;
 
 	if (level < 0)               return sample_bilinear(u, v);
