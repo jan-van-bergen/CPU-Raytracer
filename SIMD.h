@@ -478,7 +478,7 @@ struct SIMD_Vector3 {
 		);
 	}
 
-	inline static FORCEINLINE SIMD_Vector3 blend(const SIMD_Vector3 & left, const SIMD_Vector3 & right, SIMD_float mask) {
+	inline static FORCEINLINE SIMD_Vector3 blend(const SIMD_Vector3 & left, const SIMD_Vector3 & right, const SIMD_float & mask) {
 		return SIMD_Vector3(
 			SIMD_float::blend(left.x, right.x, mask),
 			SIMD_float::blend(left.y, right.y, mask),
@@ -491,10 +491,10 @@ struct SIMD_Vector3 {
 	inline FORCEINLINE SIMD_Vector3 operator*=(const SIMD_Vector3 & vector) { x = x * vector.x; y = y * vector.y; z = z * vector.z; return *this; }
 	inline FORCEINLINE SIMD_Vector3 operator/=(const SIMD_Vector3 & vector) { x = x / vector.x; y = y / vector.y; z = z / vector.z; return *this; }
 
-	inline FORCEINLINE SIMD_Vector3 operator+=(SIMD_float f) {                                        x = x + f;      y = y + f;      z = z + f;      return *this; }
-	inline FORCEINLINE SIMD_Vector3 operator-=(SIMD_float f) {                                        x = x - f;      y = y - f;      z = z - f;      return *this; }
-	inline FORCEINLINE SIMD_Vector3 operator*=(SIMD_float f) {                                        x = x * f;      y = y * f;      z = z * f;      return *this; }
-	inline FORCEINLINE SIMD_Vector3 operator/=(SIMD_float f) { SIMD_float inv_f = SIMD_float::rcp(f); x = x * inv_f;  y = y * inv_f;  z = z * inv_f;  return *this; }
+	inline FORCEINLINE SIMD_Vector3 operator+=(const SIMD_float & f) {                                        x = x + f;      y = y + f;      z = z + f;      return *this; }
+	inline FORCEINLINE SIMD_Vector3 operator-=(const SIMD_float & f) {                                        x = x - f;      y = y - f;      z = z - f;      return *this; }
+	inline FORCEINLINE SIMD_Vector3 operator*=(const SIMD_float & f) {                                        x = x * f;      y = y * f;      z = z * f;      return *this; }
+	inline FORCEINLINE SIMD_Vector3 operator/=(const SIMD_float & f) { SIMD_float inv_f = SIMD_float::rcp(f); x = x * inv_f;  y = y * inv_f;  z = z * inv_f;  return *this; }
 };
 
 inline FORCEINLINE SIMD_Vector3 operator-(const SIMD_Vector3 & vector) { 
@@ -507,10 +507,10 @@ inline FORCEINLINE SIMD_Vector3 operator-(const SIMD_Vector3 & left, const SIMD_
 inline FORCEINLINE SIMD_Vector3 operator*(const SIMD_Vector3 & left, const SIMD_Vector3 & right) { return SIMD_Vector3(left.x * right.x, left.y * right.y, left.z * right.z); }
 inline FORCEINLINE SIMD_Vector3 operator/(const SIMD_Vector3 & left, const SIMD_Vector3 & right) { return SIMD_Vector3(left.x / right.x, left.y / right.y, left.z / right.z); }
 
-inline FORCEINLINE SIMD_Vector3 operator+(const SIMD_Vector3 & vector, SIMD_float f) {                                        return SIMD_Vector3(vector.x + f,      vector.y + f,      vector.z + f); }
-inline FORCEINLINE SIMD_Vector3 operator-(const SIMD_Vector3 & vector, SIMD_float f) {                                        return SIMD_Vector3(vector.x - f,      vector.y - f,      vector.z - f); }
-inline FORCEINLINE SIMD_Vector3 operator*(const SIMD_Vector3 & vector, SIMD_float f) {                                        return SIMD_Vector3(vector.x * f,      vector.y * f,      vector.z * f); }
-inline FORCEINLINE SIMD_Vector3 operator/(const SIMD_Vector3 & vector, SIMD_float f) { SIMD_float inv_f = SIMD_float::rcp(f); return SIMD_Vector3(vector.x * inv_f,  vector.y * inv_f,  vector.z * inv_f); }
+inline FORCEINLINE SIMD_Vector3 operator+(const SIMD_Vector3 & vector, const SIMD_float & f) {                                        return SIMD_Vector3(vector.x + f,      vector.y + f,      vector.z + f); }
+inline FORCEINLINE SIMD_Vector3 operator-(const SIMD_Vector3 & vector, const SIMD_float & f) {                                        return SIMD_Vector3(vector.x - f,      vector.y - f,      vector.z - f); }
+inline FORCEINLINE SIMD_Vector3 operator*(const SIMD_Vector3 & vector, const SIMD_float & f) {                                        return SIMD_Vector3(vector.x * f,      vector.y * f,      vector.z * f); }
+inline FORCEINLINE SIMD_Vector3 operator/(const SIMD_Vector3 & vector, const SIMD_float & f) { SIMD_float inv_f = SIMD_float::rcp(f); return SIMD_Vector3(vector.x * inv_f,  vector.y * inv_f,  vector.z * inv_f); }
 
 inline FORCEINLINE SIMD_Vector3 operator+(SIMD_float f, const SIMD_Vector3 & vector) {                                        return SIMD_Vector3(vector.x + f,      vector.y + f,      vector.z + f); }
 inline FORCEINLINE SIMD_Vector3 operator-(SIMD_float f, const SIMD_Vector3 & vector) {                                        return SIMD_Vector3(vector.x - f,      vector.y - f,      vector.z - f); }

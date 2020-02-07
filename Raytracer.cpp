@@ -163,6 +163,8 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			secondary_ray.direction = to_light;
 
 			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, distance_to_light);
+			if (SIMD_float::all_true(shadow_mask)) continue;
+
 			diffuse = SIMD_Vector3::blend(diffuse + scene->point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
 		}
 
@@ -176,6 +178,8 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			secondary_ray.direction = to_light;
 
 			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, distance_to_light);
+			if (SIMD_float::all_true(shadow_mask)) continue;
+
 			diffuse = SIMD_Vector3::blend(diffuse + scene->spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
 		}
 
@@ -184,6 +188,8 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			secondary_ray.direction = SIMD_Vector3(scene->directional_lights[i].negative_direction);
 
 			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, inf);
+			if (SIMD_float::all_true(shadow_mask)) continue;
+
 			diffuse = SIMD_Vector3::blend(diffuse + scene->directional_lights[i].calc_lighting(closest_hit.normal, to_camera), diffuse, shadow_mask);
 		}
 
