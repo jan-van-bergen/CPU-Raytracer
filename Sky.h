@@ -1,8 +1,5 @@
 #pragma once
-#include "Texture.h"
-
-#include "Vector3.h"
-#include "SIMD.h"
+#include "SIMD_Vector3.h"
 
 struct Sky {
 private:

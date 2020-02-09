@@ -1,7 +1,5 @@
 #pragma once
-#include "SIMD.h"
-
-//#define EPSILON 0.005f
+#include "SIMD_Vector3.h"
 
 struct Ray {
 	inline static const SIMD_float EPSILON = SIMD_float(0.005f);

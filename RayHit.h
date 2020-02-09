@@ -1,6 +1,5 @@
 #pragma once
-#include "SIMD.h"
-#include "Material.h"
+#include "SIMD_Vector3.h"
 
 struct RayHit {
 	SIMD_float hit;

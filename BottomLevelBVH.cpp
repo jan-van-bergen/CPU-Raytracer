@@ -7,6 +7,11 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
+#include "Material.h"
+
+#include "SIMD_Vector2.h"
+#include "SIMD_Vector3.h"
+
 #include "ScopeTimer.h"
 
 static std::unordered_map<std::string, BottomLevelBVH *> cache;
@@ -431,16 +436,16 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + material_id[index]), *reinterpret_cast<SIMD_int *>(&mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-	SIMD_Vector3 tex_coord_a(Vector3(tex_coord0     [index].x, tex_coord0     [index].y, 1.0f));
-	SIMD_Vector3 tex_coord_b(Vector3(tex_coord_edge1[index].x, tex_coord_edge1[index].y, 1.0f));
-	SIMD_Vector3 tex_coord_c(Vector3(tex_coord_edge2[index].x, tex_coord_edge2[index].y, 1.0f));
+	SIMD_Vector2 tex_coord_a(tex_coord0     [index]);
+	SIMD_Vector2 tex_coord_b(tex_coord_edge1[index]);
+	SIMD_Vector2 tex_coord_c(tex_coord_edge2[index]);
 
-	SIMD_Vector3 tex_coords = Math::barycentric(tex_coord_a, tex_coord_b, tex_coord_c, u, v);
+	SIMD_Vector2 tex_coords = Math::barycentric(tex_coord_a, tex_coord_b, tex_coord_c, u, v);
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
 #if RAY_DIFFERENTIALS_ENABLED
-	// See Chapter 20 of Ray Tracing Gems "Texture Level of Detail Strategies for Real-Time Ray Tracing"
+	// Formulae from Chapter 20 of Ray Tracing Gems "Texture Level of Detail Strategies for Real-Time Ray Tracing"
 	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge1, edge2), ray.direction); 
 
 	SIMD_Vector3 _q = ray.dO_dx + t * ray.dD_dx;

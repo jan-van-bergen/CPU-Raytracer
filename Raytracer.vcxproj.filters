@@ -22,6 +22,9 @@
     <Filter Include="Raytracing\BVH">
       <UniqueIdentifier>{fc757026-834f-48ab-978c-e1661f1f89c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Util\SIMD">
+      <UniqueIdentifier>{478e76b7-8dbc-4c57-83cc-6430ad193548}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -127,9 +130,6 @@
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="WorkerThread.h" />
-    <ClInclude Include="SIMD.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="AABB.h">
       <Filter>Raytracing\BVH</Filter>
     </ClInclude>
@@ -173,5 +173,20 @@
       <Filter>Raytracing</Filter>
     </ClInclude>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="SIMD.h">
+      <Filter>Util\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="SIMD_floats.h">
+      <Filter>Util\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="SIMD_Vector3.h">
+      <Filter>Util\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="SIMD_ints.h">
+      <Filter>Util\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="SIMD_Vector2.h">
+      <Filter>Util\SIMD</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

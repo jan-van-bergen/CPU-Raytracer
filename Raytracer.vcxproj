@@ -217,6 +217,10 @@
     <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Raytracer.h" />
+    <ClInclude Include="SIMD_floats.h" />
+    <ClInclude Include="SIMD_ints.h" />
+    <ClInclude Include="SIMD_Vector2.h" />
+    <ClInclude Include="SIMD_Vector3.h" />
     <ClInclude Include="Spline.h" />
     <ClInclude Include="BVHBuilders.h" />
     <ClInclude Include="BVHPartitions.h" />

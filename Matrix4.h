@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "Vector3.h"
-#include "SIMD.h"
+#include "SIMD_Vector3.h"
 
 struct Matrix4 {
 	float cells[16];
