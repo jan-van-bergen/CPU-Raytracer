@@ -290,7 +290,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_float tir_mask = closest_hit.hit & (k < zero);
 
 			if (SIMD_float::mask(tir_mask) == SIMD_float::mask(refraction_mask)) {
-				return SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask);
+				return SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask & refraction_mask);
 			}
 
 			Ray refracted_ray;
