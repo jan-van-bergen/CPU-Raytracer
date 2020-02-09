@@ -41,20 +41,50 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	if (SIMD_float::all_false(mask)) return;
 
+	const SIMD_float half(0.5f);
+	const SIMD_float one (1.0f);
+	const SIMD_float non_zero(1e-8f);
+	const SIMD_float one_over_r(radius_inv);
+	const SIMD_float one_over_pi    (ONE_OVER_PI);
+	const SIMD_float one_over_two_pi(ONE_OVER_TWO_PI);
+
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point, ray.origin + t * ray.direction,                     mask);
-	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, (ray_hit.point - center) * SIMD_float(radius_inv), mask);
+	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point, ray.origin + t * ray.direction,         mask);
+	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, (ray_hit.point - center) * one_over_r, mask);
 	
-	// Obtain u,v by converting the normal direction to spherical coordinates
-	SIMD_Vector3 neg_normal = -ray_hit.normal;
-
-	const SIMD_float half(0.5f);
-	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(neg_normal.z, neg_normal.x), SIMD_float(ONE_OVER_TWO_PI), half), mask);
-	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (neg_normal.y),               SIMD_float(ONE_OVER_PI),     half), mask);
-
 	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_id), *reinterpret_cast<SIMD_int *>(&mask));
+
+	// Obtain u,v by converting the normal direction to spherical coordinates
+	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(ray_hit.normal.z, ray_hit.normal.x), one_over_two_pi, half), mask);
+	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (ray_hit.normal.y),                   one_over_pi,     half), mask);
+
+	// Formulae for Transfer Ray Differential from Igehy 99
+	SIMD_Vector3 dP_dx_plus_t_dD_dx = ray.dO_dx + t * ray.dD_dx;
+	SIMD_Vector3 dP_dy_plus_t_dD_dy = ray.dO_dy + t * ray.dD_dy;
+
+	SIMD_float denom = -one / SIMD_Vector3::dot(ray.direction, ray_hit.normal);
+	SIMD_float dt_dx = SIMD_Vector3::dot(dP_dx_plus_t_dD_dx, ray_hit.normal) * denom;
+	SIMD_float dt_dy = SIMD_Vector3::dot(dP_dy_plus_t_dD_dy, ray_hit.normal) * denom;
+
+	SIMD_Vector3 dP_dx = dP_dx_plus_t_dD_dx + dt_dx * ray.direction;
+	SIMD_Vector3 dP_dy = dP_dy_plus_t_dD_dy + dt_dy * ray.direction;
+
+	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, dP_dx, mask);
+	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, dP_dy, mask);
+
+	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, dP_dx * one_over_r, mask);
+	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, dP_dy * one_over_r, mask);
+
+	// Formulae derived by differentiating the above formulae for u and v
+	SIMD_float ds_denom = one_over_two_pi / (ray_hit.normal.x * ray_hit.normal.x + ray_hit.normal.z * ray_hit.normal.z + non_zero);
+	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, (ray_hit.normal.x * ray_hit.dN_dx.z - ray_hit.normal.z * ray_hit.dN_dx.x) * ds_denom, mask); 
+	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, (ray_hit.normal.x * ray_hit.dN_dy.z - ray_hit.normal.z * ray_hit.dN_dy.x) * ds_denom, mask); 
+
+	SIMD_float dt_denom = -one_over_pi * SIMD_float::inv_sqrt(one - ray_hit.normal.y*ray_hit.normal.y + non_zero);
+	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, ray_hit.dN_dx.y * dt_denom, mask);
+	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, ray_hit.dN_dy.y * dt_denom, mask);
 }
 
 SIMD_float Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {

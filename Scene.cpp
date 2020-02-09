@@ -67,18 +67,19 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	camera.rotation = Quaternion(0.268476f, 0.423740f, -0.133092f, 0.854779f);
 }
 #else
-
 CatmullRomSpline spline_path;
 
-Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
-	//spheres[0].init(2.0f);
+Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(1), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
+	spheres[0].init(1.0f);
 	//spheres[0].transform.position = Vector3(-2.0f, 2.0f, 10.0f);
-	//Material::materials[spheres[0].material_id].diffuse = 0.0f;
+	Material::materials[spheres[0].material_id].diffuse = 1.0f;
+	Material::materials[spheres[0].material_id].texture = Texture::load(DATA_PATH("bricks.png"));
 	//Material::materials[spheres[0].material_id].reflection = 1.0f;
 
 	top_level_bvh.init(3);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	top_level_bvh.primitives[1].init(DATA_PATH("Magnifier.obj"));
+	top_level_bvh.primitives[1].transform.position.x = 20.0f;
 	top_level_bvh.primitives[2].init(DATA_PATH("Concave.obj"));
 	top_level_bvh.primitives[2].transform.position.x = 20.0f;
 	top_level_bvh.primitives[2].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), PI);
@@ -128,8 +129,6 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	
 	camera.position = Vector3(0.0f, 10.0f, 0.0f);
 	camera.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), DEG_TO_RAD(-90.0f));
-	camera.position = Vector3(14.651331f, 4.426459f, 0.790482f);
-	camera.rotation = Quaternion(0.000000f, 0.716208f, 0.000000f, 0.697886f);
 }
 #endif
 
