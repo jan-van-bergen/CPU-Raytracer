@@ -498,6 +498,38 @@ struct SIMD_Vector3 {
 		);
 	}
 
+	inline static FORCEINLINE SIMD_Vector3 madd(const SIMD_Vector3 & a, const SIMD_Vector3 & b, const SIMD_Vector3 & c) {
+		return SIMD_Vector3(
+			SIMD_float::madd(a.x, b.x, c.x),
+			SIMD_float::madd(a.y, b.y, c.y),
+			SIMD_float::madd(a.z, b.z, c.z)
+		);
+	}
+
+	inline static FORCEINLINE SIMD_Vector3 madd(const SIMD_Vector3 & a, const SIMD_float & b, const SIMD_Vector3 & c) {
+		return SIMD_Vector3(
+			SIMD_float::madd(a.x, b, c.x),
+			SIMD_float::madd(a.y, b, c.y),
+			SIMD_float::madd(a.z, b, c.z)
+		);
+	}
+
+	inline static FORCEINLINE SIMD_Vector3 msub(const SIMD_Vector3 & a, const SIMD_Vector3 & b, const SIMD_Vector3 & c) {
+		return SIMD_Vector3(
+			SIMD_float::msub(a.x, b.x, c.x),
+			SIMD_float::msub(a.y, b.y, c.y),
+			SIMD_float::msub(a.z, b.z, c.z)
+		);
+	}
+
+	inline static FORCEINLINE SIMD_Vector3 msub(const SIMD_Vector3 & a, const SIMD_float & b, const SIMD_Vector3 & c) {
+		return SIMD_Vector3(
+			SIMD_float::msub(a.x, b, c.x),
+			SIMD_float::msub(a.y, b, c.y),
+			SIMD_float::msub(a.z, b, c.z)
+		);
+	}
+
 	inline FORCEINLINE SIMD_Vector3 operator+=(const SIMD_Vector3 & vector) { x = x + vector.x; y = y + vector.y; z = z + vector.z; return *this; }
 	inline FORCEINLINE SIMD_Vector3 operator-=(const SIMD_Vector3 & vector) { x = x - vector.x; y = y - vector.y; z = z - vector.z; return *this; }
 	inline FORCEINLINE SIMD_Vector3 operator*=(const SIMD_Vector3 & vector) { x = x * vector.x; y = y * vector.y; z = z * vector.z; return *this; }

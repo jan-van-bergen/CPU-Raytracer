@@ -61,15 +61,15 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (ray_hit.normal.y),                   one_over_pi,     half), mask);
 
 	// Formulae for Transfer Ray Differential from Igehy 99
-	SIMD_Vector3 dP_dx_plus_t_dD_dx = ray.dO_dx + t * ray.dD_dx;
-	SIMD_Vector3 dP_dy_plus_t_dD_dy = ray.dO_dy + t * ray.dD_dy;
+	SIMD_Vector3 dP_dx_plus_t_dD_dx = SIMD_Vector3::madd(ray.dD_dx, t, ray.dO_dx);
+	SIMD_Vector3 dP_dy_plus_t_dD_dy = SIMD_Vector3::madd(ray.dD_dy, t, ray.dO_dy);
 
 	SIMD_float denom = -one / SIMD_Vector3::dot(ray.direction, ray_hit.normal);
 	SIMD_float dt_dx = SIMD_Vector3::dot(dP_dx_plus_t_dD_dx, ray_hit.normal) * denom;
 	SIMD_float dt_dy = SIMD_Vector3::dot(dP_dy_plus_t_dD_dy, ray_hit.normal) * denom;
 
-	SIMD_Vector3 dP_dx = dP_dx_plus_t_dD_dx + dt_dx * ray.direction;
-	SIMD_Vector3 dP_dy = dP_dy_plus_t_dD_dy + dt_dy * ray.direction;
+	SIMD_Vector3 dP_dx = SIMD_Vector3::madd(ray.direction, dt_dx, dP_dx_plus_t_dD_dx);
+	SIMD_Vector3 dP_dy = SIMD_Vector3::madd(ray.direction, dt_dy, dP_dy_plus_t_dD_dy);
 
 	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, dP_dx, mask);
 	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, dP_dy, mask);
