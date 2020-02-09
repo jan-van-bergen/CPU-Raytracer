@@ -6,10 +6,12 @@
 
 struct Sphere : Primitive {
 private:
+	float radius_inv;
 	float radius_squared;
 
 public:
 	inline void init(float radius) {
+		radius_inv     = 1.0f / radius;
 		radius_squared = radius * radius;
 	}
 
