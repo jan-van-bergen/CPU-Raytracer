@@ -236,8 +236,17 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
+			reflected_ray.dO_dx = closest_hit.dO_dx;
+			reflected_ray.dO_dy = closest_hit.dO_dy;
+
+			SIMD_float dDN_dx = SIMD_Vector3::dot(ray.dD_dx, closest_hit.normal) + SIMD_Vector3::dot(ray.direction, closest_hit.dN_dx);
+			SIMD_float dDN_dy = SIMD_Vector3::dot(ray.dD_dy, closest_hit.normal) + SIMD_Vector3::dot(ray.direction, closest_hit.dN_dy);
+
+			reflected_ray.dD_dx = ray.dD_dx - SIMD_float(2.0f) * (SIMD_Vector3::dot(ray.direction, closest_hit.normal) * closest_hit.dN_dx + dDN_dx * closest_hit.normal);
+			reflected_ray.dD_dy = ray.dD_dy - SIMD_float(2.0f) * (SIMD_Vector3::dot(ray.direction, closest_hit.normal) * closest_hit.dN_dy + dDN_dy * closest_hit.normal);
+
 			SIMD_float reflection_distance;
-			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance) * material_diffuse;
+			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance);
 		}
 
 		if (!SIMD_float::all_false(refraction_mask)) {		
@@ -289,6 +298,24 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 			// Make sure that Snell's Law is correctly obeyed
 			assert(Debug::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
+			
+			refracted_ray.dO_dx = closest_hit.dO_dx;
+			refracted_ray.dO_dy = closest_hit.dO_dy;
+
+			SIMD_float dDN_dx = SIMD_Vector3::dot(ray.dD_dx, closest_hit.normal) + SIMD_Vector3::dot(ray.direction, closest_hit.dN_dx);
+			SIMD_float dDN_dy = SIMD_Vector3::dot(ray.dD_dy, closest_hit.normal) + SIMD_Vector3::dot(ray.direction, closest_hit.dN_dy);
+
+			SIMD_float D_dot_N      = -cos_theta;
+			SIMD_float Dprime_dot_N = -SIMD_float::sqrt(k);
+
+			SIMD_float mu = -(eta * cos_theta + Dprime_dot_N);
+
+			SIMD_float factor = (eta + (eta*eta * cos_theta) / Dprime_dot_N);
+			SIMD_float dmu_dx = factor * dDN_dx;
+			SIMD_float dmu_dy = factor * dDN_dy;
+
+			refracted_ray.dD_dx = eta * ray.dD_dx - (mu * D_dot_N + closest_hit.dN_dx * closest_hit.normal) * dDN_dx;
+			refracted_ray.dD_dy = eta * ray.dD_dy - (mu * D_dot_N + closest_hit.dN_dy * closest_hit.normal) * dDN_dy;
 
 			SIMD_float refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);

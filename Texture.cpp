@@ -239,7 +239,6 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float t = lambda - floorf(lambda);
 
 	return (1.0f - t) * sample_ewa(u, v, level, major_axis, minor_axis) + t * sample_ewa(u, v, level + 1, major_axis, minor_axis);
-
 #endif
 }
 

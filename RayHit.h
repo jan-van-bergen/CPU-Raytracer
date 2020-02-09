@@ -17,6 +17,9 @@ struct RayHit {
 	SIMD_float ds_dx, ds_dy;
 	SIMD_float dt_dx, dt_dy;
 
+	SIMD_Vector3 dO_dx, dO_dy;
+	SIMD_Vector3 dN_dx, dN_dy;
+
 	int bvh_steps;
 
 	inline RayHit() {

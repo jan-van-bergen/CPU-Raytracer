@@ -54,14 +54,14 @@
     <ClCompile Include="Sky.cpp">
       <Filter>Raytracing</Filter>
     </ClCompile>
-    <ClCompile Include="BottomLevelBVH.cpp">
-      <Filter>Raytracing\BVH</Filter>
-    </ClCompile>
     <ClCompile Include="TopLevelBVH.cpp">
       <Filter>Raytracing\BVH</Filter>
     </ClCompile>
     <ClCompile Include="Raytracer.cpp">
       <Filter>Raytracing</Filter>
+    </ClCompile>
+    <ClCompile Include="BottomLevelBVH.cpp">
+      <Filter>Raytracing\BVH</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -417,14 +417,13 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
+	SIMD_Vector3 n_edge1 = SIMD_Vector3(normal_edge1[index]);
+	SIMD_Vector3 n_edge2 = SIMD_Vector3(normal_edge2[index]);
+
+	SIMD_Vector3 n = Math::barycentric(SIMD_Vector3(normal0[index]), n_edge1, n_edge2, u, v);
+
 	SIMD_Vector3 point  = Matrix4::transform_position(world, ray.origin + ray.direction * t);
-	SIMD_Vector3 normal = Matrix4::transform_direction(world, 
-		SIMD_Vector3::normalize(Math::barycentric(
-			SIMD_Vector3(normal0[index]), 
-			SIMD_Vector3(normal_edge1[index]), 
-			SIMD_Vector3(normal_edge2[index]), 
-		u, v))
-	);
+	SIMD_Vector3 normal = Matrix4::transform_direction(world, SIMD_Vector3::normalize(n));
 
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  point,  mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal, mask);
@@ -458,6 +457,21 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * tex_coord_b.x + dv_dy * tex_coord_c.x, mask);
 	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y, mask);
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y, mask);
+
+	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, du_dx * edge1 + dv_dx * edge2, mask);
+	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, du_dy * edge1 + dv_dy * edge2, mask);
+
+	SIMD_Vector3 dn_dx = du_dx * n_edge1 + dv_dx * n_edge2;
+	SIMD_Vector3 dn_dy = du_dy * n_edge1 + dv_dy * n_edge2;
+
+	SIMD_float n_dot_n = SIMD_Vector3::dot(n, n);
+	SIMD_float denom   = SIMD_float::inv_sqrt(n_dot_n) / n_dot_n;
+
+	SIMD_Vector3 dN_dx = (n_dot_n * dn_dx - SIMD_Vector3::dot(n, dn_dx) * n) * denom;
+	SIMD_Vector3 dN_dy = (n_dot_n * dn_dy - SIMD_Vector3::dot(n, dn_dy) * n) * denom;
+
+	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, dN_dx, mask);
+	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, dN_dy, mask);
 
 	ray_hit.bvh_steps = bvh_step;
 }
