@@ -439,6 +439,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
+#if RAY_DIFFERENTIALS_ENABLED
 	// See Chapter 20 of Ray Tracing Gems "Texture Level of Detail Strategies for Real-Time Ray Tracing"
 	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge1, edge2), ray.direction); 
 
@@ -472,6 +473,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 
 	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, dN_dx, mask);
 	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, dN_dy, mask);
+#endif
 
 	ray_hit.bvh_steps = bvh_step;
 }

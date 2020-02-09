@@ -12,6 +12,7 @@ struct RayHit {
 	SIMD_int   material_id;
 	SIMD_float u, v;
 
+#if RAY_DIFFERENTIALS_ENABLED
 	// Derivatives of texture space coordinates s, t
 	// with respect to screen space coordinates x, y
 	SIMD_float ds_dx, ds_dy;
@@ -19,6 +20,7 @@ struct RayHit {
 
 	SIMD_Vector3 dO_dx, dO_dy;
 	SIMD_Vector3 dN_dx, dN_dy;
+#endif
 
 	int bvh_steps;
 

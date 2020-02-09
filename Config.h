@@ -3,7 +3,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_DYNAMIC
+#define SCENE SCENE_SPONZA
 
 // Render settings
 #define SCREEN_WIDTH  900
@@ -33,8 +33,13 @@
 #define TEXTURE_SAMPLE_MODE_BILINEAR 1
 #define TEXTURE_SAMPLE_MODE_MIPMAP   2
 
-#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_MIPMAP
+#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_BILINEAR
 
+// Ray Differentials are only used to determine the correct mipmap level,
+// so we don't need to compute them if mipmapping is not enabled
+#define RAY_DIFFERENTIALS_ENABLED (TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_MIPMAP)
+
+// Mipmap settings
 #define MIPMAP_FILTER_TRILINEAR 0
 #define MIPMAP_FILTER_EWA       1
 

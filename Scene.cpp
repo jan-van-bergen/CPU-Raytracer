@@ -73,7 +73,6 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	top_level_bvh.init(3);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	top_level_bvh.primitives[1].init(DATA_PATH("Magnifier.obj"));
-	top_level_bvh.primitives[1].transform.position.x = 20.0f;
 	top_level_bvh.primitives[2].init(DATA_PATH("Concave.obj"));
 	top_level_bvh.primitives[2].transform.position.x = 20.0f;
 	top_level_bvh.primitives[2].transform.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), PI);

@@ -39,6 +39,7 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_Vector3::dot(ray_hit.point, u), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_Vector3::dot(ray_hit.point, v), mask);
 	
+#if RAY_DIFFERENTIALS_ENABLED
 	// Formulae for Transfer Ray Differential from Igehy 99
 	SIMD_Vector3 dP_dx_plus_t_dD_dx = SIMD_Vector3::madd(ray.dD_dx, t, ray.dO_dx);
 	SIMD_Vector3 dP_dy_plus_t_dD_dy = SIMD_Vector3::madd(ray.dD_dy, t, ray.dO_dy);
@@ -64,6 +65,7 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, SIMD_Vector3::dot(dP_dx, v), mask);
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, SIMD_Vector3::dot(dP_dy, v), mask);
+#endif
 }
 
 SIMD_float Plane::intersect(const Ray & ray, SIMD_float max_distance) const {

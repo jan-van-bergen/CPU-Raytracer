@@ -6,9 +6,11 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	ray.origin.y = SIMD_float(scene->camera.position.y);
 	ray.origin.z = SIMD_float(scene->camera.position.z);
 	
+#if RAY_DIFFERENTIALS_ENABLED
 	ray.dO_dx = SIMD_Vector3(0.0f);
 	ray.dO_dy = SIMD_Vector3(0.0f);
-			
+#endif
+
 	SIMD_Vector3 camera_top_left_corner_rotated(scene->camera.top_left_corner_rotated);
 	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
@@ -56,9 +58,11 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 
 			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d; // d_dot_d ^ -3/2
 
+#if RAY_DIFFERENTIALS_ENABLED
 			ray.dD_dx = (d_dot_d * right - SIMD_Vector3::dot(direction, right) * direction) * denom;
 			ray.dD_dy = (d_dot_d * up    - SIMD_Vector3::dot(direction, up)    * direction) * denom;
-			
+#endif
+
 			ray.direction = direction * inv_sqrt_d_dot_d; // Normalize direction
 
 			SIMD_float distance;
@@ -117,7 +121,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
+#if RAY_DIFFERENTIALS_ENABLED
 			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], closest_hit.ds_dx[i], closest_hit.ds_dy[i], closest_hit.dt_dx[i], closest_hit.dt_dy[i]);
+#else
+			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], 0.0f, 0.0f, 0.0f, 0.0f);
+#endif
 
 			material_diffuse.x[i] = diffuse.x;
 			material_diffuse.y[i] = diffuse.y;
@@ -235,6 +243,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			reflected_ray.origin    = closest_hit.point;
 			reflected_ray.direction = Math::reflect(ray.direction, closest_hit.normal);
 
+#if RAY_DIFFERENTIALS_ENABLED
 			reflected_ray.dO_dx = closest_hit.dO_dx;
 			reflected_ray.dO_dy = closest_hit.dO_dy;
 
@@ -243,6 +252,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 			reflected_ray.dD_dx = ray.dD_dx - SIMD_float(2.0f) * (SIMD_Vector3::dot(ray.direction, closest_hit.normal) * closest_hit.dN_dx + dDN_dx * closest_hit.normal);
 			reflected_ray.dD_dy = ray.dD_dy - SIMD_float(2.0f) * (SIMD_Vector3::dot(ray.direction, closest_hit.normal) * closest_hit.dN_dy + dDN_dy * closest_hit.normal);
+#endif
 
 			SIMD_float reflection_distance;
 			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance);
@@ -300,6 +310,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			// Make sure that Snell's Law is correctly obeyed
 			assert(Debug::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
 			
+#if RAY_DIFFERENTIALS_ENABLED
 			refracted_ray.dO_dx = closest_hit.dO_dx;
 			refracted_ray.dO_dy = closest_hit.dO_dy;
 
@@ -317,6 +328,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 			refracted_ray.dD_dx = eta * ray.dD_dx - (mu * D_dot_N + closest_hit.dN_dx * closest_hit.normal) * dDN_dx;
 			refracted_ray.dD_dy = eta * ray.dD_dy - (mu * D_dot_N + closest_hit.dN_dy * closest_hit.normal) * dDN_dy;
+#endif
 
 			SIMD_float refraction_distance;
 			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);

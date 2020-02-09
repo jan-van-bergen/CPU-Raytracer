@@ -20,10 +20,12 @@ void Mesh::trace(const Ray & ray, RayHit & ray_hit, int bvh_step) const {
 	ray_model_space.origin    = Matrix4::transform_position (transform_inv, ray.origin);
 	ray_model_space.direction = Matrix4::transform_direction(transform_inv, ray.direction);
 
+#if RAY_DIFFERENTIALS_ENABLED
 	ray_model_space.dO_dx = Matrix4::transform_direction(transform_inv, ray.dO_dx);
 	ray_model_space.dO_dy = Matrix4::transform_direction(transform_inv, ray.dO_dy);
 	ray_model_space.dD_dx = Matrix4::transform_direction(transform_inv, ray.dD_dx);
 	ray_model_space.dD_dy = Matrix4::transform_direction(transform_inv, ray.dD_dy);
+#endif
 
 	bvh->trace(ray_model_space, ray_hit, transform.world_matrix);
 }

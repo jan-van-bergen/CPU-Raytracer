@@ -60,6 +60,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(ray_hit.normal.z, ray_hit.normal.x), one_over_two_pi, half), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (ray_hit.normal.y),                   one_over_pi,     half), mask);
 
+#if RAY_DIFFERENTIALS_ENABLED
 	// Formulae for Transfer Ray Differential from Igehy 99
 	SIMD_Vector3 dP_dx_plus_t_dD_dx = SIMD_Vector3::madd(ray.dD_dx, t, ray.dO_dx);
 	SIMD_Vector3 dP_dy_plus_t_dD_dy = SIMD_Vector3::madd(ray.dD_dy, t, ray.dO_dy);
@@ -85,6 +86,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	SIMD_float dt_denom = -one_over_pi * SIMD_float::inv_sqrt(one - ray_hit.normal.y*ray_hit.normal.y + non_zero);
 	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, ray_hit.dN_dx.y * dt_denom, mask);
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, ray_hit.dN_dy.y * dt_denom, mask);
+#endif
 }
 
 SIMD_float Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {
