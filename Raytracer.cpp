@@ -130,7 +130,6 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			material_diffuse.z[i] = 0.0f;
 		}
 	}
-
 	SIMD_float diffuse_mask = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
 	if (!SIMD_float::all_false(diffuse_mask)) {
@@ -247,6 +246,8 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 			SIMD_float reflection_distance;
 			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance);
+
+			result = SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask & (~refraction_mask));
 		}
 
 		if (!SIMD_float::all_false(refraction_mask)) {		
@@ -368,8 +369,6 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_Vector3 blend = SIMD_Vector3::blend(F_r * colour_reflection + F_t * colour_refraction, colour_reflection, tir_mask);
 
 			return SIMD_Vector3::blend(result, result + blend, refraction_mask);
-		} else {
-			return SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask);
 		}
 	}
 
