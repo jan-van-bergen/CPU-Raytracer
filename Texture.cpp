@@ -269,8 +269,8 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 	float det     = -b * b + 4.0f * a * c;
 	float inv_det = 1.0f / det;
 
-	float sqrt_u = std::sqrt(det * c);
-	float sqrt_v = std::sqrt(det * a);
+	float sqrt_u = sqrtf(det * c);
+	float sqrt_v = sqrtf(det * a);
 
 	int s0 = ceilf (u - 2.0f * inv_det * sqrt_u);
 	int s1 = floorf(u + 2.0f * inv_det * sqrt_u);
