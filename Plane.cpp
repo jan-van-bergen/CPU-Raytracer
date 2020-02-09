@@ -18,8 +18,8 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	SIMD_float t = -(SIMD_Vector3::dot(normal, ray.origin) + distance) / SIMD_Vector3::dot(normal, ray.direction);
 
 	SIMD_float mask = (t > Ray::EPSILON) & (t < ray_hit.distance);
-	int int_mask = SIMD_float::mask(mask); 
-	if (int_mask == 0x0) return;
+
+	if (SIMD_float::all_false(mask)) return;
 
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);

@@ -39,8 +39,7 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	mask = mask & (t > epsilon);
 	mask = mask & (t < ray_hit.distance);
 
-	int int_mask = SIMD_float::mask(mask);
-	if (int_mask == 0x0) return;
+	if (SIMD_float::all_false(mask)) return;
 
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
@@ -53,12 +52,9 @@ void Sphere::trace(const Ray & ray, RayHit & ray_hit) const {
 	// Obtain u,v by converting the normal direction to spherical coordinates
 	SIMD_Vector3 neg_normal = -ray_hit.normal;
 
-	SIMD_float one_over_two_pi(ONE_OVER_TWO_PI);
-	SIMD_float one_over_pi    (ONE_OVER_PI);
-	SIMD_float half(0.5f);
-
-	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(neg_normal.z, neg_normal.x), one_over_two_pi, half), mask);
-	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (neg_normal.y),               one_over_pi,     half), mask);
+	const SIMD_float half(0.5f);
+	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_float::madd(SIMD_float::atan2(neg_normal.z, neg_normal.x), SIMD_float(ONE_OVER_TWO_PI), half), mask);
+	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_float::madd(SIMD_float::acos (neg_normal.y),               SIMD_float(ONE_OVER_PI),     half), mask);
 }
 
 SIMD_float Sphere::intersect(const Ray & ray, SIMD_float max_distance) const {
