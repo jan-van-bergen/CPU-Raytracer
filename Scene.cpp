@@ -69,13 +69,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 #else
 CatmullRomSpline spline_path;
 
-Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(1), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
-	spheres[0].init(1.0f);
-	//spheres[0].transform.position = Vector3(-2.0f, 2.0f, 10.0f);
-	Material::materials[spheres[0].material_id].diffuse = 1.0f;
-	Material::materials[spheres[0].material_id].texture = Texture::load(DATA_PATH("bricks.png"));
-	//Material::materials[spheres[0].material_id].reflection = 1.0f;
-
+Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PATH("Sky_Probes/rnl_probe.float")) {
 	top_level_bvh.init(3);
 	top_level_bvh.primitives[0].init(DATA_PATH("sponza/sponza.obj"));
 	top_level_bvh.primitives[1].init(DATA_PATH("Magnifier.obj"));

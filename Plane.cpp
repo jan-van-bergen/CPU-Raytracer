@@ -21,11 +21,14 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 
 	if (SIMD_float::all_false(mask)) return;
 
+	const SIMD_float   one (1.0f);
+	const SIMD_Vector3 zero(0.0f);
+
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  ray.origin + t * ray.direction, mask);
-	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal,                         mask);
+	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point, ray.origin + t * ray.direction, mask);
+	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal,                        mask);
 
 	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_id), *reinterpret_cast<SIMD_int *>(&mask));
 
@@ -35,6 +38,32 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	// Obtain u,v by projecting the hit point onto the u and v axes
 	ray_hit.u = SIMD_float::blend(ray_hit.u, SIMD_Vector3::dot(ray_hit.point, u), mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, SIMD_Vector3::dot(ray_hit.point, v), mask);
+	
+	// Formulae for Transfer Ray Differential from Igehy 99
+	SIMD_Vector3 dP_dx_plus_t_dD_dx = ray.dO_dx + t * ray.dD_dx;
+	SIMD_Vector3 dP_dy_plus_t_dD_dy = ray.dO_dy + t * ray.dD_dy;
+
+	SIMD_float denom = -one / SIMD_Vector3::dot(ray.direction, ray_hit.normal);
+	SIMD_float dt_dx = SIMD_Vector3::dot(dP_dx_plus_t_dD_dx, ray_hit.normal) * denom;
+	SIMD_float dt_dy = SIMD_Vector3::dot(dP_dy_plus_t_dD_dy, ray_hit.normal) * denom;
+
+	SIMD_Vector3 dP_dx = dP_dx_plus_t_dD_dx + dt_dx * ray.direction;
+	SIMD_Vector3 dP_dy = dP_dy_plus_t_dD_dy + dt_dy * ray.direction;
+
+	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, dP_dx, mask);
+	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, dP_dy, mask);
+
+	// Normal does not depend on screenspace coordinates x,y
+	// Thus, the derivative is zero
+	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, zero, mask);
+	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, zero, mask);
+
+	// Formulae derived by differentiating the above formulae for u and v
+	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, SIMD_Vector3::dot(dP_dx, u), mask);
+	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, SIMD_Vector3::dot(dP_dy, u), mask);
+
+	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, SIMD_Vector3::dot(dP_dx, v), mask);
+	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, SIMD_Vector3::dot(dP_dy, v), mask);
 }
 
 SIMD_float Plane::intersect(const Ray & ray, SIMD_float max_distance) const {

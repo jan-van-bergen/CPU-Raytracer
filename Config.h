@@ -3,7 +3,7 @@
 #define SCENE_SPONZA  0 
 #define SCENE_DYNAMIC 1
 
-#define SCENE SCENE_SPONZA
+#define SCENE SCENE_DYNAMIC
 
 // Render settings
 #define SCREEN_WIDTH  900
