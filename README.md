@@ -1,17 +1,16 @@
 # CPU Raytracer
 
 ![Sponza](Screenshots/Sponza.png)
-*Crytek Sponza Atrium*
 
 Implementation of a Whitted-Style CPU Raytracer.
 The project uses multithreading, a high quality acceleration structure ([SBVH](https://www.nvidia.com/docs/IO/77714/sbvh.pdf)), SIMD vectors, and data-oriented design to achieve high frame rates, even in scenes with large triangle counts.
 
 ## Features
 
+### BVH
+
 ![Dynamic Scene](Screenshots/Dynamic.png)
 *The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share MeshData and the SBVH.*
-
-### BVH
 
 - Supports standard BVH's, constructed using the Surface Area Heuristic
 - Supports SBVH's, which add the possibility for spatial splits, thereby improving performance in scenes with a non-uniform Triangle distribution.
