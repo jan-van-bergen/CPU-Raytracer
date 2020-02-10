@@ -32,7 +32,7 @@ namespace Math {
 	// Refracts the vector in the normal, according to Snell's Law
 	// The normal should be oriented such that it makes the smallest angle possible with the vector
 	inline SIMD_Vector3 refract(const SIMD_Vector3 & vector, const SIMD_Vector3 & normal, SIMD_float eta, SIMD_float cos_theta, SIMD_float k) {
-		return SIMD_Vector3::normalize(eta * vector + ((eta * cos_theta) - SIMD_float::sqrt(k)) * normal);
+		return eta * vector + ((eta * cos_theta) - SIMD_float::sqrt(k)) * normal;
 	}
 	
 	// Checks if n is a power of two
