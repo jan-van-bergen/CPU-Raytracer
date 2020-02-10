@@ -26,8 +26,12 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 
 ### Mipmapping
 
+![Mipmap](Screenshots/Mipmap.png)
+*Mipmapping works correctly even when Rays are reflected or refracted.*
+
 - Mipmapping is implemented to combat texture aliasing.
 - The MipMap LOD is determined using Ray Differentials, as described in Igehy 99 and Ray Tracing Gems chapter 20.
+- Mipmapping works correctly for reflected and refracted rays.
 
 ### Other
 - Plane, Sphere, and Triangle Mesh primitives. All primitives support Ray Differentials.
