@@ -33,7 +33,7 @@
 #define TEXTURE_SAMPLE_MODE_BILINEAR 1
 #define TEXTURE_SAMPLE_MODE_MIPMAP   2
 
-#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_BILINEAR
+#define TEXTURE_SAMPLE_MODE TEXTURE_SAMPLE_MODE_MIPMAP
 
 // Ray Differentials are only used to determine the correct mipmap level,
 // so we don't need to compute them if mipmapping is not enabled

@@ -189,7 +189,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			diffuse = SIMD_Vector3::blend(diffuse + scene->directional_lights[i].calc_lighting(closest_hit.normal, to_camera), diffuse, shadow_mask);
 		}
 
-		result += diffuse * material_diffuse;
+		result = SIMD_Vector3::madd(diffuse, material_diffuse, result);
 	}
 	
 	// If we have bounces left to do, recurse one level deeper
