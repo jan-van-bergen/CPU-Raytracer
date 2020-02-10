@@ -223,10 +223,10 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 		std::swap(minor_length, major_length);
 	}
 
-	if (minor_length == 0.0f) return sample_bilinear(u, v);
+	if (minor_length < 0.00001f) return sample_bilinear(u, v);
 
 	// Clamp ellipse eccentricity when it is too large
-	if (minor_length * MAX_ANISOTROPY < major_length && minor_length > 0.0f) {
+	if (minor_length * MAX_ANISOTROPY < major_length) {
 		float scale = major_length / (minor_length * MAX_ANISOTROPY);
 
 		minor_axis   *= scale;
@@ -290,7 +290,7 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 			// Compute squared radius and filter texel if inside ellipse
 			float r2 = a * ss * ss + b * ss * tt + c * tt * tt;
 			if (r2 < 1.0f) {
-				int index = std::min((int)(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
+				int   index  = std::min((int)(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
 				float weight = ewa_weight_table[index];
 
 				sum         += weight * fetch_texel(is, it, level);
