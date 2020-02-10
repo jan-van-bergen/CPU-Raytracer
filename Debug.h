@@ -7,9 +7,20 @@
 namespace Debug {
 	inline const Texture * heat_palette; // Used to visualize the number of steps through a BVH
 
-	template<typename Float>
-	inline bool approx_equal(Float a, Float b, Float epsilon = static_cast<Float>(0.01)) {
-		return abs(a - b) > epsilon;
+	inline bool is_valid(const SIMD_float & floats) {
+		for (int i = 0; i < SIMD_LANE_SIZE; i++) {
+			float f = floats[i];
+
+			if (::isinf(f) || ::isnan(f)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	inline bool is_valid(const SIMD_Vector3 & vector) {
+		return is_valid(vector.x) && is_valid(vector.y) && is_valid(vector.z);
 	}
 
 	inline bool approx_equal(SIMD_float a, SIMD_float b) {

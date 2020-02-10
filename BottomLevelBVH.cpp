@@ -436,11 +436,10 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + material_id[index]), *reinterpret_cast<SIMD_int *>(&mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-	SIMD_Vector2 tex_coord_a(tex_coord0     [index]);
-	SIMD_Vector2 tex_coord_b(tex_coord_edge1[index]);
-	SIMD_Vector2 tex_coord_c(tex_coord_edge2[index]);
+	SIMD_Vector2 t_edge1(tex_coord_edge1[index]);
+	SIMD_Vector2 t_edge2(tex_coord_edge2[index]);
 
-	SIMD_Vector2 tex_coords = Math::barycentric(tex_coord_a, tex_coord_b, tex_coord_c, u, v);
+	SIMD_Vector2 tex_coords = Math::barycentric(SIMD_Vector2(tex_coord0[index]), t_edge1, t_edge2, u, v);
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
@@ -473,10 +472,10 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, (n_dot_n * dn_dx - SIMD_Vector3::dot(n, dn_dx) * n) * N_denom, mask);
 	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, (n_dot_n * dn_dy - SIMD_Vector3::dot(n, dn_dy) * n) * N_denom, mask);
 
-	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, du_dx * tex_coord_b.x + dv_dx * tex_coord_c.x, mask);
-	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * tex_coord_b.x + dv_dy * tex_coord_c.x, mask);
-	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * tex_coord_b.y + dv_dx * tex_coord_c.y, mask);
-	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * tex_coord_b.y + dv_dy * tex_coord_c.y, mask);
+	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, du_dx * t_edge1.x + dv_dx * t_edge2.x, mask);
+	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * t_edge1.x + dv_dy * t_edge2.x, mask);
+	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * t_edge1.y + dv_dx * t_edge2.y, mask);
+	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * t_edge1.y + dv_dy * t_edge2.y, mask);
 #endif
 
 	ray_hit.bvh_steps = bvh_step;

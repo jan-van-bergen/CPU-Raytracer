@@ -11,8 +11,8 @@ void Camera::resize(int width, int height) {
 
 	// Initialize viewing pyramid vectors
 	top_left_corner = Vector3(-half_width, half_height, d);
-	x_axis = Vector3::normalize(Vector3(width,  0.0f,   0.0f));
-	y_axis = Vector3::normalize(Vector3(0.0f,  -height, 0.0f));
+	x_axis = Vector3(1.0f,  0.0f, 0.0f);
+	y_axis = Vector3(0.0f, -1.0f, 0.0f);
 }
 
 void Camera::update(float delta, const unsigned char * keys) {

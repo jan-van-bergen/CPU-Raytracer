@@ -15,9 +15,6 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
 	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
 	
-	SIMD_Vector3 right = camera_x_axis_rotated; // SIMD_Vector3::normalize(camera_x_axis_rotated);
-	SIMD_Vector3 up    = camera_y_axis_rotated; // SIMD_Vector3::normalize(camera_y_axis_rotated);
-
 #if SIMD_LANE_SIZE == 1
 	const int step_x = 1;
 	const int step_y = 1;
@@ -49,9 +46,9 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float js(j_f, j_f,        j_f,        j_f,        j_f + 1.0f, j_f + 1.0f, j_f + 1.0f, j_f + 1.0f);
 #endif
 
-			SIMD_Vector3 direction = camera_top_left_corner_rotated
-				+ is * camera_x_axis_rotated
-				+ js * camera_y_axis_rotated;
+			SIMD_Vector3 direction = 
+				SIMD_Vector3::madd(camera_x_axis_rotated, is, 
+				SIMD_Vector3::madd(camera_y_axis_rotated, js, camera_top_left_corner_rotated));
 
 			SIMD_float          d_dot_d = SIMD_Vector3::dot(direction, direction);
 			SIMD_float inv_sqrt_d_dot_d = SIMD_float::inv_sqrt(d_dot_d);
@@ -59,8 +56,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d; // d_dot_d ^ -3/2
 
 #if RAY_DIFFERENTIALS_ENABLED
-			ray.dD_dx = (d_dot_d * right - SIMD_Vector3::dot(direction, right) * direction) * denom;
-			ray.dD_dy = (d_dot_d * up    - SIMD_Vector3::dot(direction, up)    * direction) * denom;
+			ray.dD_dx = (d_dot_d * camera_x_axis_rotated - SIMD_Vector3::dot(direction, camera_x_axis_rotated) * direction) * denom;
+			ray.dD_dy = (d_dot_d * camera_y_axis_rotated - SIMD_Vector3::dot(direction, camera_y_axis_rotated) * direction) * denom;
 #endif
 
 			ray.direction = direction * inv_sqrt_d_dot_d; // Normalize direction
@@ -294,7 +291,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_Vector3 normal    = SIMD_Vector3::blend(-closest_hit.normal, closest_hit.normal, dot_mask);
 
 			SIMD_float eta = n_1 / n_2;
-			SIMD_float k = (one - (eta*eta * (one - (cos_theta * cos_theta))));
+			SIMD_float k   = one - (eta*eta * (one - (cos_theta * cos_theta)));
 			
 			// In case of Total Internal Reflection, return only the reflection component
 			SIMD_float tir_mask = closest_hit.hit & (k < zero);
