@@ -21,7 +21,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
 	Material::materials[planes[0].material_id].texture    = Texture::load(DATA_PATH("Floor.png"));
-	Material::materials[planes[0].material_id].reflection = 0.25f;
+	Material::materials[planes[0].material_id].reflection = 0.1f;
 	
 	top_level_bvh.init(6);
 	Mesh * diamond   = top_level_bvh.primitives;
@@ -120,8 +120,8 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.1f, -1.0f, 0.1f)))
 	};
 	
-	camera.position = Vector3(0.0f, 10.0f, 0.0f);
-	camera.rotation = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), DEG_TO_RAD(-90.0f));
+	camera.position = Vector3(19.729143f, 18.946165f, 0.000000f);
+	camera.rotation = Quaternion(0.000000f, -0.707107f, 0.000000f, 0.707107f);
 }
 #endif
 
