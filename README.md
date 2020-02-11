@@ -31,6 +31,7 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 - Mipmapping is implemented to combat texture aliasing.
 - The MipMap LOD is determined using Ray Differentials, as described in Igehy 99 and Ray Tracing Gems chapter 20.
 - Mipmapping works correctly for reflected and refracted rays.
+- Two filtering modes are supported for mipmaps: Trilinear filtering and Elliptical Weighted Average filtering. You can switch between them by changing the ```MIPMAP_FILTER``` define in Config.h. Trilinear filtering is isotropic and can look blurry at oblique viewing angles. Elliptical Weighted Average filtering is anisotropic and more expensive to compute, but improves image quality significantly.
 
 ### Other
 - Plane, Sphere, and Triangle Mesh primitives. All primitives support Ray Differentials.
