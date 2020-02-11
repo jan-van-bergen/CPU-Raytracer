@@ -219,14 +219,12 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float lambda = std::max(0.0f, mip_levels - 1.0f + log2f(minor_length));
 	int   level  = Util::float_to_int(lambda);
 
-	float t = lambda - floorf(lambda);
-
-	return (1.0f - t) * sample_ewa(u, v, level, major_axis, minor_axis) + t * sample_ewa(u, v, level + 1, major_axis, minor_axis);
+	return sample_ewa(u, v, level, major_axis, minor_axis);
 #endif
 }
 
 Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_axis, const Vector2 & minor_axis) const {
-	if (level >= mip_levels) return fetch_texel(0, 0, mip_levels - 1);
+	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 
 	float size = float(width >> level);
 
