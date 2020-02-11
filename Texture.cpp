@@ -20,9 +20,9 @@ static Vector3 colour_unpack(unsigned colour) {
 }
 
 static unsigned colour_pack(const Vector3 & colour) {
-	unsigned r = int(colour.x * 255.0f);
-	unsigned g = int(colour.y * 255.0f) << 8;
-	unsigned b = int(colour.z * 255.0f) << 16;
+	unsigned r = Util::float_to_int(colour.x * 255.0f);
+	unsigned g = Util::float_to_int(colour.y * 255.0f) << 8;
+	unsigned b = Util::float_to_int(colour.z * 255.0f) << 16;
 
 	return r | g | b;
 }
@@ -137,14 +137,7 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	assert(y >= 0 && y < height >> level);
 
 	assert(data);
-	unsigned colour = data[offset + x + y * size];
-
-	const float one_over_255 = 0.00392156862f;
-	float r = float((colour)       & 0xff) * one_over_255;
-	float g = float((colour >> 8)  & 0xff) * one_over_255;
-	float b = float((colour >> 16) & 0xff) * one_over_255;
-
-	return Vector3(r, g, b);
+	return colour_unpack(data[offset + x + y * size]);
 }
 
 Vector3 Texture::sample_nearest(float u, float v) const {
@@ -158,10 +151,6 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 	u = u * size - 0.5f;
 	v = v * size - 0.5f;
 
-	// Convert pixel coordinates to integers
-	int u0_i = int(u);
-	int v0_i = int(v);
-	
 	// Calculate bilinear weights
 	float fractional_u = u - floor(u);
 	float fractional_v = v - floor(v);
@@ -173,7 +162,11 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 	float w1 =           fractional_u * one_minus_fractional_v;
 	float w2 = one_minus_fractional_u *           fractional_v;
 	float w3 = 1.0f - w0 - w1 - w2;
-
+	
+	// Convert pixel coordinates to integers
+	int u0_i = Util::float_to_int(u);
+	int v0_i = Util::float_to_int(v);
+	
 	// Blend everything together using the weights
 	return 
 		w0 * fetch_texel(u0_i,     v0_i,     level) +
@@ -193,17 +186,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	);
 	
 	float lambda = float(mip_levels) - 1.0f + log2f(std::max(width, 1e-8f));
-
-	//ds_dx *= width_f;
-	//ds_dy *= width_f;
-	//dt_dx *= height_f;
-	//dt_dy *= height_f;
-
-	//float rho = std::max(sqrtf(ds_dx*ds_dx + dt_dx*dt_dx), sqrtf(ds_dy*ds_dy + dt_dy*dt_dy));
-
-	//float lambda = 1.0f + log2f(rho);
-	
-	int level = lambda;
+	int   level  = Util::float_to_int(lambda);
 
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
@@ -234,7 +217,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	}
 
 	float lambda = std::max(0.0f, mip_levels - 1.0f + log2f(minor_length));
-	int   level  = lambda;
+	int   level  = Util::float_to_int(lambda);
 
 	float t = lambda - floorf(lambda);
 
@@ -272,10 +255,10 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 	float sqrt_u = sqrtf(det * c);
 	float sqrt_v = sqrtf(det * a);
 
-	int s0 = ceilf (u - 2.0f * inv_det * sqrt_u);
-	int s1 = floorf(u + 2.0f * inv_det * sqrt_u);
-	int t0 = ceilf (v - 2.0f * inv_det * sqrt_v);
-	int t1 = floorf(v + 2.0f * inv_det * sqrt_v);
+	int s0 = Util::float_to_int(ceilf (u - 2.0f * inv_det * sqrt_u));
+	int s1 = Util::float_to_int(floorf(u + 2.0f * inv_det * sqrt_u));
+	int t0 = Util::float_to_int(ceilf (v - 2.0f * inv_det * sqrt_v));
+	int t1 = Util::float_to_int(floorf(v + 2.0f * inv_det * sqrt_v));
 
 	// Scan over ellipse bound and compute quadratic equation
 	Vector3 sum(0.0f);
@@ -290,7 +273,7 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 			// Compute squared radius and filter texel if inside ellipse
 			float r2 = a * ss * ss + b * ss * tt + c * tt * tt;
 			if (r2 < 1.0f) {
-				int   index  = std::min((int)(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
+				int   index  = std::min(Util::float_to_int(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
 				float weight = ewa_weight_table[index];
 
 				sum         += weight * fetch_texel(is, it, level);

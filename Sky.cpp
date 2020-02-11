@@ -16,7 +16,7 @@ Sky::Sky(const char * file_path) {
 	rewind(file);
 
 	// The image is square, so take a square root to obtain the side lengths
-	size = int(sqrtf(size_squared));
+	size = Util::float_to_int(sqrtf(size_squared));
 	assert(size * size == size_squared);
 
 	// Allocate data and copy it over from the file

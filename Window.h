@@ -49,9 +49,9 @@ public:
 		assert(x < width);
 		assert(y < height);
 
-		int r = int(Math::clamp(colour.x * 255.0f, 0.0f, 255.0f));
-		int g = int(Math::clamp(colour.y * 255.0f, 0.0f, 255.0f));
-		int b = int(Math::clamp(colour.z * 255.0f, 0.0f, 255.0f));
+		int r = Util::float_to_int(Math::clamp(colour.x * 255.0f, 0.0f, 255.0f));
+		int g = Util::float_to_int(Math::clamp(colour.y * 255.0f, 0.0f, 255.0f));
+		int b = Util::float_to_int(Math::clamp(colour.z * 255.0f, 0.0f, 255.0f));
 
 		frame_buffer[x + width * y] = (r << 16) | (g << 8) | b;
 	}

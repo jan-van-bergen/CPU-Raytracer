@@ -1,4 +1,6 @@
 #pragma once
+#include <immintrin.h>
+
 #define INVALID -1
 
 #define DATA_PATH(file_name) "../Raytracer/Data/" file_name
@@ -29,5 +31,10 @@ namespace Util {
 		T temp = a;
 		a = b;
 		b = temp;
+	}
+
+	// Fast float to int conversion
+	inline int float_to_int(float x) {
+		return _mm_cvtss_si32(_mm_load_ss(&x));
 	}
 }
