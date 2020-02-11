@@ -29,6 +29,8 @@ struct RayHit {
 		hit      = SIMD_float(0.0f);
 		distance = SIMD_float(INFINITY);
 
+#if BVH_VISUALIZE_HEATMAP
 		bvh_steps = 0;
+#endif
 	}
 };
