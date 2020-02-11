@@ -4,7 +4,7 @@
 #include "Util.h"
 
 struct SpotLight : PointLight {
-	Vector3 negative_direction;
+	SIMD_Vector3 negative_direction;
 
 	float inner_cutoff; // Cosine of half the angle that describes the inner cone of the SpotLight. Angles inside this cone will receive full SpotLight intensity
 	float outer_cutoff; // Cosine of half the angle that describes the outer cone of the SpotLight. Angles outside this cone will receive no SpotLight intensity
@@ -17,7 +17,7 @@ struct SpotLight : PointLight {
 	inline SIMD_Vector3 calc_lighting(const SIMD_Vector3 & normal, const SIMD_Vector3 & to_light, const SIMD_Vector3 & to_camera, SIMD_float distance_squared) const {
 		const SIMD_float one(1.0f);
 
-		SIMD_float dot = SIMD_Vector3::dot(to_light, SIMD_Vector3(negative_direction));
+		SIMD_float dot = SIMD_Vector3::dot(to_light, negative_direction);
 
 		SIMD_float inner(inner_cutoff);
 		SIMD_float outer(outer_cutoff);

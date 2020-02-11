@@ -4,7 +4,7 @@
 #include "Vector3.h"
 
 struct Light {
-	Vector3 colour;
+	SIMD_Vector3 colour;
 
 	inline Light(const Vector3 & colour) : colour(colour) { }
 
@@ -22,6 +22,6 @@ struct Light {
         SIMD_float specular_factor = SIMD_Vector3::dot(normal, half_angle);
         intensity = intensity + Math::pow2<128>(specular_factor);
 
-        return SIMD_float::blend(zero, intensity, mask) * SIMD_Vector3(colour);
+        return SIMD_float::blend(zero, intensity, mask) * colour;
 	}
 };

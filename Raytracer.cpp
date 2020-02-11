@@ -119,7 +119,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
 #if RAY_DIFFERENTIALS_ENABLED
-			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], closest_hit.ds_dx[i], closest_hit.ds_dy[i], closest_hit.dt_dx[i], closest_hit.dt_dy[i]);
+			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(
+				closest_hit.u[i],     closest_hit.v[i], 
+				closest_hit.ds_dx[i], closest_hit.ds_dy[i], 
+				closest_hit.dt_dx[i], closest_hit.dt_dy[i]
+			);
 #else
 			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], 0.0f, 0.0f, 0.0f, 0.0f);
 #endif
@@ -135,6 +139,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			material_diffuse.z[i] = 0.0f;
 		}
 	}
+
 	SIMD_float diffuse_mask = SIMD_Vector3::length_squared(material_diffuse) > zero;
 
 	if (!SIMD_float::all_false(diffuse_mask)) {
@@ -148,7 +153,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 		// Check Point Lights
 		for (int i = 0; i < scene->point_light_count; i++) {
-			SIMD_Vector3 to_light = SIMD_Vector3(scene->point_lights[i].position) - closest_hit.point;
+			SIMD_Vector3 to_light = scene->point_lights[i].position - closest_hit.point;
 			SIMD_float   distance_to_light_squared = SIMD_Vector3::length_squared(to_light);
 			SIMD_float   distance_to_light         = SIMD_float::sqrt(distance_to_light_squared);
 
@@ -163,7 +168,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 		// Check Spot Lights
 		for (int i = 0; i < scene->spot_light_count; i++) {
-			SIMD_Vector3 to_light = SIMD_Vector3(scene->spot_lights[i].position) - closest_hit.point;
+			SIMD_Vector3 to_light = scene->spot_lights[i].position - closest_hit.point;
 			SIMD_float   distance_to_light_squared = SIMD_Vector3::length_squared(to_light);
 			SIMD_float   distance_to_light         = SIMD_float::sqrt(distance_to_light_squared);
 
@@ -178,7 +183,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 		// Check Directional Lights
 		for (int i = 0; i < scene->directional_light_count; i++) {			
-			secondary_ray.direction = SIMD_Vector3(scene->directional_lights[i].negative_direction);
+			secondary_ray.direction = scene->directional_lights[i].negative_direction;
 
 			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, inf);
 			if (SIMD_float::all_true(shadow_mask)) continue;
