@@ -51,21 +51,23 @@ SIMD_float AABB::intersect(const Ray & ray, const SIMD_Vector3 & inv_direction, 
 	return t_near < t_far;
 }
 
+// Based on: https://zeux.io/2010/10/17/aabb-from-obb-with-component-wise-abs/
 AABB AABB::transform(const AABB & aabb, const Matrix4 & transformation) {
-	Vector3 corners[8] = {
-		Vector3(aabb.min.x, aabb.min.y, aabb.min.z),
-		Vector3(aabb.min.x, aabb.min.y, aabb.max.z),
-		Vector3(aabb.max.x, aabb.min.y, aabb.max.z),
-		Vector3(aabb.max.x, aabb.min.y, aabb.min.z),
-		Vector3(aabb.min.x, aabb.max.y, aabb.min.z),
-		Vector3(aabb.min.x, aabb.max.y, aabb.max.z),
-		Vector3(aabb.max.x, aabb.max.y, aabb.max.z),
-		Vector3(aabb.max.x, aabb.max.y, aabb.min.z)
-	};
+	Vector3 center = 0.5f * (aabb.min + aabb.max);
+	Vector3 extent = 0.5f * (aabb.max - aabb.min);
 
-	for (int i = 0; i < 8; i++) {
-		corners[i] = Matrix4::transform_position(transformation, corners[i]);
+	// Construct matrix that contains the absolute value of all cells in the original matrix
+	Matrix4 abs_transformation;
+	for (int i = 0; i < 16; i++) {
+		abs_transformation.cells[i] = abs(transformation.cells[i]);
 	}
 
-	return AABB::from_points(corners, 8);
+	Vector3 new_center = Matrix4::transform_position (    transformation, center);
+    Vector3 new_extent = Matrix4::transform_direction(abs_transformation, extent);
+
+	AABB result;
+	result.min = new_center - new_extent;
+	result.max = new_center + new_extent;
+
+	return result;
 }
