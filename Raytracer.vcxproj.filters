@@ -22,7 +22,7 @@
     <Filter Include="Raytracing\BVH">
       <UniqueIdentifier>{fc757026-834f-48ab-978c-e1661f1f89c5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Util\SIMD">
+    <Filter Include="SIMD">
       <UniqueIdentifier>{478e76b7-8dbc-4c57-83cc-6430ad193548}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -174,19 +174,19 @@
     </ClInclude>
     <ClInclude Include="Config.h" />
     <ClInclude Include="SIMD.h">
-      <Filter>Util\SIMD</Filter>
+      <Filter>SIMD</Filter>
     </ClInclude>
     <ClInclude Include="SIMD_floats.h">
-      <Filter>Util\SIMD</Filter>
+      <Filter>SIMD</Filter>
     </ClInclude>
     <ClInclude Include="SIMD_Vector3.h">
-      <Filter>Util\SIMD</Filter>
+      <Filter>SIMD</Filter>
     </ClInclude>
     <ClInclude Include="SIMD_ints.h">
-      <Filter>Util\SIMD</Filter>
+      <Filter>SIMD</Filter>
     </ClInclude>
     <ClInclude Include="SIMD_Vector2.h">
-      <Filter>Util\SIMD</Filter>
+      <Filter>SIMD</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
