@@ -5,8 +5,6 @@
 #include "Texture.h"
 
 namespace Debug {
-	inline const Texture * heat_palette; // Used to visualize the number of steps through a BVH
-
 	inline bool is_valid(const SIMD_float & floats) {
 		for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 			float f = floats[i];

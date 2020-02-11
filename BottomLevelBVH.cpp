@@ -379,7 +379,7 @@ void BottomLevelBVH::load_from_disk(const char * bvh_filename) {
 	fclose(file);
 }
 
-void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const {
+void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 	
@@ -477,8 +477,6 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * t_edge1.y + dv_dx * t_edge2.y, mask);
 	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * t_edge1.y + dv_dy * t_edge2.y, mask);
 #endif
-
-	ray_hit.bvh_steps = bvh_step;
 }
 
 SIMD_float BottomLevelBVH::triangle_soa_intersect(int index, const Ray & ray, SIMD_float max_distance) const {
@@ -528,7 +526,7 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 	// Push root on stack
 	stack[0] = 0;
 
-	int step = 0;
+	int steps = 0;
 
 	SIMD_Vector3 inv_direction = SIMD_Vector3::rcp(ray.direction);
 
@@ -541,7 +539,7 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 
 		if (node.is_leaf()) {
 			for (int i = node.first; i < node.first + node.count; i++) {
-				triangle_soa_trace(indices[i], ray, ray_hit, world, step);
+				triangle_soa_trace(indices[i], ray, ray_hit, world);
 			}
 		} else {
 			if (node.should_visit_left_first(ray)) {
@@ -553,8 +551,12 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 			}
 		}
 
-		step++;
+		steps++;
 	}
+	
+#if BVH_VISUALIZE_HEATMAP
+	ray_hit.bvh_steps += steps;
+#endif
 }
 
 SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) const {
@@ -563,8 +565,6 @@ SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) c
 
 	// Push root on stack
 	stack[0] = 0;
-
-	int step = 0;
 
 	SIMD_float hit(0.0f);
 	
@@ -592,8 +592,6 @@ SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) c
 				stack[stack_size++] = node.left + 1;
 			}
 		}
-
-		step++;
 	}
 
 	return hit;

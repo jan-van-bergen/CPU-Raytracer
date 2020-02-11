@@ -40,6 +40,6 @@ private:
 	void save_to_disk  (const char * bvh_filename) const;
 	void load_from_disk(const char * bvh_filename);
 	
-	void       triangle_soa_trace    (int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world, int bvh_step) const;
+	void       triangle_soa_trace    (int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
 	SIMD_float triangle_soa_intersect(int index, const Ray & ray, SIMD_float max_distance) const;
 };

@@ -11,13 +11,13 @@
 
 #define NUMBER_OF_BOUNCES 3
 
-#define BVH_HEATMAP false // Toggle to visualize number of traversal steps through BVH
-
 #define USE_MULTITHREADING true // When enabled will use the maximum amount of threads available
 
 #define SIMD_LANE_SIZE 8
 
 // BVH settings
+#define BVH_VISUALIZE_HEATMAP false // Toggle to visualize number of traversal steps through BVH
+
 #define BVH_TRAVERSE_TREE_NAIVE   0 // Traverses the BVH in a naive way, always checking the left Node before the right Node
 #define BVH_TRAVERSE_TREE_ORDERED 1 // Traverses the BVH based on the split axis and the direction of the Ray
 

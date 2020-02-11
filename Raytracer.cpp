@@ -96,9 +96,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	RayHit closest_hit;
 	scene->trace_primitives(ray, closest_hit);
 
-#if BVH_HEATMAP
-	const float one_over_32 = 1.0f / 32.0f;
-	return SIMD_Vector3(Debug::heat_palette->sample(Math::clamp(closest_hit.bvh_steps * one_over_32, 0.0f, 1.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+#if BVH_VISUALIZE_HEATMAP
+	const float one_over_32  = 1.0f / 32.0f;
+	const float one_over_256 = 1.0f / 256.0f;
+	const float one_over_512 = 1.0f / 512.0f;
+	return SIMD_Vector3(Vector3(closest_hit.bvh_steps * one_over_32, closest_hit.bvh_steps * one_over_256, closest_hit.bvh_steps * one_over_512));
 #endif
 
 	// If any of the Rays did not hit

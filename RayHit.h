@@ -21,7 +21,9 @@ struct RayHit {
 	SIMD_Vector3 dN_dx, dN_dy;
 #endif
 
+#if BVH_VISUALIZE_HEATMAP
 	int bvh_steps;
+#endif
 
 	inline RayHit() {
 		hit      = SIMD_float(0.0f);

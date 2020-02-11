@@ -23,8 +23,6 @@ int main(int argument_count, char ** arguments) {
 	Texture::init();
 	Material::init();
 
-	Debug::heat_palette = Texture::load(DATA_PATH("heat_palette.png"));
-
 	// Initialize timing stuff
 	Uint64 now  = 0;
 	Uint64 last = 0;
