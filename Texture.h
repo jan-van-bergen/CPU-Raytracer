@@ -13,7 +13,8 @@ private:
 
 	bool mipmapped = false;
 
-	int   mip_levels = 0;
+	int   mip_levels   = 0;
+	float mip_levels_f = 0.0f;
 	int * mip_offsets;
 
 	inline static const int ewa_weight_table_size = 128;

@@ -123,6 +123,8 @@ const Texture * Texture::load(const char * file_path) {
 
 	texture->width_f  = float(texture->width);
 	texture->height_f = float(texture->height);
+	
+	texture->mip_levels_f = float(texture->mip_levels);
 
 	return texture;
 }
@@ -223,7 +225,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 		minor_length *= scale;
 	}
 
-	float lambda = std::max(0.0f, mip_levels - 1.0f + log2f(minor_length));
+	float lambda = std::max(0.0f, mip_levels_f - 1.0f + log2f(minor_length));
 	int   level  = Util::float_to_int(lambda);
 
 	return sample_ewa(u, v, level, major_axis, minor_axis);
@@ -260,20 +262,27 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 	float sqrt_u = sqrtf(det * c);
 	float sqrt_v = sqrtf(det * a);
 
-	int s0 = Util::float_to_int(ceilf (u - 2.0f * inv_det * sqrt_u));
-	int s1 = Util::float_to_int(floorf(u + 2.0f * inv_det * sqrt_u));
-	int t0 = Util::float_to_int(ceilf (v - 2.0f * inv_det * sqrt_v));
-	int t1 = Util::float_to_int(floorf(v + 2.0f * inv_det * sqrt_v));
+	int s0 = Util::float_to_int(u - 2.0f * inv_det * sqrt_u + 1.0f);
+	int s1 = Util::float_to_int(u + 2.0f * inv_det * sqrt_u);
+	int t0 = Util::float_to_int(v - 2.0f * inv_det * sqrt_v + 1.0f);
+	int t1 = Util::float_to_int(v + 2.0f * inv_det * sqrt_v);
 
 	// Scan over ellipse bound and compute quadratic equation
 	Vector3 sum(0.0f);
 	float   sum_weights = 0.0f;
 
-	for (int it = t0; it <= t1; ++it) {
-		float tt = it - v;
+	float t0f = float(t0);
+	float s0f = float(s0);
 
-		for (int is = s0; is <= s1; ++is) {
-			float ss = is - u;
+	float tf = t0f;
+	
+	for (int ti = t0; ti <= t1; ti++, tf += 1.0f) {
+		float tt = tf - v;
+
+		float sf = s0f;
+
+		for (int si = s0; si <= s1; si++, sf += 1.0f) {
+			float ss = sf - u;
 
 			// Compute squared radius and filter texel if inside ellipse
 			float r2 = a * ss * ss + b * ss * tt + c * tt * tt;
@@ -281,7 +290,7 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 				int   index  = std::min(Util::float_to_int(r2 * ewa_weight_table_size), ewa_weight_table_size - 1);
 				float weight = ewa_weight_table[index];
 
-				sum         += weight * fetch_texel(is, it, level);
+				sum         += weight * fetch_texel(si, ti, level);
 				sum_weights += weight;
 			}
 		}
