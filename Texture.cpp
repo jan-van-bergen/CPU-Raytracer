@@ -46,7 +46,11 @@ const Texture * Texture::load(const char * file_path) {
 		abort();
 	}
 	
+#if TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_MIPMAP
 	bool use_mipmapping = Math::is_power_of_two(texture->width) && texture->width == texture->height;
+#else
+	bool use_mipmapping = false;
+#endif
 
 	texture->mipmapped = use_mipmapping;
 
