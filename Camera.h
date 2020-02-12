@@ -14,9 +14,13 @@ struct Camera {
 
 	float fov; // Field of View in radians
 
-	Vector3 top_left_corner, top_left_corner_rotated;
-	Vector3 x_axis,          x_axis_rotated;
-	Vector3 y_axis,          y_axis_rotated;
+	Vector3 top_left_corner;
+	Vector3 x_axis;
+	Vector3 y_axis;
+
+	SIMD_Vector3 rotated_top_left_corner;
+	SIMD_Vector3 rotated_x_axis;
+	SIMD_Vector3 rotated_y_axis;
 
 	inline Camera(float fov) : fov(fov) { }
 

@@ -145,7 +145,10 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 }
 
 Vector3 Texture::sample_nearest(float u, float v) const {
-	return fetch_texel(u * width_f, v * height_f);
+	int x = Util::float_to_int(u * width_f);
+	int y = Util::float_to_int(v * height_f);
+
+	return fetch_texel(x, y);
 }
 
 Vector3 Texture::sample_bilinear(float u, float v, int level) const {

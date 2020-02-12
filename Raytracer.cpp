@@ -11,10 +11,6 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	ray.dO_dy = SIMD_Vector3(0.0f);
 #endif
 
-	SIMD_Vector3 camera_top_left_corner_rotated(scene->camera.top_left_corner_rotated);
-	SIMD_Vector3 camera_x_axis_rotated(scene->camera.x_axis_rotated);
-	SIMD_Vector3 camera_y_axis_rotated(scene->camera.y_axis_rotated);
-	
 #if SIMD_LANE_SIZE == 1
 	const int step_x = 1;
 	const int step_y = 1;
@@ -47,8 +43,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 #endif
 
 			SIMD_Vector3 direction = 
-				SIMD_Vector3::madd(camera_x_axis_rotated, is, 
-				SIMD_Vector3::madd(camera_y_axis_rotated, js, camera_top_left_corner_rotated));
+				SIMD_Vector3::madd(scene->camera.rotated_x_axis, is, 
+				SIMD_Vector3::madd(scene->camera.rotated_y_axis, js, scene->camera.rotated_top_left_corner));
 
 			SIMD_float          d_dot_d = SIMD_Vector3::dot(direction, direction);
 			SIMD_float inv_sqrt_d_dot_d = SIMD_float::inv_sqrt(d_dot_d);
@@ -56,8 +52,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 			SIMD_float denom = inv_sqrt_d_dot_d / d_dot_d; // d_dot_d ^ -3/2
 
 #if RAY_DIFFERENTIALS_ENABLED
-			ray.dD_dx = (d_dot_d * camera_x_axis_rotated - SIMD_Vector3::dot(direction, camera_x_axis_rotated) * direction) * denom;
-			ray.dD_dy = (d_dot_d * camera_y_axis_rotated - SIMD_Vector3::dot(direction, camera_y_axis_rotated) * direction) * denom;
+			ray.dD_dx = (d_dot_d * scene->camera.rotated_x_axis - SIMD_Vector3::dot(direction, scene->camera.rotated_x_axis) * direction) * denom;
+			ray.dD_dy = (d_dot_d * scene->camera.rotated_y_axis - SIMD_Vector3::dot(direction, scene->camera.rotated_y_axis) * direction) * denom;
 #endif
 
 			ray.direction = direction * inv_sqrt_d_dot_d; // Normalize direction

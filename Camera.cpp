@@ -42,7 +42,7 @@ void Camera::update(float delta, const unsigned char * keys) {
 	}
 
 	// Transform view pyramid according to rotation
-	top_left_corner_rotated = rotation * top_left_corner;
-	x_axis_rotated          = rotation * x_axis;
-	y_axis_rotated          = rotation * y_axis;
+	rotated_top_left_corner = SIMD_Vector3(rotation * top_left_corner);
+	rotated_x_axis          = SIMD_Vector3(rotation * x_axis);
+	rotated_y_axis          = SIMD_Vector3(rotation * y_axis);
 }
