@@ -173,8 +173,8 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 	float w3 = 1.0f - w0 - w1 - w2;
 	
 	// Convert pixel coordinates to integers
-	int u0_i = Util::float_to_int(u);
-	int v0_i = Util::float_to_int(v);
+	int u0_i = Util::float_to_int(u - 0.5f);
+	int v0_i = Util::float_to_int(v - 0.5f);
 	
 	// Blend everything together using the weights
 	return 
@@ -256,16 +256,19 @@ Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_a
 	c *= one_over_f;
 
 	// Compute the ellipse's bounding box in texture space
-	float det     = -b * b + 4.0f * a * c;
-	float inv_det = 1.0f / det;
+	float det = -b * b + 4.0f * a * c;
 
 	float sqrt_u = sqrtf(det * c);
 	float sqrt_v = sqrtf(det * a);
 
-	int s0 = Util::float_to_int(u - 2.0f * inv_det * sqrt_u + 1.0f);
-	int s1 = Util::float_to_int(u + 2.0f * inv_det * sqrt_u);
-	int t0 = Util::float_to_int(v - 2.0f * inv_det * sqrt_v + 1.0f);
-	int t1 = Util::float_to_int(v + 2.0f * inv_det * sqrt_v);
+	float two_inv_det = 2.0f / det;
+	float two_inv_det_sqrt_u = two_inv_det * sqrt_u;
+	float two_inv_det_sqrt_v = two_inv_det * sqrt_v;
+
+	int s0 = Util::float_to_int(u - two_inv_det_sqrt_u + 0.5f);
+	int s1 = Util::float_to_int(u + two_inv_det_sqrt_u - 0.5f);
+	int t0 = Util::float_to_int(v - two_inv_det_sqrt_v + 0.5f);
+	int t1 = Util::float_to_int(v + two_inv_det_sqrt_v - 0.5f);
 
 	// Scan over ellipse bound and compute quadratic equation
 	Vector3 sum(0.0f);
