@@ -34,6 +34,9 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 - Two filtering modes are supported for mipmaps: Trilinear filtering and Elliptical Weighted Average filtering. You can switch between them by changing the ```MIPMAP_FILTER``` define in Config.h. Trilinear filtering is isotropic and can look blurry at oblique viewing angles. Elliptical Weighted Average filtering is anisotropic and more expensive to compute, but improves image quality significantly.
 
 ### Other
+
+![Dielectrics](Screenshots/Dielectrics.png)
+
 - Plane, Sphere, and Triangle Mesh primitives. All primitives support Ray Differentials.
 - Diffuse, specular/mirror, and dielectric materials.
 - Point Lights, Spot Lights, and Directional Lights that can all cast shadows.
