@@ -346,7 +346,7 @@ void BottomLevelBVH::load_from_disk(const char * bvh_filename) {
 	fclose(file);
 }
 
-void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
+void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 	
@@ -446,7 +446,7 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 #endif
 }
 
-SIMD_float BottomLevelBVH::triangle_soa_intersect(int index, const Ray & ray, SIMD_float max_distance) const {
+SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_float max_distance) const {
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 
@@ -506,7 +506,7 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 
 		if (node.is_leaf()) {
 			for (int i = node.first; i < node.first + node.count; i++) {
-				triangle_soa_trace(indices[i], ray, ray_hit, world);
+				triangle_trace(indices[i], ray, ray_hit, world);
 			}
 		} else {
 			if (node.should_visit_left_first(ray)) {
@@ -546,7 +546,7 @@ SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) c
 
 		if (node.is_leaf()) {
 			for (int i = node.first; i < node.first + node.count; i++) {
-				hit = hit | triangle_soa_intersect(indices[i], ray, max_distance);
+				hit = hit | triangle_intersect(indices[i], ray, max_distance);
 
 				if (SIMD_float::all_true(hit)) return hit;
 			}
