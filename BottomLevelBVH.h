@@ -45,6 +45,8 @@ private:
 	void save_to_disk  (const char * bvh_filename) const;
 	void load_from_disk(const char * bvh_filename);
 	
+	void flatten();
+
 	void       triangle_trace    (int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
 	SIMD_float triangle_intersect(int index, const Ray & ray, SIMD_float max_distance) const;
 };
