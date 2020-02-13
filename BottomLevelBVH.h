@@ -1,24 +1,29 @@
 #pragma once
 #include "BVHBuilders.h"
 
+
 struct BottomLevelBVH {
-	// Triangles in SoA layout
-	Vector3 * position0;
-	Vector3 * position_edge1;
-	Vector3 * position_edge2;
+	struct TriangleHot {
+		Vector3 position0;
+		Vector3 position_edge1;
+		Vector3 position_edge2;
+	} * triangles_hot;
 
-	Vector2 * tex_coord0;
-	Vector2 * tex_coord_edge1;
-	Vector2 * tex_coord_edge2;
+	struct TriangleCold {
+		Vector2 tex_coord0;
+		Vector2 tex_coord_edge1;
+		Vector2 tex_coord_edge2;
 
-	Vector3 * normal0;
-	Vector3 * normal_edge1;
-	Vector3 * normal_edge2;
+		Vector3 normal0;
+		Vector3 normal_edge1;
+		Vector3 normal_edge2;
 
-	int * material_id;     // Material id as obtained from the obj file
-	int   material_offset; // Offset in the Material buffer for all Triangles in this BVH
+		int material_id; // Material id as obtained from the obj file, should not be used directly to index the global Material buffer
+	} * triangles_cold;
+	
+	int triangle_count;
 
-	int primitive_count;
+	int material_offset; // Offset in the Material buffer for all Triangles in this BVH
 
 	int * indices;
 	int   index_count;

@@ -160,17 +160,17 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 				triangles[index_triangle].calc_aabb();
 
 				// Store positions, texcoords, and normals in SoA layout in the BVH itself
-				bvh->position0     [index_triangle] = position0;
-				bvh->position_edge1[index_triangle] = position1 - position0;
-				bvh->position_edge2[index_triangle] = position2 - position0;
+				bvh->triangles_hot[index_triangle].position0      = position0;
+				bvh->triangles_hot[index_triangle].position_edge1 = position1 - position0;
+				bvh->triangles_hot[index_triangle].position_edge2 = position2 - position0;
 
-				bvh->tex_coord0     [index_triangle] = tex_coord0;
-				bvh->tex_coord_edge1[index_triangle] = tex_coord1 - tex_coord0;
-				bvh->tex_coord_edge2[index_triangle] = tex_coord2 - tex_coord0;
+				bvh->triangles_cold[index_triangle].tex_coord0      = tex_coord0;
+				bvh->triangles_cold[index_triangle].tex_coord_edge1 = tex_coord1 - tex_coord0;
+				bvh->triangles_cold[index_triangle].tex_coord_edge2 = tex_coord2 - tex_coord0;
 
-				bvh->normal0     [index_triangle] = normal0;
-				bvh->normal_edge1[index_triangle] = normal1 - normal0;
-				bvh->normal_edge2[index_triangle] = normal2 - normal0;
+				bvh->triangles_cold[index_triangle].normal0      = normal0;
+				bvh->triangles_cold[index_triangle].normal_edge1 = normal1 - normal0;
+				bvh->triangles_cold[index_triangle].normal_edge2 = normal2 - normal0;
 
 				// Lookup and store material id
 				int material_id = shapes[s].mesh.material_ids[f];
@@ -178,7 +178,7 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 			
 				assert(material_id < material_count);
 
-				bvh->material_id[index_triangle] = material_id;
+				bvh->triangles_cold[index_triangle].material_id = material_id;
 			}
 		
 			triangle_offset += vertex_count / 3;
@@ -213,54 +213,43 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 void BottomLevelBVH::init(int count) {
 	assert(count > 0);
 
-	primitive_count = count; 
-	position0      = new Vector3[primitive_count];
-	position_edge1 = new Vector3[primitive_count];
-	position_edge2 = new Vector3[primitive_count];
-		
-	tex_coord0      = new Vector2[primitive_count];
-	tex_coord_edge1 = new Vector2[primitive_count];
-	tex_coord_edge2 = new Vector2[primitive_count];
-		
-	normal0      = new Vector3[primitive_count];
-	normal_edge1 = new Vector3[primitive_count];
-	normal_edge2 = new Vector3[primitive_count];
-
-	material_id = new int[primitive_count];
+	triangle_count = count; 
+	triangles_hot  = new TriangleHot [triangle_count];
+	triangles_cold = new TriangleCold[triangle_count];
 
 	indices = nullptr;
 
 	// Construct Node pool
-	nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), 64));
+	nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * triangle_count * sizeof(BVHNode), 64));
 	assert((unsigned long long)nodes % 64 == 0);
 }
 
 void BottomLevelBVH::build_bvh(const Triangle * triangles) {
-	int * indices_x = new int[primitive_count];
-	int * indices_y = new int[primitive_count];
-	int * indices_z = new int[primitive_count];
+	int * indices_x = new int[triangle_count];
+	int * indices_y = new int[triangle_count];
+	int * indices_z = new int[triangle_count];
 
-	for (int i = 0; i < primitive_count; i++) {
+	for (int i = 0; i < triangle_count; i++) {
 		indices_x[i] = i;
 		indices_y[i] = i;
 		indices_z[i] = i;
 	}
 
-	std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return triangles[a].get_position().x < triangles[b].get_position().x; });
-	std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return triangles[a].get_position().y < triangles[b].get_position().y; });
-	std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return triangles[a].get_position().z < triangles[b].get_position().z; });
+	std::sort(indices_x, indices_x + triangle_count, [&](int a, int b) { return triangles[a].get_position().x < triangles[b].get_position().x; });
+	std::sort(indices_y, indices_y + triangle_count, [&](int a, int b) { return triangles[a].get_position().y < triangles[b].get_position().y; });
+	std::sort(indices_z, indices_z + triangle_count, [&](int a, int b) { return triangles[a].get_position().z < triangles[b].get_position().z; });
 		
 	int * indices_xyz[3] = { indices_x, indices_y, indices_z };
 
-	float * sah  = new float[primitive_count];
-	int   * temp = new int[primitive_count];
+	float * sah  = new float[triangle_count];
+	int   * temp = new int[triangle_count];
 
 	node_count = 2;
-	BVHBuilders::build_bvh(nodes[0], triangles, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp);
+	BVHBuilders::build_bvh(nodes[0], triangles, indices_xyz, nodes, node_count, 0, triangle_count, sah, temp);
 
-	assert(node_count <= 2 * primitive_count);
+	assert(node_count <= 2 * triangle_count);
 
-	index_count = primitive_count;
+	index_count = triangle_count;
 
 	// Use indices_x to index the Primitives array, and delete the other two
 	indices = indices_x;
@@ -274,33 +263,33 @@ void BottomLevelBVH::build_bvh(const Triangle * triangles) {
 void BottomLevelBVH::build_sbvh(const Triangle * triangles) {
 	const int overallocation = 2; // SBVH requires more space
 
-	int * indices_x = new int[overallocation * primitive_count];
-	int * indices_y = new int[overallocation * primitive_count];
-	int * indices_z = new int[overallocation * primitive_count];
+	int * indices_x = new int[overallocation * triangle_count];
+	int * indices_y = new int[overallocation * triangle_count];
+	int * indices_z = new int[overallocation * triangle_count];
 
-	for (int i = 0; i < primitive_count; i++) {
+	for (int i = 0; i < triangle_count; i++) {
 		indices_x[i] = i;
 		indices_y[i] = i;
 		indices_z[i] = i;
 	}
-		
-	std::sort(indices_x, indices_x + primitive_count, [&](int a, int b) { return triangles[a].get_position().x < triangles[b].get_position().x; });
-	std::sort(indices_y, indices_y + primitive_count, [&](int a, int b) { return triangles[a].get_position().y < triangles[b].get_position().y; });
-	std::sort(indices_z, indices_z + primitive_count, [&](int a, int b) { return triangles[a].get_position().z < triangles[b].get_position().z; });
+
+	std::sort(indices_x, indices_x + triangle_count, [&](int a, int b) { return triangles[a].get_position().x < triangles[b].get_position().x; });
+	std::sort(indices_y, indices_y + triangle_count, [&](int a, int b) { return triangles[a].get_position().y < triangles[b].get_position().y; });
+	std::sort(indices_z, indices_z + triangle_count, [&](int a, int b) { return triangles[a].get_position().z < triangles[b].get_position().z; });
 
 	int * indices_xyz[3] = { indices_x, indices_y, indices_z };
-		
-	float * sah     = new float[primitive_count];
-	int   * temp[2] = { new int[primitive_count], new int[primitive_count] };
 
-	AABB root_aabb = BVHPartitions::calculate_bounds(triangles, indices_xyz[0], 0, primitive_count);
+	float * sah     = new float[triangle_count];
+	int   * temp[2] = { new int[triangle_count], new int[triangle_count] };
+
+	AABB root_aabb = BVHPartitions::calculate_bounds(triangles, indices_xyz[0], 0, triangle_count);
 
 	node_count = 2;
-	index_count = BVHBuilders::build_sbvh(nodes[0], triangles, indices_xyz, nodes, node_count, 0, primitive_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
+	index_count = BVHBuilders::build_sbvh(nodes[0], triangles, indices_xyz, nodes, node_count, 0, triangle_count, sah, temp, 1.0f / root_aabb.surface_area(), root_aabb);
 
 	printf("SBVH Leaf count: %i\n", index_count);
 
-	assert(node_count <= 2 * primitive_count);
+	assert(node_count <= 2 * triangle_count);
 
 	// Use indices_x to index the Primitives array, and delete the other two
 	indices = indices_x;
@@ -318,21 +307,10 @@ void BottomLevelBVH::save_to_disk(const char * bvh_filename) const {
 
 	if (file == nullptr) abort();
 
-	fwrite(&primitive_count, sizeof(int), 1, file);
+	fwrite(&triangle_count, sizeof(int), 1, file);
 
-	fwrite(position0,      sizeof(Vector3), primitive_count, file);
-	fwrite(position_edge1, sizeof(Vector3), primitive_count, file);
-	fwrite(position_edge2, sizeof(Vector3), primitive_count, file);
-
-	fwrite(tex_coord0,      sizeof(Vector2), primitive_count, file);
-	fwrite(tex_coord_edge1, sizeof(Vector2), primitive_count, file);
-	fwrite(tex_coord_edge2, sizeof(Vector2), primitive_count, file);
-
-	fwrite(normal0,      sizeof(Vector3), primitive_count, file);
-	fwrite(normal_edge1, sizeof(Vector3), primitive_count, file);
-	fwrite(normal_edge2, sizeof(Vector3), primitive_count, file);
-
-	fwrite(material_id, sizeof(int), primitive_count, file);
+	fwrite(triangles_hot,  sizeof(TriangleHot),  triangle_count, file);
+	fwrite(triangles_cold, sizeof(TriangleCold), triangle_count, file);
 
 	fwrite(&node_count, sizeof(int), 1, file);
 	fwrite(nodes, sizeof(BVHNode), node_count, file);
@@ -347,26 +325,15 @@ void BottomLevelBVH::save_to_disk(const char * bvh_filename) const {
 void BottomLevelBVH::load_from_disk(const char * bvh_filename) {
 	FILE * file;
 	fopen_s(&file, bvh_filename, "rb"); 
-		
+	
 	if (file == nullptr) abort();
 
-	fread(&primitive_count, sizeof(int), 1, file);
-	init(primitive_count);
+	fread(&triangle_count, sizeof(int), 1, file);
+	init(triangle_count);
 
-	fread(position0,      sizeof(Vector3), primitive_count, file);
-	fread(position_edge1, sizeof(Vector3), primitive_count, file);
-	fread(position_edge2, sizeof(Vector3), primitive_count, file);
+	fread(triangles_hot,  sizeof(TriangleHot),  triangle_count, file);
+	fread(triangles_cold, sizeof(TriangleCold), triangle_count, file);
 
-	fread(tex_coord0,      sizeof(Vector2), primitive_count, file);
-	fread(tex_coord_edge1, sizeof(Vector2), primitive_count, file);
-	fread(tex_coord_edge2, sizeof(Vector2), primitive_count, file);
-
-	fread(normal0,      sizeof(Vector3), primitive_count, file);
-	fread(normal_edge1, sizeof(Vector3), primitive_count, file);
-	fread(normal_edge2, sizeof(Vector3), primitive_count, file);
-
-	fread(material_id, sizeof(int), primitive_count, file);
-		
 	fread(&node_count, sizeof(int), 1, file);
 
 	fread(nodes, sizeof(BVHNode), node_count, file);
@@ -386,14 +353,14 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	const SIMD_float pos_epsilon( Ray::EPSILON);
 	const SIMD_float neg_epsilon(-Ray::EPSILON);
 
-	SIMD_Vector3 edge1(position_edge1[index]);
-	SIMD_Vector3 edge2(position_edge2[index]);
+	SIMD_Vector3 edge1(triangles_hot[index].position_edge1);
+	SIMD_Vector3 edge2(triangles_hot[index].position_edge2);
 
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge2);
 	SIMD_float   a = SIMD_Vector3::dot(edge1, h);
 
 	SIMD_float   f = SIMD_float::rcp(a);
-	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0[index]);
+	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
@@ -422,10 +389,10 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	SIMD_Vector3 n_edge1 = SIMD_Vector3(normal_edge1[index]);
-	SIMD_Vector3 n_edge2 = SIMD_Vector3(normal_edge2[index]);
+	SIMD_Vector3 n_edge1 = SIMD_Vector3(triangles_cold[index].normal_edge1);
+	SIMD_Vector3 n_edge2 = SIMD_Vector3(triangles_cold[index].normal_edge2);
 
-	SIMD_Vector3 n = Math::barycentric(SIMD_Vector3(normal0[index]), n_edge1, n_edge2, u, v);
+	SIMD_Vector3 n = Math::barycentric(SIMD_Vector3(triangles_cold[index].normal0), n_edge1, n_edge2, u, v);
 
 	SIMD_Vector3 point  = Matrix4::transform_position(world, ray.origin + ray.direction * t);
 	SIMD_Vector3 normal = Matrix4::transform_direction(world, SIMD_Vector3::normalize(n));
@@ -433,13 +400,13 @@ void BottomLevelBVH::triangle_soa_trace(int index, const Ray & ray, RayHit & ray
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  point,  mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal, mask);
 	
-	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + material_id[index]), *reinterpret_cast<SIMD_int *>(&mask));
+	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + triangles_cold[index].material_id), *reinterpret_cast<SIMD_int *>(&mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-	SIMD_Vector2 t_edge1(tex_coord_edge1[index]);
-	SIMD_Vector2 t_edge2(tex_coord_edge2[index]);
+	SIMD_Vector2 t_edge1(triangles_cold[index].tex_coord_edge1);
+	SIMD_Vector2 t_edge2(triangles_cold[index].tex_coord_edge2);
 
-	SIMD_Vector2 tex_coords = Math::barycentric(SIMD_Vector2(tex_coord0[index]), t_edge1, t_edge2, u, v);
+	SIMD_Vector2 tex_coords = Math::barycentric(SIMD_Vector2(triangles_cold[index].tex_coord0), t_edge1, t_edge2, u, v);
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
@@ -486,14 +453,14 @@ SIMD_float BottomLevelBVH::triangle_soa_intersect(int index, const Ray & ray, SI
 	const SIMD_float pos_epsilon( Ray::EPSILON);
 	const SIMD_float neg_epsilon(-Ray::EPSILON);
 
-	SIMD_Vector3 edge0(position_edge1[index]);
-	SIMD_Vector3 edge1(position_edge2[index]);
+	SIMD_Vector3 edge0(triangles_hot[index].position_edge1);
+	SIMD_Vector3 edge1(triangles_hot[index].position_edge2);
 
 	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
 	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
 
 	SIMD_float   f = SIMD_float::rcp(a);
-	SIMD_Vector3 s = ray.origin - SIMD_Vector3(position0[index]);
+	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
