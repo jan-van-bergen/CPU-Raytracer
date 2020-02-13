@@ -44,7 +44,7 @@ void Plane::trace(const Ray & ray, RayHit & ray_hit) const {
 	SIMD_Vector3 dP_dx_plus_t_dD_dx = SIMD_Vector3::madd(ray.dD_dx, t, ray.dO_dx);
 	SIMD_Vector3 dP_dy_plus_t_dD_dy = SIMD_Vector3::madd(ray.dD_dy, t, ray.dO_dy);
 
-	SIMD_float denom = -one / SIMD_Vector3::dot(ray.direction, ray_hit.normal);
+	SIMD_float denom = -one / (SIMD_Vector3::dot(ray.direction, ray_hit.normal) + SIMD_float(1e-8f));
 	SIMD_float dt_dx = SIMD_Vector3::dot(dP_dx_plus_t_dD_dx, ray_hit.normal) * denom;
 	SIMD_float dt_dy = SIMD_Vector3::dot(dP_dy_plus_t_dD_dy, ray_hit.normal) * denom;
 	

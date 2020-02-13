@@ -216,6 +216,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	}
 
 	if (minor_length < 0.00001f) return sample_bilinear(u, v);
+	if (major_length > width_f)  return fetch_texel(0, 0, mip_levels - 1);
 
 	// Clamp ellipse eccentricity when it is too large
 	if (minor_length * MAX_ANISOTROPY < major_length) {
