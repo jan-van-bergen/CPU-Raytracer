@@ -134,16 +134,17 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	//return colours[level < 6 ? level : 6];
 
 	int offset = mip_offsets[level];
-	int size   = width >> level;
+	int level_width  = width  >> level;
+	int level_height = height >> level;
 
-	x = Math::mod(x, size);
-	y = Math::mod(y, size);
+	x = Math::mod(x, level_width);
+	y = Math::mod(y, level_height);
 
-	assert(x >= 0 && x < width  >> level);
-	assert(y >= 0 && y < height >> level);
+	assert(x >= 0 && x < level_width);
+	assert(y >= 0 && y < level_height);
 
 	assert(data);
-	return colour_unpack(data[offset + x + y * size]);
+	return colour_unpack(data[offset + x + y * level_width]);
 }
 
 Vector3 Texture::sample_nearest(float u, float v) const {
