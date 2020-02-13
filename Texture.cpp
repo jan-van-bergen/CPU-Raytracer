@@ -40,14 +40,14 @@ const Texture * Texture::load(const char * file_path) {
 	const unsigned * data = reinterpret_cast<unsigned *>(stbi_load(file_path, &texture->width, &texture->height, &channels, STBI_rgb_alpha));
 
 	// Check if the Texture is valid
-	if (texture->width == 0 || texture->height == 0) {
+	if (data == nullptr || texture->width == 0 || texture->height == 0) {
 		printf("An error occured while loading Texture '%s'!\n", file_path);
 
 		abort();
 	}
 	
 #if TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_MIPMAP
-	bool use_mipmapping = Math::is_power_of_two(texture->width) && texture->width == texture->height;
+	bool use_mipmapping = Math::is_power_of_two(texture->width) && Math::is_power_of_two(texture->height);
 #else
 	bool use_mipmapping = false;
 #endif
@@ -74,7 +74,7 @@ const Texture * Texture::load(const char * file_path) {
 	delete [] data;
 
 	if (use_mipmapping) {
-		texture->mip_levels  = 1 + (int)log2f(texture->width);
+		texture->mip_levels  = 1 + (int)log2f(std::min(texture->width, texture->height));
 		texture->mip_offsets = new int[texture->mip_levels];
 
 		texture->mip_offsets[0] = 0;
@@ -82,39 +82,43 @@ const Texture * Texture::load(const char * file_path) {
 		int offset      = texture->width * texture->height;
 		int offset_prev = 0;
 
-		int size      = texture->width >> 1;
-		int size_prev = texture->width;
+		int level_width       = texture->width  >> 1;
+		int level_height      = texture->height >> 1;
+		int level_width_prev  = texture->width;
+		int level_height_prev = texture->height;
 	
 		int level = 1;
 
 		// Obtain each subsequent Mipmap level by applying a Box Filter to the previous level
-		while (size >= 1) {
-			for (int j = 0; j < size; j++) {
-				for (int i = 0; i < size; i++) {
+		while (level_width >= 1 && level_height >= 1) {
+			for (int j = 0; j < level_height; j++) {
+				for (int i = 0; i < level_width; i++) {
 					int i_prev = i << 1;
 					int j_prev = j << 1;
 
-					unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * size_prev];
-					unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * size_prev];
-					unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * size_prev];
-					unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * size_prev];
+					unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * level_width_prev];
+					unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * level_width_prev];
+					unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * level_width_prev];
+					unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * level_width_prev];
 
 					unsigned sum_rb = (colour0 & 0xff00ff) + (colour1 & 0xff00ff) + (colour2 & 0xff00ff) + (colour3 & 0xff00ff);
 					unsigned sum_g  = (colour0 & 0x00ff00) + (colour1 & 0x00ff00) + (colour2 & 0x00ff00) + (colour3 & 0x00ff00);
 
 					unsigned average = ((sum_rb >> 2) & 0xff00ff) | ((sum_g >> 2) & 0x00ff00);
 
-					texture->data[offset + i + j * size] = average;
+					texture->data[offset + i + j * level_width] = average;
 				}
 			}
 
 			texture->mip_offsets[level++] = offset;
 
 			offset_prev = offset;
-			offset += size * size;
+			offset += level_width * level_height;
 
-			size_prev = size;
-			size >>= 1;
+			level_width_prev  = level_width;
+			level_height_prev = level_height;
+			level_width  >>= 1;
+			level_height >>= 1;
 		}
 	} else {
 		texture->mip_levels  = 1;
@@ -155,11 +159,12 @@ Vector3 Texture::sample_nearest(float u, float v) const {
 }
 
 Vector3 Texture::sample_bilinear(float u, float v, int level) const {
-	int size = width >> level;
+	int level_width  = width  >> level;
+	int level_height = height >> level;
 
 	// Convert normalized (u,v) to pixel space
-	u = u * size - 0.5f;
-	v = v * size - 0.5f;
+	u = u * level_width  - 0.5f;
+	v = v * level_height - 0.5f;
 
 	// Calculate bilinear weights
 	float fractional_u = u - floor(u);
@@ -205,8 +210,8 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 
 	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
 #elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
-	Vector2 major_axis = Vector2(ds_dx, dt_dx);
-	Vector2 minor_axis = Vector2(ds_dy, dt_dy);
+	Vector2 major_axis(ds_dx, dt_dx);
+	Vector2 minor_axis(ds_dy, dt_dy);
 	
 	float major_length = Vector2::length(major_axis);
 	float minor_length = Vector2::length(minor_axis);
@@ -237,12 +242,14 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_axis, const Vector2 & minor_axis) const {
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 
-	float size = float(width >> level);
+	float level_width  = float(width  >> level);
+	float level_height = float(height >> level);
 
 	// Convert EWA coordinates to appropriate scale for level
-	u = u * size - 0.5f;
-	v = v * size - 0.5f;
+	u = u * level_width  - 0.5f;
+	v = v * level_height - 0.5f;
 
+	Vector2 size(level_width, level_height);
 	Vector2 major_axis_scaled = major_axis * size;
 	Vector2 minor_axis_scaled = minor_axis * size;
 
