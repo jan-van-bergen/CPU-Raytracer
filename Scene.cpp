@@ -47,7 +47,7 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 
 	int triangle_count = 0;
 	for (int p = 0; p < top_level_bvh.primitive_count; p++) {
-		triangle_count += top_level_bvh.primitives[p].bvh->primitive_count;
+		triangle_count += top_level_bvh.primitives[p].bvh->triangle_count;
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
