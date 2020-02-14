@@ -1,6 +1,4 @@
 #pragma once
-#include <vector>
-
 #include "Texture.h"
 
 struct Material {
@@ -22,24 +20,27 @@ struct Material {
 	
 	inline static const float air_index_of_refraction = 1.0f;
 	
-	inline static std::vector<Material> materials;
-
-	inline static void init() {
-		if (materials.size() != 0) abort();
-
-		materials.push_back({
-			Vector3(0.0f),
-			nullptr,      
-			Vector3(0.0f),
-			Vector3(0.0f),
-			1.0f		  
-		});
-	}
-
-	inline static int add_material() {
-		int index = materials.size();
-		materials.push_back(Material());
-
-		return index;
-	}
 };
+
+namespace MaterialBuffer {
+	inline int      material_count = 0;
+	inline Material materials[MAX_MATERIALS];
+
+	inline int reserve() {
+		return material_count++;
+	}
+
+	inline void add(const Material & material) {
+		materials[material_count++] = material;
+	}
+	
+	inline void init() {
+		Material default_material;
+		default_material.diffuse = 0.0f;
+		default_material.texture = nullptr;
+		default_material.reflection    = 0.0f;
+		default_material.transmittance = 0.0f;
+
+		add(default_material);
+	}
+}

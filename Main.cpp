@@ -21,7 +21,7 @@ int main(int argument_count, char ** arguments) {
 #endif
 
 	Texture::init();
-	Material::init();
+	MaterialBuffer::init();
 
 	// Initialize timing stuff
 	Uint64 now  = 0;

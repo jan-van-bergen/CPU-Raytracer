@@ -17,7 +17,7 @@
 static std::unordered_map<std::string, BottomLevelBVH *> cache;
 
 static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t> & materials, const char * path) {
-	bvh->material_offset = Material::materials.size();
+	bvh->material_offset = MaterialBuffer::material_count;
 
 	// Load Materials
 	int material_count = materials.size();
@@ -37,7 +37,7 @@ static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t>
 			new_material.transmittance       = Vector3(material.transmittance[0], material.transmittance[1], material.transmittance[2]);
 			new_material.index_of_refraction = material.ior;
 
-			Material::materials.push_back(new_material);
+			MaterialBuffer::add(new_material);
 		}
 	} else {
 		material_count = 1;
@@ -45,7 +45,7 @@ static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t>
 		Material new_material;
 		new_material.diffuse = Vector3(1.0f, 0.0f, 1.0f);
 
-		Material::materials.push_back(new_material);
+		MaterialBuffer::add(new_material);
 	}
 
 	return material_count;

@@ -117,7 +117,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	for (int i = 0; i < SIMD_LANE_SIZE; i++) {
 		if (hit_mask & (1 << i)) {
 #if RAY_DIFFERENTIALS_ENABLED
-			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(
+			Vector3 diffuse = MaterialBuffer::materials[closest_hit.material_id[i]].get_albedo(
 				closest_hit.u[i],     closest_hit.v[i], 
 				closest_hit.ds_dx[i], closest_hit.ds_dy[i], 
 				closest_hit.dt_dx[i], closest_hit.dt_dy[i]
@@ -198,41 +198,41 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 		SIMD_Vector3 colour_refraction;
 
 #if SIMD_LANE_SIZE == 1
-		SIMD_Vector3 material_reflection   (Material::materials[closest_hit.material_id[0]].reflection);
-		SIMD_Vector3 material_transmittance(Material::materials[closest_hit.material_id[0]].transmittance);
+		SIMD_Vector3 material_reflection   (MaterialBuffer::materials[closest_hit.material_id[0]].reflection);
+		SIMD_Vector3 material_transmittance(MaterialBuffer::materials[closest_hit.material_id[0]].transmittance);
 #elif SIMD_LANE_SIZE == 4
 		SIMD_Vector3 material_reflection(
-			Material::materials[closest_hit.material_id[3]].reflection,
-			Material::materials[closest_hit.material_id[2]].reflection,
-			Material::materials[closest_hit.material_id[1]].reflection,
-			Material::materials[closest_hit.material_id[0]].reflection
+			MaterialBuffer::materials[closest_hit.material_id[3]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[2]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[1]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[0]].reflection
 		);
 		SIMD_Vector3 material_transmittance(
-			Material::materials[closest_hit.material_id[3]].transmittance, 
-			Material::materials[closest_hit.material_id[2]].transmittance, 
-			Material::materials[closest_hit.material_id[1]].transmittance, 
-			Material::materials[closest_hit.material_id[0]].transmittance
+			MaterialBuffer::materials[closest_hit.material_id[3]].transmittance, 
+			MaterialBuffer::materials[closest_hit.material_id[2]].transmittance, 
+			MaterialBuffer::materials[closest_hit.material_id[1]].transmittance, 
+			MaterialBuffer::materials[closest_hit.material_id[0]].transmittance
 		);
 #elif SIMD_LANE_SIZE == 8
 		SIMD_Vector3 material_reflection(
-			Material::materials[closest_hit.material_id[7]].reflection,
-			Material::materials[closest_hit.material_id[6]].reflection,
-			Material::materials[closest_hit.material_id[5]].reflection,
-			Material::materials[closest_hit.material_id[4]].reflection,
-			Material::materials[closest_hit.material_id[3]].reflection,
-			Material::materials[closest_hit.material_id[2]].reflection,
-			Material::materials[closest_hit.material_id[1]].reflection,
-			Material::materials[closest_hit.material_id[0]].reflection
+			MaterialBuffer::materials[closest_hit.material_id[7]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[6]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[5]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[4]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[3]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[2]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[1]].reflection,
+			MaterialBuffer::materials[closest_hit.material_id[0]].reflection
 		);
 		SIMD_Vector3 material_transmittance(
-			Material::materials[closest_hit.material_id[7]].transmittance,
-			Material::materials[closest_hit.material_id[6]].transmittance,
-			Material::materials[closest_hit.material_id[5]].transmittance,
-			Material::materials[closest_hit.material_id[4]].transmittance,
-			Material::materials[closest_hit.material_id[3]].transmittance,
-			Material::materials[closest_hit.material_id[2]].transmittance,
-			Material::materials[closest_hit.material_id[1]].transmittance,
-			Material::materials[closest_hit.material_id[0]].transmittance
+			MaterialBuffer::materials[closest_hit.material_id[7]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[6]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[5]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[4]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[3]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[2]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[1]].transmittance,
+			MaterialBuffer::materials[closest_hit.material_id[0]].transmittance
 		);
 #endif
 		SIMD_float reflection_mask = SIMD_Vector3::length_squared(material_reflection)    > zero;
@@ -267,24 +267,24 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_float air(Material::air_index_of_refraction);
 			
 #if SIMD_LANE_SIZE == 1
-			SIMD_float ior(Material::materials[closest_hit.material_id[0]].index_of_refraction);
+			SIMD_float ior(MaterialBuffer::materials[closest_hit.material_id[0]].index_of_refraction);
 #elif SIMD_LANE_SIZE == 4
 			SIMD_float ior(
-				Material::materials[closest_hit.material_id[3]].index_of_refraction,
-				Material::materials[closest_hit.material_id[2]].index_of_refraction,
-				Material::materials[closest_hit.material_id[1]].index_of_refraction,
-				Material::materials[closest_hit.material_id[0]].index_of_refraction
+				MaterialBuffer::materials[closest_hit.material_id[3]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[2]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[1]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[0]].index_of_refraction
 			);
 #elif SIMD_LANE_SIZE == 8
 			SIMD_float ior(
-				Material::materials[closest_hit.material_id[7]].index_of_refraction,
-				Material::materials[closest_hit.material_id[6]].index_of_refraction,
-				Material::materials[closest_hit.material_id[5]].index_of_refraction,
-				Material::materials[closest_hit.material_id[4]].index_of_refraction,
-				Material::materials[closest_hit.material_id[3]].index_of_refraction,
-				Material::materials[closest_hit.material_id[2]].index_of_refraction,
-				Material::materials[closest_hit.material_id[1]].index_of_refraction,
-				Material::materials[closest_hit.material_id[0]].index_of_refraction
+				MaterialBuffer::materials[closest_hit.material_id[7]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[6]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[5]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[4]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[3]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[2]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[1]].index_of_refraction,
+				MaterialBuffer::materials[closest_hit.material_id[0]].index_of_refraction
 			);
 #endif
 			SIMD_float n_1 = SIMD_float::blend(ior, air, dot_mask);
@@ -335,24 +335,24 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 			// Apply Beer's Law
 #if SIMD_LANE_SIZE == 1
-			SIMD_Vector3 material_absorption(Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f));
+			SIMD_Vector3 material_absorption(MaterialBuffer::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f));
 #elif SIMD_LANE_SIZE == 4
 			SIMD_Vector3 material_absorption(
-				Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
+				MaterialBuffer::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
 			);
 #elif SIMD_LANE_SIZE == 8
 			SIMD_Vector3 material_absorption(
-				Material::materials[closest_hit.material_id[7]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[6]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[5]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[4]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
-				Material::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
+				MaterialBuffer::materials[closest_hit.material_id[7]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[6]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[5]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[4]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[3]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[2]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[1]].transmittance - Vector3(1.0f),
+				MaterialBuffer::materials[closest_hit.material_id[0]].transmittance - Vector3(1.0f)
 			);
 #endif
 			SIMD_float beer_x = SIMD_float::exp(material_absorption.x * refraction_distance);

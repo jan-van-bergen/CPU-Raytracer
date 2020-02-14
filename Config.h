@@ -15,6 +15,8 @@
 
 #define SIMD_LANE_SIZE 8
 
+#define MAX_MATERIALS 256
+
 // BVH settings
 #define BVH_VISUALIZE_HEATMAP false // Toggle to visualize number of traversal steps through BVH
 
