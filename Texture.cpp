@@ -55,20 +55,20 @@ const Texture * Texture::load(const char * file_path) {
 	texture->mipmapped = use_mipmapping;
 
 	if (use_mipmapping) {
-		texture->data = new unsigned[texture->width * texture->height + (texture->width * texture->height) / 3];
+		texture->data = reinterpret_cast<Vector3 *>(ALIGNED_MALLOC((texture->width * texture->height + (texture->width * texture->height) / 3)* sizeof(Vector3), CACHE_LINE_WIDTH));
 	} else {
-		texture->data = new unsigned[texture->width * texture->height];
+		texture->data = reinterpret_cast<Vector3 *>(ALIGNED_MALLOC(texture->width * texture->height * sizeof(Vector3), CACHE_LINE_WIDTH));
 	}
 
 	// Copy the data over into Mipmap level 0, and convert it to linear colour space
 	for (int i = 0; i < texture->width * texture->height; i++) {
 		Vector3 colour = colour_unpack(data[i]);
 
-		texture->data[i] = colour_pack(Vector3(
+		texture->data[i] = Vector3(
 			Math::gamma_to_linear(colour.x), 
 			Math::gamma_to_linear(colour.y), 
 			Math::gamma_to_linear(colour.z)
-		));
+		);
 	}
 
 	delete [] data;
@@ -96,17 +96,12 @@ const Texture * Texture::load(const char * file_path) {
 					int i_prev = i << 1;
 					int j_prev = j << 1;
 
-					unsigned colour0 = texture->data[offset_prev +  i_prev     + j_prev    * level_width_prev];
-					unsigned colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * level_width_prev];
-					unsigned colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * level_width_prev];
-					unsigned colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * level_width_prev];
+					Vector3 colour0 = texture->data[offset_prev +  i_prev     + j_prev    * level_width_prev];
+					Vector3 colour1 = texture->data[offset_prev + (i_prev+1) +  j_prev    * level_width_prev];
+					Vector3 colour2 = texture->data[offset_prev +  i_prev    + (j_prev+1) * level_width_prev];
+					Vector3 colour3 = texture->data[offset_prev + (i_prev+1) + (j_prev+1) * level_width_prev];
 
-					unsigned sum_rb = (colour0 & 0xff00ff) + (colour1 & 0xff00ff) + (colour2 & 0xff00ff) + (colour3 & 0xff00ff);
-					unsigned sum_g  = (colour0 & 0x00ff00) + (colour1 & 0x00ff00) + (colour2 & 0x00ff00) + (colour3 & 0x00ff00);
-
-					unsigned average = ((sum_rb >> 2) & 0xff00ff) | ((sum_g >> 2) & 0x00ff00);
-
-					texture->data[offset + i + j * level_width] = average;
+					texture->data[offset + i + j * level_width] = (colour0 + colour1 + colour2 + colour3) * 0.25f;
 				}
 			}
 
@@ -148,7 +143,7 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	assert(y >= 0 && y < level_height);
 
 	assert(data);
-	return colour_unpack(data[offset + x + y * level_width]);
+	return data[offset + x + y * level_width];
 }
 
 Vector3 Texture::sample_nearest(float u, float v) const {

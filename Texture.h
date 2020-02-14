@@ -6,7 +6,7 @@
 
 struct Texture {
 private:
-	unsigned * data = nullptr;
+	Vector3 * data = nullptr;
 	
 	int   width,   height;
 	float width_f, height_f;
