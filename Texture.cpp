@@ -185,17 +185,16 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 		w3 * fetch_texel(u0_i + 1, v0_i + 1, level);
 }
 
-// Code based on PBRT chapter 10.4
 Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	if (!mipmapped) return sample_bilinear(u, v);
 
-#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR
+#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR // Based on: PBRT chapter 10.4
 	float width = 2.0f * std::max(
 		std::max(std::abs(ds_dx), std::abs(ds_dy)),
 		std::max(std::abs(dt_dx), std::abs(dt_dy))
 	);
 	
-	float lambda = float(mip_levels) - 1.0f + log2f(std::max(width, 1e-8f));
+	float lambda = mip_levels_f - 1.0f + log2f(std::max(width, 1e-8f));
 	int   level  = Util::float_to_int(lambda - 0.5f);
 
 	if (level < 0)               return sample_bilinear(u, v);
@@ -204,7 +203,47 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float t = lambda - floorf(lambda);
 
 	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
-#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
+#elif MIPMAP_FILTER == MIPMAP_FILTER_ANISOTROPIC // Based on: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt
+	float p_x = std::max(std::abs(ds_dx), std::abs(dt_dx));
+	float p_y = std::max(std::abs(ds_dy), std::abs(dt_dy));
+
+	float p_min = std::min(p_x, p_y);
+	float p_max = std::max(p_x, p_y);
+
+	float N = std::min(ceilf(p_max / p_min), MAX_ANISOTROPY);
+	float one_over_N = 1.0f /  N;
+	
+	float lambda = mip_levels_f + log2f(p_max * one_over_N);
+	int   level  = Util::float_to_int(lambda);
+	
+	if (level < 0)               return sample_bilinear(u, v);
+	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
+	
+	float level_width  = float(width  >> level);
+	float level_height = float(height >> level);
+	
+	float one_over_N_plus_1 = 1.0f / (N + 1.0f);
+
+	Vector3 sum(0.0f);
+
+	if (p_x > p_y) {
+		for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
+			float x = u + ds_dx * (i * one_over_N_plus_1 - 0.5f);
+			float y = v + dt_dx * (i * one_over_N_plus_1 - 0.5f);
+
+			sum += sample_bilinear(x, y, level);
+		}
+	} else {
+		for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
+			float x = u + ds_dy * (i * one_over_N_plus_1 - 0.5f);
+			float y = v + dt_dy * (i * one_over_N_plus_1 - 0.5f);
+
+			sum += sample_bilinear(x, y, level);
+		}
+	}
+
+	return sum * one_over_N;
+#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA // Based on: PBRT chapter 10.4
 	Vector2 major_axis(ds_dx, dt_dx);
 	Vector2 minor_axis(ds_dy, dt_dy);
 	
