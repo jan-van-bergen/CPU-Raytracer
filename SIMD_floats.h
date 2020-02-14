@@ -269,7 +269,7 @@ inline FORCEINLINE SIMD_float8 operator|(const SIMD_float8 & left, const SIMD_fl
 inline FORCEINLINE SIMD_float8 operator^(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_xor_ps(left.data, right.data)); }
 inline FORCEINLINE SIMD_float8 operator&(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_and_ps(left.data, right.data)); }
 
-inline FORCEINLINE SIMD_float8 operator~(const SIMD_float8 & floats) { return SIMD_float8(_mm256_xor_ps(floats.data, _mm256_cmp_ps(floats.data, floats.data, _CMP_EQ_OQ))); }
+inline FORCEINLINE SIMD_float8 operator~(const SIMD_float8 & floats) { return SIMD_float8(_mm256_xor_ps(floats.data, _mm256_cmp_ps(floats.data, floats.data, _CMP_EQ_UQ))); }
 
 inline FORCEINLINE SIMD_float8 operator> (const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_GT_OQ)); }
 inline FORCEINLINE SIMD_float8 operator>=(const SIMD_float8 & left, const SIMD_float8 & right) { return SIMD_float8(_mm256_cmp_ps(left.data, right.data, _CMP_GE_OQ)); }

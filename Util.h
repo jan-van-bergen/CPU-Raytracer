@@ -11,12 +11,12 @@
 #define TWO_PI          6.28318530718f
 #define ONE_OVER_TWO_PI 0.15915494309f
 
-#define DEG_TO_RAD(angle) ((angle) * PI / 180.0f)
-#define RAD_TO_DEG(angle) ((angle) / PI * 180.0f)
+#define DEG_TO_RAD(angle) ((angle) *          PI * 0.00555555555f)
+#define RAD_TO_DEG(angle) ((angle) * ONE_OVER_PI * 180.0f)
 
-#define KILO_BYTE(value) (value) * 1024
-#define MEGA_BYTE(value) (value) * 1024 * 1024
-#define GIGA_BYTE(value) (value) * 1024 * 1024 * 1024
+#define KILO_BYTE(value) ((value) * 1024)
+#define MEGA_BYTE(value) ((value) * 1024 * 1024)
+#define GIGA_BYTE(value) ((value) * 1024 * 1024 * 1024)
 
 #define FORCEINLINE __forceinline
 

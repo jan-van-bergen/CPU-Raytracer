@@ -257,7 +257,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_float reflection_distance;
 			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance);
 
-			result = SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask & (~refraction_mask));
+			result = SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask);
 		}
 
 		if (!SIMD_float::all_false(refraction_mask)) {		
