@@ -196,7 +196,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	);
 	
 	float lambda = float(mip_levels) - 1.0f + log2f(std::max(width, 1e-8f));
-	int   level  = Util::float_to_int(lambda);
+	int   level  = Util::float_to_int(lambda - 0.5f);
 
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
