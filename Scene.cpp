@@ -9,19 +9,19 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	spheres[1].init(1.0f);
 	spheres[0].transform.position = Vector3(-2.0f, 0.0f, 10.0f);
 	spheres[1].transform.position = Vector3(+2.0f, 0.0f, 10.0f);
-	Material::materials[spheres[0].material_id].diffuse = Vector3(0.2f, 0.2f, 0.0f);
-	Material::materials[spheres[1].material_id].diffuse = Vector3(0.0f, 0.2f, 0.2f);
-	Material::materials[spheres[0].material_id].reflection = Vector3(0.6f, 0.6f, 0.0f);
-	Material::materials[spheres[1].material_id].reflection = Vector3(0.0f, 0.6f, 0.6f);
-	Material::materials[spheres[0].material_id].transmittance = 0.6f;
-	Material::materials[spheres[1].material_id].transmittance = 0.6f;
-	Material::materials[spheres[0].material_id].index_of_refraction = 1.33f;
-	Material::materials[spheres[1].material_id].index_of_refraction = 1.68f;
+	MaterialBuffer::materials[spheres[0].material_id].diffuse = Vector3(0.2f, 0.2f, 0.0f);
+	MaterialBuffer::materials[spheres[1].material_id].diffuse = Vector3(0.0f, 0.2f, 0.2f);
+	MaterialBuffer::materials[spheres[0].material_id].reflection = Vector3(0.6f, 0.6f, 0.0f);
+	MaterialBuffer::materials[spheres[1].material_id].reflection = Vector3(0.0f, 0.6f, 0.6f);
+	MaterialBuffer::materials[spheres[0].material_id].transmittance = 0.6f;
+	MaterialBuffer::materials[spheres[1].material_id].transmittance = 0.6f;
+	MaterialBuffer::materials[spheres[0].material_id].index_of_refraction = 1.33f;
+	MaterialBuffer::materials[spheres[1].material_id].index_of_refraction = 1.68f;
 
 	planes[0].transform.position.y = -1.0f;
 	planes[0].transform.rotation   = Quaternion::axis_angle(Vector3(0.0f, 1.0f, 0.0f), 0.25f * PI);
-	Material::materials[planes[0].material_id].texture    = Texture::load(DATA_PATH("Floor.png"));
-	Material::materials[planes[0].material_id].reflection = 0.1f;
+	MaterialBuffer::materials[planes[0].material_id].texture    = Texture::load(DATA_PATH("Floor.png"));
+	MaterialBuffer::materials[planes[0].material_id].reflection = 0.1f;
 	
 	top_level_bvh.init(6);
 	Mesh * diamond   = top_level_bvh.primitives;
