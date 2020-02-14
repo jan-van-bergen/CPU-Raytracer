@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdio>
+#include <cstdlib>
+
 #include "Texture.h"
 
 struct Material {
@@ -27,10 +30,22 @@ namespace MaterialBuffer {
 	inline Material materials[MAX_MATERIALS];
 
 	inline int reserve() {
+		if (material_count >= MAX_MATERIALS) {
+			printf("Max Material limit reached!\n");
+
+			abort();
+		}
+
 		return material_count++;
 	}
 
 	inline void add(const Material & material) {
+		if (material_count >= MAX_MATERIALS) {
+			printf("Max Material limit reached!\n");
+
+			abort();
+		}
+
 		materials[material_count++] = material;
 	}
 	
