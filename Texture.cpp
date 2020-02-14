@@ -210,7 +210,7 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float p_min = std::min(p_x, p_y);
 	float p_max = std::max(p_x, p_y);
 
-	float N = std::min(ceilf(p_max / p_min), MAX_ANISOTROPY);
+	float          N = std::min(ceilf(p_max / p_min), MAX_ANISOTROPY);
 	float one_over_N = 1.0f /  N;
 	
 	float lambda = mip_levels_f + log2f(p_max * one_over_N);
@@ -218,9 +218,6 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
-	
-	float level_width  = float(width  >> level);
-	float level_height = float(height >> level);
 	
 	float one_over_N_plus_1 = 1.0f / (N + 1.0f);
 
