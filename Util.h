@@ -20,8 +20,10 @@
 
 #define FORCEINLINE __forceinline
 
-#define ALLIGNED_MALLOC(size, align) _aligned_malloc(size, align)
-#define ALLIGNED_FREE(ptr)           _aligned_free(ptr)
+#define CACHE_LINE_WIDTH 64 // In bytes
+
+#define ALIGNED_MALLOC(size, align) _aligned_malloc(size, align)
+#define ALIGNED_FREE(ptr)           _aligned_free(ptr)
 
 namespace Util {
 	const char * get_path(const char * file_path);

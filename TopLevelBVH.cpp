@@ -10,10 +10,8 @@ void TopLevelBVH::init(int count) {
 
 	indices = nullptr;
 
-	// Construct Node pool
-	nodes = reinterpret_cast<BVHNode *>(ALLIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), 64));
-	assert((unsigned long long)nodes % 64 == 0);
-
+	nodes = reinterpret_cast<BVHNode *>(ALIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), CACHE_LINE_WIDTH));
+	
 	// Used for rebuilding, allocated once so we don't have to heap allocate/destroy every frame
 	indices_x = new int[primitive_count];
 	indices_y = new int[primitive_count];
