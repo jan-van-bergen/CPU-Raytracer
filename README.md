@@ -51,4 +51,6 @@ Various options and settings are available in Config.h.
 
 The project uses SDL and GLEW. Their dll's for both x86 and x64 targets are included in the repositories, as well as all required headers.
 
-The project requires Intel's SVML library. This is included with Visual Studio 2019, other compilers will need to link against SVML. Instructions for linking against SVML can be found in section 8.5 of [Agner Fog's VCL manual](https://www.agner.org/optimize/vcl_manual.pdf).
+Additionally, the project uses the stb_image and tinyobjloader header-only libraries. These headers are included in the repository.
+
+Finally, the project requires Intel's Small Vector Math library (SVML). This library is included with Visual Studio 2019, other compilers will need to link against SVML. Instructions for linking against SVML can be found in section 8.5 of [Agner Fog's VCL manual](https://www.agner.org/optimize/vcl_manual.pdf).
