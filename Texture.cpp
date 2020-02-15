@@ -211,32 +211,34 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float p_max = std::max(p_x, p_y);
 
 	float          N = std::min(ceilf(p_max / p_min), MAX_ANISOTROPY);
-	float one_over_N = 1.0f /  N;
+	float one_over_N = 1.0f / N;
 	
-	float lambda = mip_levels_f + log2f(p_max * one_over_N);
+	float lambda = mip_levels_f - 1.0f + log2f(p_max * one_over_N);
 	int   level  = Util::float_to_int(lambda);
 	
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 	
+	float step_u;
+	float step_v;
+
+	if (p_x > p_y) {
+		step_u = ds_dx;
+		step_v = dt_dx;
+	} else {
+		step_u = ds_dy;
+		step_v = dt_dy;
+	}
+	
 	float one_over_N_plus_1 = 1.0f / (N + 1.0f);
 
 	Vector3 sum(0.0f);
 
-	if (p_x > p_y) {
-		for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
-			float x = u + ds_dx * (i * one_over_N_plus_1 - 0.5f);
-			float y = v + dt_dx * (i * one_over_N_plus_1 - 0.5f);
+	for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
+		float x = u + step_u * (i * one_over_N_plus_1 - 0.5f);
+		float y = v + step_v * (i * one_over_N_plus_1 - 0.5f);
 
-			sum += sample_bilinear(x, y, level);
-		}
-	} else {
-		for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
-			float x = u + ds_dy * (i * one_over_N_plus_1 - 0.5f);
-			float y = v + dt_dy * (i * one_over_N_plus_1 - 0.5f);
-
-			sum += sample_bilinear(x, y, level);
-		}
+		sum += sample_bilinear(x, y, level);
 	}
 
 	return sum * one_over_N;
