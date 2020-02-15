@@ -219,17 +219,10 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	if (level < 0)               return sample_bilinear(u, v);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 	
-	float step_u;
-	float step_v;
+	bool  x_major = p_x > p_y;
+	float step_u = x_major ? ds_dx : ds_dy;
+	float step_v = x_major ? dt_dx : dt_dy;
 
-	if (p_x > p_y) {
-		step_u = ds_dx;
-		step_v = dt_dx;
-	} else {
-		step_u = ds_dy;
-		step_v = dt_dy;
-	}
-	
 	float one_over_N_plus_1 = 1.0f / (N + 1.0f);
 
 	Vector3 sum(0.0f);
