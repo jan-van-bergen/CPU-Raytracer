@@ -78,12 +78,13 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 		std::string str(filename);
 
 		std::filebuf fb;
-		if (!fb.open(str.substr(0, str.length() - 4) + ".mtl", std::ios::in)) abort();
-		std::istream is(&fb);
+		if (fb.open(str.substr(0, str.length() - 4) + ".mtl", std::ios::in)) {
+			std::istream is(&fb);
 
-		tinyobj::LoadMtl(&material_map, &materials, &is, &warning, &error);
+			tinyobj::LoadMtl(&material_map, &materials, &is, &warning, &error);
 
-		load_materials(bvh, materials, path);
+			load_materials(bvh, materials, path);
+		}
 	} else {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -144,9 +145,9 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 				Vector3 position1 = Vector3(attrib.vertices[index_position1], attrib.vertices[index_position1 + 1], attrib.vertices[index_position1 + 2]);
 				Vector3 position2 = Vector3(attrib.vertices[index_position2], attrib.vertices[index_position2 + 1], attrib.vertices[index_position2 + 2]);
 				
-				Vector2 tex_coord0 = Vector2(attrib.texcoords[index_tex_coord0], 1.0f - attrib.texcoords[index_tex_coord0 + 1]);
-				Vector2 tex_coord1 = Vector2(attrib.texcoords[index_tex_coord1], 1.0f - attrib.texcoords[index_tex_coord1 + 1]);
-				Vector2 tex_coord2 = Vector2(attrib.texcoords[index_tex_coord2], 1.0f - attrib.texcoords[index_tex_coord2 + 1]);
+				Vector2 tex_coord0 = index_tex_coord0 >= 0 ? Vector2(attrib.texcoords[index_tex_coord0], 1.0f - attrib.texcoords[index_tex_coord0 + 1]) : Vector2(0.0f, 0.0f);
+				Vector2 tex_coord1 = index_tex_coord1 >= 0 ? Vector2(attrib.texcoords[index_tex_coord1], 1.0f - attrib.texcoords[index_tex_coord1 + 1]) : Vector2(0.0f, 0.0f);
+				Vector2 tex_coord2 = index_tex_coord2 >= 0 ? Vector2(attrib.texcoords[index_tex_coord2], 1.0f - attrib.texcoords[index_tex_coord2 + 1]) : Vector2(0.0f, 0.0f);
 
 				Vector3 normal0 = Vector3(attrib.normals[index_normal0], attrib.normals[index_normal0 + 1], attrib.normals[index_normal0 + 2]);
 				Vector3 normal1 = Vector3(attrib.normals[index_normal1], attrib.normals[index_normal1 + 1], attrib.normals[index_normal1 + 2]);
