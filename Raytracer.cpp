@@ -123,7 +123,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 				closest_hit.dt_dx[i], closest_hit.dt_dy[i]
 			);
 #else
-			Vector3 diffuse = Material::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], 0.0f, 0.0f, 0.0f, 0.0f);
+			Vector3 diffuse = MaterialBuffer::materials[closest_hit.material_id[i]].get_albedo(closest_hit.u[i], closest_hit.v[i], 0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 
 			material_diffuse.x[i] = diffuse.x;
