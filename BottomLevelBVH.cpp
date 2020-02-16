@@ -94,7 +94,13 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 		std::string error;
 
 		bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warning, &error, filename, path);
-		if (!success) abort();
+		if (!success) {
+			printf("Failed to load obj file %s!\n", filename);
+			printf("Warning: %s\n", warning.c_str());
+			printf("Error:   %s\n", error.c_str());
+
+			abort();
+		}
 
 		int material_count = load_materials(bvh, materials, path);
 
