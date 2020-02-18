@@ -426,7 +426,7 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	ray_hit.point  = SIMD_Vector3::blend(ray_hit.point,  point,  mask);
 	ray_hit.normal = SIMD_Vector3::blend(ray_hit.normal, normal, mask);
 	
-	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + triangles_cold[index].material_id), *reinterpret_cast<SIMD_int *>(&mask));
+	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + triangles_cold[index].material_id), SIMD_float_as_int(mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
 	SIMD_Vector2 t_edge1(triangles_cold[index].tex_coord_edge1);

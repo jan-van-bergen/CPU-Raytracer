@@ -10,18 +10,27 @@ typedef SIMD_int1   SIMD_int;
 
 inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (floats.data); }
 inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(ints.data); }
+
+inline FORCEINLINE SIMD_int   SIMD_float_as_int(SIMD_float floats) { return SIMD_int  (*reinterpret_cast<int   *>(&floats.data)); }
+inline FORCEINLINE SIMD_float SIMD_int_as_float(SIMD_int   ints)   { return SIMD_float(*reinterpret_cast<float *>(&ints.data)); }
 #elif SIMD_LANE_SIZE == 4
 typedef SIMD_float4 SIMD_float;
 typedef SIMD_int4   SIMD_int;
 
 inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (_mm_cvtps_epi32(floats.data)); }
 inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(_mm_cvtepi32_ps(ints.data)); }
+
+inline FORCEINLINE SIMD_int   SIMD_float_as_int(SIMD_float floats) { return SIMD_int  (_mm_castps_si128(floats.data)); }
+inline FORCEINLINE SIMD_float SIMD_int_as_float(SIMD_int   ints)   { return SIMD_float(_mm_castsi128_ps(ints.data)); }
 #elif SIMD_LANE_SIZE == 8
 typedef SIMD_float8 SIMD_float;
 typedef SIMD_int8   SIMD_int;
 
 inline FORCEINLINE SIMD_int   SIMD_float_to_int(SIMD_float floats) { return SIMD_int  (_mm256_cvtps_epi32(floats.data)); }
 inline FORCEINLINE SIMD_float SIMD_int_to_float(SIMD_int   ints)   { return SIMD_float(_mm256_cvtepi32_ps(ints.data)); }
+
+inline FORCEINLINE SIMD_int   SIMD_float_as_int(SIMD_float floats) { return SIMD_int  (_mm256_castps_si256(floats.data)); }
+inline FORCEINLINE SIMD_float SIMD_int_as_float(SIMD_int   ints)   { return SIMD_float(_mm256_castsi256_ps(ints.data)); }
 #else
 static_assert(false, "Unsupported Lane Size!");
 #endif
