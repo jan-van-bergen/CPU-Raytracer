@@ -3,7 +3,7 @@
 ![Sponza](Screenshots/Sponza.png)
 
 Implementation of a Whitted-Style CPU Raytracer.
-The project uses multithreading, a high quality acceleration structure ([SBVH](https://www.nvidia.com/docs/IO/77714/sbvh.pdf)), SIMD vectors, and data-oriented design to achieve high frame rates, even in scenes with large triangle counts.
+The project uses multithreading, a high quality acceleration structure ([SBVH](https://www.nvidia.com/docs/IO/77714/sbvh.pdf)), SIMD vectors, and data-oriented design to achieve high frame rates on modest CPU's, even in scenes with large triangle counts.
 
 ## Features
 
