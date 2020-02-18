@@ -2,10 +2,10 @@
 #include "AABB.h"
 #include "Ray.h"
 
-#define BVH_AXIS_X_BITS 0x40000000 // 01 00 zeroes...
-#define BVH_AXIS_Y_BITS 0x80000000 // 10 00 zeroes...
-#define BVH_AXIS_Z_BITS 0xc0000000 // 11 00 zeroes...
-#define BVH_AXIS_MASK   0xc0000000 // 11 00 zeroes...
+#define BVH_AXIS_X_BITS (0b01 << 30)
+#define BVH_AXIS_Y_BITS (0b10 << 30)
+#define BVH_AXIS_Z_BITS (0b11 << 30)
+#define BVH_AXIS_MASK   (0b11 << 30)
 
 struct BVHNode {
 	AABB aabb;
