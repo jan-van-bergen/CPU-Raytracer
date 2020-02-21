@@ -90,12 +90,15 @@ int main(int argument_count, char ** arguments) {
 		float num_reflection_rays = float(performance_stats.num_reflection_rays * fps) * 1e-6;
 		float num_refraction_rays = float(performance_stats.num_refraction_rays * fps) * 1e-6;
 
+		float num_total_rays = num_primary_rays + num_shadow_rays + num_reflection_rays + num_refraction_rays;
+
 		// Report timings and performance stats
-		printf("%d - Delta: %.2f ms, Avg: %.2f ms, FPS: %d, Primary: %.2f MRays/s, Shadow: %.2f MRays/s, Reflection: %.2f MRays/s, Refraction: %.2f MRays/s\n", 
+		printf("%d - Delta=%.2f ms, Avg=%.2f ms, FPS=%d, Total=%.2f MRays/s, Primary=%.2f MRays/s, Shadow=%.2f MRays/s, Reflection=%.2f MRays/s, Refraction=%.2f MRays/s\n", 
 			current_frame, 
 			delta_time * 1000.0f, 
 			avg        * 1000.0f, 
 			fps,
+			num_total_rays,
 			num_primary_rays, 
 			num_shadow_rays, 
 			num_reflection_rays, 
