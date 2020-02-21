@@ -2,6 +2,11 @@
 
 #include <cstring>
 
+struct Vertex {
+	Vector2 position;
+	Vector2 uv;
+};
+
 Window::Window(int width, int height, const char * title) : 
 	width(width), height(height), 
 	tile_count_x((width  + tile_width  - 1) / tile_width), 
@@ -30,15 +35,15 @@ Window::Window(int width, int height, const char * title) :
 	}
 
 	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+
 	glDisable(GL_DEPTH_TEST);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
+	glEnableVertexAttribArray(0); // Used for position
+	glEnableVertexAttribArray(1); // Used for uv
+	
 	glEnable(GL_FRAMEBUFFER_SRGB);
-
-	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 4.0f);
 
 	frame_buffer = new unsigned[width * height];
 	glGenTextures(1, &frame_buffer_handle);
@@ -47,13 +52,28 @@ Window::Window(int width, int height, const char * title) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	Vertex vertices[] = {
+		{ Vector2(-1.0f,  1.0f), Vector2(0.0f, 0.0f) },
+		{ Vector2( 1.0f,  1.0f), Vector2(1.0f, 0.0f) },
+		{ Vector2(-1.0f, -1.0f), Vector2(0.0f, 1.0f) },
+		{ Vector2( 1.0f, -1.0f), Vector2(1.0f, 1.0f) }
+	};
 
-	// Setup camera
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	int indices[] = { 0, 1, 2, 1, 3, 2 };
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment.glsl")),
+	shader.bind();
+
+	glUniform1i(shader.get_uniform("screen"), 0);
 }
 
 Window::~Window() {
@@ -71,16 +91,12 @@ void Window::clear() {
 void Window::update() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	glBindTexture(GL_TEXTURE_2D, frame_buffer_handle);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
 	
-	// Draw screen filling quad
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f, -1.0f);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f( 1.0f, -1.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f( 1.0f,  1.0f);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f,  1.0f);
-	glEnd();
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),                          0 ); // position
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(8)); // uv
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	SDL_GL_SwapWindow(window);
 

@@ -7,6 +7,8 @@
 #include "Math.h"
 #include "Vector3.h"
 
+#include "Shader.h"
+
 // OpenGL Debug Callback function to report errors
 inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * userParam) {
 	printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "", type, severity, message);
@@ -21,6 +23,10 @@ private:
 	
 	unsigned * frame_buffer;
 	GLuint     frame_buffer_handle;
+
+	GLuint vbo;
+	GLuint ibo;
+	Shader shader;
 
 public:
 	const int width;

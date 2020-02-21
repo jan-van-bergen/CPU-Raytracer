@@ -47,7 +47,7 @@ int main(int argument_count, char ** arguments) {
 
 	// Game loop
 	while (!window.is_closed) {
-		window.clear();
+		//window.clear();
 
 		scene.update(delta_time);
 		
