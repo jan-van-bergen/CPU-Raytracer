@@ -12,16 +12,21 @@ const float FXAA_REDUCE_MIN = 1.0f / 128.0f;
 const float FXAA_REDUCE_MUL = 1.0f / 8.0f;
 const float FXAA_SPAN_MAX   = 8.0f;
 
+// Get screen, gamma corrected
+vec3 get_screen(vec2 uv) {
+	return pow(texture2D(screen, uv).rgb, vec3(1.0f / 2.2f));
+}
+
 // Based on: https://github.com/BennyQBD/3DEngineCpp
 vec3 fxaa() {
 	const vec3 luma = vec3(0.299f, 0.587f, 0.114f);
 
 	// Sample the screen in an X-shaped pattern around the current pixel and convert to luminosity
-	float luma_tl = dot(luma, texture2D(screen, in_uv + vec2(-inv_screen_size.x, -inv_screen_size)).rgb); 
-	float luma_tr = dot(luma, texture2D(screen, in_uv + vec2( inv_screen_size.x, -inv_screen_size)).rgb); 
-	float luma_bl = dot(luma, texture2D(screen, in_uv + vec2(-inv_screen_size.x,  inv_screen_size)).rgb); 
-	float luma_br = dot(luma, texture2D(screen, in_uv + vec2( inv_screen_size.x,  inv_screen_size)).rgb); 
-	float luma_m  = dot(luma, texture2D(screen, in_uv).rgb);
+	float luma_tl = dot(luma, get_screen(in_uv + vec2(-inv_screen_size.x, -inv_screen_size))); 
+	float luma_tr = dot(luma, get_screen(in_uv + vec2( inv_screen_size.x, -inv_screen_size))); 
+	float luma_bl = dot(luma, get_screen(in_uv + vec2(-inv_screen_size.x,  inv_screen_size))); 
+	float luma_br = dot(luma, get_screen(in_uv + vec2( inv_screen_size.x,  inv_screen_size))); 
+	float luma_m  = dot(luma, get_screen(in_uv).rgb);
 
 	// Calculate the min and the max out of all the luminosity values
 	float luma_min = min(min(min(luma_tl, luma_tr), min(luma_bl, luma_br)), luma_m);
@@ -43,12 +48,12 @@ vec3 fxaa() {
 	blur_direction = clamp(blur_direction * adjust, vec2(-FXAA_SPAN_MAX), vec2(FXAA_SPAN_MAX)) * inv_screen_size;
 	
 	vec3 result_a = 0.5f * (
-		texture2D(screen, in_uv + blur_direction * (1.0f / 3.0f - 0.5f)).rgb +
-		texture2D(screen, in_uv + blur_direction * (2.0f / 3.0f - 0.5f)).rgb
+		get_screen(in_uv + blur_direction * (1.0f / 3.0f - 0.5f)).rgb +
+		get_screen(in_uv + blur_direction * (2.0f / 3.0f - 0.5f)).rgb
 	);
 	vec3 result_b = 0.5f * (
-		texture2D(screen, in_uv + blur_direction * (0.0f / 3.0f - 0.5f)).rgb +
-		texture2D(screen, in_uv + blur_direction * (3.0f / 3.0f - 0.5f)).rgb
+		get_screen(in_uv + blur_direction * (0.0f / 3.0f - 0.5f)).rgb +
+		get_screen(in_uv + blur_direction * (3.0f / 3.0f - 0.5f)).rgb
 	);
 	
 	// Average results

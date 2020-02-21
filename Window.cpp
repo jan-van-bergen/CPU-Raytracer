@@ -43,8 +43,6 @@ Window::Window(int width, int height, const char * title) :
 	glEnableVertexAttribArray(0); // Used for position
 	glEnableVertexAttribArray(1); // Used for uv
 	
-	glEnable(GL_FRAMEBUFFER_SRGB);
-
 	frame_buffer = new unsigned[width * height];
 	glGenTextures(1, &frame_buffer_handle);
 
