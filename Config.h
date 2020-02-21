@@ -6,8 +6,8 @@
 #define SCENE SCENE_SPONZA
 
 // Render settings
-#define SCREEN_WIDTH  900
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH  1600
+#define SCREEN_HEIGHT 900
 
 #define NUMBER_OF_BOUNCES 3 // Number of bounces AFTER primary Rays, meaning 0 has only primary Rays
 
@@ -16,6 +16,8 @@
 #define SIMD_LANE_SIZE 8 // 1 means scalar flow, 4 means SSE, 8 means AVX
 
 #define MAX_MATERIALS 256 // Size of the global Material buffer
+
+#define ENABLE_FXAA true
 
 // BVH settings
 #define BVH_VISUALIZE_HEATMAP false // Toggle to visualize number of traversal steps through BVH

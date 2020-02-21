@@ -70,10 +70,18 @@ Window::Window(int width, int height, const char * title) :
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment.glsl")),
+#if ENABLE_FXAA
+	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_fxaa.glsl")),
 	shader.bind();
-
+	
 	glUniform1i(shader.get_uniform("screen"), 0);
+	glUniform2f(shader.get_uniform("inv_screen_size"), 1.0f / float(SCREEN_WIDTH), 1.0f / float(SCREEN_HEIGHT));
+#else 
+	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_identity.glsl")),
+	
+	shader.bind();
+	glUniform1i(shader.get_uniform("screen"), 0);
+#endif
 }
 
 Window::~Window() {
