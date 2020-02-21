@@ -43,6 +43,7 @@ Elliptical Weighted Average filtering is also an anisotropic filter, but provide
 - Plane, Sphere, and Triangle Mesh primitives. All primitives support Ray Differentials.
 - Diffuse, specular/mirror, and dielectric materials.
 - Point Lights, Spot Lights, and Directional Lights that can all cast shadows.
+- FXAA is used for anti-aliasing.
 
 ## Usage
 
