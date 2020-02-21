@@ -513,7 +513,7 @@ SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_f
 }
 
 void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
-	int stack[128];
+	int stack[BVH_TRAVERSAL_STACK_SIZE];
 	int stack_size = 1;
 
 	// Push root on stack
@@ -553,7 +553,7 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 }
 
 SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) const {
-	int stack[128];
+	int stack[BVH_TRAVERSAL_STACK_SIZE];
 	int stack_size = 1;
 
 	// Push root on stack

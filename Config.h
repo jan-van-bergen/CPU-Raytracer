@@ -6,8 +6,8 @@
 #define SCENE SCENE_SPONZA
 
 // Render settings
-#define SCREEN_WIDTH  1600
-#define SCREEN_HEIGHT 900
+#define SCREEN_WIDTH  900
+#define SCREEN_HEIGHT 600
 
 #define NUMBER_OF_BOUNCES 3 // Number of bounces AFTER primary Rays, meaning 0 has only primary Rays
 
@@ -21,6 +21,8 @@
 
 // BVH settings
 #define BVH_VISUALIZE_HEATMAP false // Toggle to visualize number of traversal steps through BVH
+
+#define BVH_TRAVERSAL_STACK_SIZE 64
 
 #define BVH_TRAVERSE_TREE_NAIVE   0 // Traverses the BVH in a naive way, always checking the left Node before the right Node
 #define BVH_TRAVERSE_TREE_ORDERED 1 // Traverses the BVH based on the split axis and the direction of the Ray
