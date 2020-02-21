@@ -3,18 +3,24 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-int thread_count; 
+static int thread_count; 
 
-HANDLE * go_signal;
-HANDLE * done_signal;
+static HANDLE * go_signal;
+static HANDLE * done_signal;
 
-volatile LONG remaining;
+static volatile LONG remaining;
 
 struct Params {
 	int thread_id;
+
 	const Raytracer * raytracer;
 	const Window    * window;
-} * parameters;
+
+	PerformanceStats * stats;
+};
+static Params * parameters;
+
+static PerformanceStats * stats;
 
 // This is the actual function that will run on each Worker Thread
 // It will wait until work becomes available, execute it and notify when the work is done
@@ -54,7 +60,7 @@ ULONG WINAPI worker_thread(LPVOID parameters) {
 				int tile_width  = x + params.window->tile_width  < params.window->width  ? params.window->tile_width  : params.window->width  - x;
 				int tile_height = y + params.window->tile_height < params.window->height ? params.window->tile_height : params.window->height - y;
 
-				params.raytracer->render_tile(*params.window, x, y, tile_width, tile_height);
+				params.raytracer->render_tile(*params.window, x, y, tile_width, tile_height, *params.stats);
 			} 
 		}
 		
@@ -91,6 +97,8 @@ void WorkerThreads::init(const Raytracer & raytracer, const Window & window) {
 
 	parameters = new Params[thread_count];
 
+	stats = new PerformanceStats[thread_count];
+
 	// Spawn the appropriate number of Worker Threads.
 	for (int i = 0; i < thread_count; i++) {
 		go_signal  [i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -99,13 +107,17 @@ void WorkerThreads::init(const Raytracer & raytracer, const Window & window) {
 		parameters[i].thread_id = i;
 		parameters[i].raytracer = &raytracer;
 		parameters[i].window    = &window;
-		
+		parameters[i].stats     = stats + i;
+
 		CreateThread(nullptr, 0, worker_thread, &parameters[i], 0, nullptr);
 	}
 }
 
 void WorkerThreads::wake_up_worker_threads(int job_count) {
 	remaining = job_count;
+	
+	// Set all performance statistics to zero
+	memset(stats, 0, thread_count * sizeof(PerformanceStats));
 
 	for (int i = 0; i < thread_count; i++) {
 		SetEvent(go_signal[i]);
@@ -114,4 +126,23 @@ void WorkerThreads::wake_up_worker_threads(int job_count) {
 
 void WorkerThreads::wait_on_worker_threads() {
 	WaitForMultipleObjects(thread_count, done_signal, true, INFINITE);
+}
+
+PerformanceStats WorkerThreads::sum_performance_stats() {
+	PerformanceStats result = { 0 };
+
+	for (int i = 0; i < thread_count; i++) {
+		result.num_primary_rays    += stats[i].num_primary_rays;
+		result.num_shadow_rays     += stats[i].num_shadow_rays;
+		result.num_reflection_rays += stats[i].num_reflection_rays;
+		result.num_refraction_rays += stats[i].num_refraction_rays;
+	}
+
+	// Rays are traced in Packets of size SIMD_LINE_SIZE
+	result.num_primary_rays    *= SIMD_LANE_SIZE;
+	result.num_shadow_rays     *= SIMD_LANE_SIZE;
+	result.num_reflection_rays *= SIMD_LANE_SIZE;
+	result.num_refraction_rays *= SIMD_LANE_SIZE;
+
+	return result;
 }

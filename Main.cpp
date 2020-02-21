@@ -82,8 +82,25 @@ int main(int argument_count, char ** arguments) {
 			frames = 0;
 		}
 
-		// Report timings
-		printf("%d - Delta: %.2f ms, Average: %.2f ms, FPS: %d\n", current_frame, delta_time * 1000.0f, avg * 1000.0f, fps);
+		PerformanceStats performance_stats = WorkerThreads::sum_performance_stats();
+
+		// Convert to MegaRays / Second
+		float num_primary_rays    = float(performance_stats.num_primary_rays    * fps) * 1e-6;
+		float num_shadow_rays     = float(performance_stats.num_shadow_rays     * fps) * 1e-6;
+		float num_reflection_rays = float(performance_stats.num_reflection_rays * fps) * 1e-6;
+		float num_refraction_rays = float(performance_stats.num_refraction_rays * fps) * 1e-6;
+
+		// Report timings and performance stats
+		printf("%d - Delta: %.2f ms, Avg: %.2f ms, FPS: %d, Primary: %.2f MRays/s, Shadow: %.2f MRays/s, Reflection: %.2f MRays/s, Refraction: %.2f MRays/s\n", 
+			current_frame, 
+			delta_time * 1000.0f, 
+			avg        * 1000.0f, 
+			fps,
+			num_primary_rays, 
+			num_shadow_rays, 
+			num_reflection_rays, 
+			num_refraction_rays
+		);
 	}
 
 	return EXIT_SUCCESS;

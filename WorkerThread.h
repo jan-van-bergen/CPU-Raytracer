@@ -9,4 +9,7 @@ namespace WorkerThreads {
 
 	void wake_up_worker_threads(int job_count);
 	void wait_on_worker_threads();
+
+	// Sums the performance stats over all individual Worker Threads
+	PerformanceStats sum_performance_stats();
 }

@@ -1,6 +1,6 @@
 #include "Raytracer.h"
 
-void Raytracer::render_tile(const Window & window, int x, int y, int tile_width, int tile_height) const {
+void Raytracer::render_tile(const Window & window, int tile_x, int tile_y, int tile_width, int tile_height, PerformanceStats & stats) const {
 	Ray ray;
 	ray.origin.x = SIMD_float(scene->camera.position.x);
 	ray.origin.y = SIMD_float(scene->camera.position.y);
@@ -25,8 +25,8 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	assert(tile_width  % step_x == 0);
 	assert(tile_height % step_y == 0);
 	
-	for (int j = y; j < y + tile_height; j += step_y) {
-		for (int i = x; i < x + tile_width; i += step_x) {
+	for (int j = tile_y; j < tile_y + tile_height; j += step_y) {
+		for (int i = tile_x; i < tile_x + tile_width; i += step_x) {
 			float i_f = float(i);
 			float j_f = float(j);
 
@@ -58,8 +58,10 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 
 			ray.direction = direction * inv_sqrt_d_dot_d; // Normalize direction
 
+			stats.num_primary_rays++;
+
 			SIMD_float distance;
-			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance);
+			SIMD_Vector3 colour = bounce(ray, NUMBER_OF_BOUNCES, distance, stats);
 
 #if SIMD_LANE_SIZE == 1
 			window.plot(i, j, Vector3(colour.x[0], colour.y[0], colour.z[0]));
@@ -82,7 +84,7 @@ void Raytracer::render_tile(const Window & window, int x, int y, int tile_width,
 	}
 }
 
-SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & distance) const {
+SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & distance, PerformanceStats & stats) const {
 	SIMD_Vector3 result;
 	
 	const SIMD_float zero(0.0f);
@@ -143,9 +145,9 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 	if (!SIMD_float::all_false(diffuse_mask)) {
 		SIMD_Vector3 diffuse = SIMD_Vector3(scene->ambient_lighting);
 
-		// Secondary Ray starts at hit location
-		Ray secondary_ray;
-		secondary_ray.origin = closest_hit.point;
+		// Shadow Ray starts at hit location
+		Ray shadow_ray;
+		shadow_ray.origin = closest_hit.point;
 
 		SIMD_Vector3 to_camera = SIMD_Vector3::normalize(SIMD_Vector3(scene->camera.position) - closest_hit.point);
 
@@ -156,9 +158,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_float   distance_to_light         = SIMD_float::sqrt(distance_to_light_squared);
 
 			to_light /= distance_to_light;
-			secondary_ray.direction = to_light;
+			shadow_ray.direction = to_light;
 
-			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, distance_to_light);
+			stats.num_shadow_rays++;
+
+			SIMD_float shadow_mask = scene->intersect_primitives(shadow_ray, distance_to_light);
 			if (SIMD_float::all_true(shadow_mask)) continue;
 
 			diffuse = SIMD_Vector3::blend(diffuse + scene->point_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
@@ -171,9 +175,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			SIMD_float   distance_to_light         = SIMD_float::sqrt(distance_to_light_squared);
 
 			to_light /= distance_to_light;
-			secondary_ray.direction = to_light;
+			shadow_ray.direction = to_light;
+			
+			stats.num_shadow_rays++;
 
-			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, distance_to_light);
+			SIMD_float shadow_mask = scene->intersect_primitives(shadow_ray, distance_to_light);
 			if (SIMD_float::all_true(shadow_mask)) continue;
 
 			diffuse = SIMD_Vector3::blend(diffuse + scene->spot_lights[i].calc_lighting(closest_hit.normal, to_light, to_camera, distance_to_light_squared), diffuse, shadow_mask);
@@ -181,9 +187,11 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 
 		// Check Directional Lights
 		for (int i = 0; i < scene->directional_light_count; i++) {			
-			secondary_ray.direction = scene->directional_lights[i].negative_direction;
+			shadow_ray.direction = scene->directional_lights[i].negative_direction;
+			
+			stats.num_shadow_rays++;
 
-			SIMD_float shadow_mask = scene->intersect_primitives(secondary_ray, inf);
+			SIMD_float shadow_mask = scene->intersect_primitives(shadow_ray, inf);
 			if (SIMD_float::all_true(shadow_mask)) continue;
 
 			diffuse = SIMD_Vector3::blend(diffuse + scene->directional_lights[i].calc_lighting(closest_hit.normal, to_camera), diffuse, shadow_mask);
@@ -254,8 +262,10 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			reflected_ray.dD_dy = ray.dD_dy - SIMD_float(2.0f) * (SIMD_Vector3::dot(ray.direction, closest_hit.normal) * closest_hit.dN_dy + dDN_dy * closest_hit.normal);
 #endif
 
+			stats.num_reflection_rays++;
+
 			SIMD_float reflection_distance;
-			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance);
+			colour_reflection = material_reflection * bounce(reflected_ray, bounces_left - 1, reflection_distance, stats);
 
 			result = SIMD_Vector3::blend(result, result + colour_reflection, reflection_mask);
 		}
@@ -307,6 +317,8 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 			refracted_ray.origin    = closest_hit.point;
 			refracted_ray.direction = Math::refract(ray.direction, normal, eta, cos_theta, k);
 
+			stats.num_refraction_rays++;
+
 			// Make sure that Snell's Law is correctly obeyed
 			assert(Debug::test_refraction(n_1, n_2, ray.direction, normal, refracted_ray.direction, closest_hit.hit & (k >= zero)));
 			
@@ -331,7 +343,7 @@ SIMD_Vector3 Raytracer::bounce(const Ray & ray, int bounces_left, SIMD_float & d
 #endif
 
 			SIMD_float refraction_distance;
-			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance);
+			colour_refraction = bounce(refracted_ray, bounces_left - 1, refraction_distance, stats);
 
 			// Apply Beer's Law
 #if SIMD_LANE_SIZE == 1

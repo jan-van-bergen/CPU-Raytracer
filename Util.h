@@ -3,7 +3,7 @@
 
 #define INVALID -1
 
-#define DATA_PATH(file_name) "../Raytracer/Data/" file_name
+#define DATA_PATH(file_name) "./Data/" file_name
 
 #define PI          3.14159265359f
 #define ONE_OVER_PI 0.31830988618f
