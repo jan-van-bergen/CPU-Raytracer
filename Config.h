@@ -17,7 +17,7 @@
 
 #define MAX_MATERIALS 256 // Size of the global Material buffer
 
-#define ENABLE_FXAA true
+#define ENABLE_FXAA true // Fast Approximative Anti-Aliasing
 
 // BVH settings
 #define BVH_VISUALIZE_HEATMAP false // Toggle to visualize number of traversal steps through BVH

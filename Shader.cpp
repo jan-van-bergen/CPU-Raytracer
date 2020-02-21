@@ -33,6 +33,8 @@ Shader Shader::load(const char * vertex_filename, const char * fragment_filename
 		GLchar info_log[1024];
 		glGetProgramInfoLog(shader.program_id, sizeof(info_log), NULL, info_log);
 		fprintf(stderr, "Error linking shader program: '%s'\n", info_log);
+
+		__debugbreak();
 	}
 
 	// Validate Program
@@ -44,6 +46,8 @@ Shader Shader::load(const char * vertex_filename, const char * fragment_filename
 		GLchar info_log[1024];
 		glGetProgramInfoLog(shader.program_id, sizeof(info_log), NULL, info_log);
 		fprintf(stderr, "Error validating shader program: '%s'\n", info_log);
+		
+		__debugbreak();
 	}
 
 	return shader;
@@ -54,12 +58,12 @@ GLuint Shader::load_shader(const char* filename, GLuint shader_type) {
 	std::ifstream t(filename);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 
-	const GLchar* src = static_cast<const GLchar*>(str.c_str());
+	const GLchar * src = static_cast<const GLchar *>(str.c_str());
 
 	GLuint shader = glCreateShader(shader_type);
 
-	const GLchar* srcs[1] = { src };
-	const GLint   lens[1] = { str.length() };
+	const GLchar * srcs[1] = { src };
+	const GLint    lens[1] = { str.length() };
 	glShaderSource(shader, 1, srcs, lens);
 	glCompileShader(shader);
 
@@ -69,6 +73,8 @@ GLuint Shader::load_shader(const char* filename, GLuint shader_type) {
 		GLchar info_log[1024];
 		glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
 		fprintf(stderr, "Error compiling shader type %d: '%s'\n", shader_type, info_log);
+		
+		__debugbreak();
 	}
 
 	return shader;
