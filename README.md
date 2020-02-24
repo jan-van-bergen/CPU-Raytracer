@@ -60,3 +60,8 @@ The project uses SDL and GLEW. Their dll's for both x86 and x64 targets are incl
 Additionally, the project uses the stb_image and tinyobjloader header-only libraries. These headers are included in the repository.
 
 Finally, the project requires Intel's Small Vector Math library (SVML). This library is included with Visual Studio 2019, other compilers will need to link against SVML. Instructions for linking against SVML can be found in section 8.5 of [Agner Fog's VCL manual](https://www.agner.org/optimize/vcl_manual.pdf).
+
+## Obj Scenes Credits
+
+- http://casual-effects.com/data/index.html
+- [Small Tropcial Island](https://www.turbosquid.com/3d-models/free-island-3d-model/794972) by Herminio Nieves
