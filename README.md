@@ -10,7 +10,7 @@ The project uses multithreading, a high quality acceleration structure ([SBVH](h
 ### BVH
 
 ![Dynamic Scene](Screenshots/Dynamic.png)
-*The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share MeshData and the SBVH.*
+*The BVH for each individual objects is a high-quality SBVH (traversed in object space) and they are conmbined using a regular top-level BVH (traversed in world space). The two blue tori are instances of the same mesh and can therefore share the same underlying mesh data and SBVH.*
 
 - Supports standard BVH's, constructed using the Surface Area Heuristic
 - Supports SBVH's, which add the possibility for spatial splits, thereby improving performance in scenes with a non-uniform Triangle distribution.
