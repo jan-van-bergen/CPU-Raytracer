@@ -63,5 +63,5 @@ Finally, the project requires Intel's Small Vector Math library (SVML). This lib
 
 ## Obj Scenes Credits
 
-- http://casual-effects.com/data/index.html
+- Models downloaded from Morgan McGuire's [Computer Graphics Archive](https://casual-effects.com/data)
 - [Small Tropcial Island](https://www.turbosquid.com/3d-models/free-island-3d-model/794972) by Herminio Nieves
