@@ -36,6 +36,8 @@ Trilinear filtering is isotropic and can look blurry at oblique viewing angles.
 Anisotropic filtering is based on the OpenGL specification of an anisotropic filter. (see [the extension specification](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt) for more details.
 Elliptical Weighted Average filtering is also an anisotropic filter, but provides better quality at the cost of being more expensive.
 
+*Note: For now only Textures with a width and height that are both powers of two support Mipmapping! The width and height do not have to be equal, allowing non-square Textures.*
+
 ### Other
 
 ![Dielectrics](Screenshots/Dielectrics.png)
