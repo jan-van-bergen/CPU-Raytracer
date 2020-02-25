@@ -8,7 +8,7 @@
 
 #include "Math.h"
 
-static std::unordered_map<std::string, Texture *> cache;
+static std::unordered_map<std::string, Texture *> texture_cache;
 
 static Vector3 colour_unpack(unsigned colour) {
 	const float one_over_255 = 0.00392156862f;
@@ -28,7 +28,7 @@ static unsigned colour_pack(const Vector3 & colour) {
 }
 
 const Texture * Texture::load(const char * file_path) {
-	Texture *& texture = cache[file_path];
+	Texture *& texture = texture_cache[file_path];
 
 	// If the cache already contains this Texture simply return it
 	if (texture) return texture;
@@ -185,10 +185,8 @@ Vector3 Texture::sample_bilinear(float u, float v, int level) const {
 		w3 * fetch_texel(u0_i + 1, v0_i + 1, level);
 }
 
-Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
-	if (!mipmapped) return sample_bilinear(u, v);
-
-#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR // Based on: PBRT chapter 10.4
+// Based on: PBRT chapter 10.4
+Vector3 Texture::sample_mipmap_trilinear(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	float width = 2.0f * std::max(
 		std::max(std::abs(ds_dx), std::abs(ds_dy)),
 		std::max(std::abs(dt_dx), std::abs(dt_dy))
@@ -203,7 +201,10 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float t = lambda - floorf(lambda);
 
 	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
-#elif MIPMAP_FILTER == MIPMAP_FILTER_ANISOTROPIC // Based on: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt
+}
+
+// Based on: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt
+Vector3 Texture::sample_mipmap_anisotropic(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	float p_x = std::max(std::abs(ds_dx), std::abs(dt_dx));
 	float p_y = std::max(std::abs(ds_dy), std::abs(dt_dy));
 
@@ -235,7 +236,10 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	}
 
 	return sum * one_over_N;
-#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA // Based on: PBRT chapter 10.4
+}
+
+// Based on: PBRT chapter 10.4
+Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	Vector2 major_axis(ds_dx, dt_dx);
 	Vector2 minor_axis(ds_dy, dt_dy);
 	
@@ -261,11 +265,6 @@ Vector3 Texture::sample_mipmap(float u, float v, float ds_dx, float ds_dy, float
 	float lambda = std::max(0.0f, mip_levels_f - 1.0f + log2f(minor_length));
 	int   level  = Util::float_to_int(lambda);
 
-	return sample_ewa(u, v, level, major_axis, minor_axis);
-#endif
-}
-
-Vector3 Texture::sample_ewa(float u, float v, int level, const Vector2 & major_axis, const Vector2 & minor_axis) const {
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 
 	float level_width  = float(width  >> level);

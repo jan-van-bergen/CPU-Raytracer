@@ -14,7 +14,7 @@
 
 #include "ScopeTimer.h"
 
-static std::unordered_map<std::string, BottomLevelBVH *> cache;
+static std::unordered_map<std::string, BottomLevelBVH *> bvh_cache;
 
 static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t> & materials, const char * path) {
 	bvh->material_offset = MaterialBuffer::material_count;
@@ -52,7 +52,7 @@ static int load_materials(BottomLevelBVH * bvh, std::vector<tinyobj::material_t>
 }
 
 const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
-	BottomLevelBVH *& bvh = cache[filename];
+	BottomLevelBVH *& bvh = bvh_cache[filename];
 
 	// If the cache already contains the requested BVH simply return it
 	if (bvh) return bvh;

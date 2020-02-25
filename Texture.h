@@ -22,11 +22,12 @@ private:
 
 	Vector3 fetch_texel(int x, int y, int level = 0) const;
 
-	Vector3 sample_nearest (float u, float v) const;
+	Vector3 sample_nearest (float u, float v)                const;
 	Vector3 sample_bilinear(float u, float v, int level = 0) const;
-	Vector3 sample_mipmap  (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
-
-	Vector3 sample_ewa(float u, float v, int level, const Vector2 & major_axis, const Vector2 & minor_axis) const;
+	
+	Vector3 sample_mipmap_trilinear  (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
+	Vector3 sample_mipmap_anisotropic(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
+	Vector3 sample_mipmap_ewa        (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
 
 public:
 	inline Vector3 sample(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
@@ -35,7 +36,15 @@ public:
 #elif TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_BILINEAR
 		return sample_bilinear(u, v);
 #elif TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_MIPMAP
-		return sample_mipmap(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+		if (!mipmapped) return sample_bilinear(u, v);
+
+	#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR
+		return sample_mipmap_trilinear(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+	#elif MIPMAP_FILTER == MIPMAP_FILTER_ANISOTROPIC
+		return sample_mipmap_anisotropic(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+	#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
+		return sample_mipmap_ewa(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+	#endif
 #endif
 	}
 
