@@ -38,4 +38,3 @@ SIMD_float Mesh::intersect(const Ray & ray, SIMD_float max_distance) const {
 
 	return bvh->intersect(ray_model_space, max_distance);
 }
-	

@@ -84,6 +84,8 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 			tinyobj::LoadMtl(&material_map, &materials, &is, &warning, &error);
 
 			load_materials(bvh, materials, path);
+		} else {
+			printf("WARNING: mtl file for %s not found! Make sure the .mtl file has the same name as the .obj file.\n", filename);
 		}
 	} else {
 		tinyobj::attrib_t attrib;
