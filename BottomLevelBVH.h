@@ -30,6 +30,8 @@ struct BottomLevelBVH {
 	
 	BVHNode * nodes;
 	int       node_count;
+	
+	void init(int count);
 
 	static const BottomLevelBVH * load(const char * filename);
 
@@ -37,8 +39,6 @@ struct BottomLevelBVH {
 	SIMD_float intersect(const Ray & ray, SIMD_float max_distance) const;
 
 private:
-	void init(int count);
-
 	void build_bvh (const Triangle * triangles);
 	void build_sbvh(const Triangle * triangles);
 

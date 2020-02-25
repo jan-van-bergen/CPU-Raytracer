@@ -69,6 +69,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="OBJLoader.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector3.h">
@@ -193,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJLoader.h">
+      <Filter>Assets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
