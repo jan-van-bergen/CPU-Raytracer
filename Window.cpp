@@ -40,10 +40,9 @@ Window::Window(int width, int height, const char * title) :
 	glDisable(GL_DEPTH_TEST);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 
-	glEnableVertexAttribArray(0); // Used for position
-	glEnableVertexAttribArray(1); // Used for uv
-	
 	frame_buffer = new unsigned[width * height];
+	
+	GLuint frame_buffer_handle;
 	glGenTextures(1, &frame_buffer_handle);
 
 	glBindTexture(GL_TEXTURE_2D, frame_buffer_handle);
@@ -51,31 +50,14 @@ Window::Window(int width, int height, const char * title) :
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
 	
-	Vertex vertices[] = {
-		{ Vector2(-1.0f,  1.0f), Vector2(0.0f, 0.0f) },
-		{ Vector2( 1.0f,  1.0f), Vector2(1.0f, 0.0f) },
-		{ Vector2(-1.0f, -1.0f), Vector2(0.0f, 1.0f) },
-		{ Vector2( 1.0f, -1.0f), Vector2(1.0f, 1.0f) }
-	};
-
-	int indices[] = { 0, 1, 2, 1, 3, 2 };
-
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 #if ENABLE_FXAA
-	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_fxaa.glsl")),
+	Shader shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_fxaa.glsl"));
 	shader.bind();
 	
 	glUniform1i(shader.get_uniform("screen"), 0);
 	glUniform2f(shader.get_uniform("inv_screen_size"), 1.0f / float(SCREEN_WIDTH), 1.0f / float(SCREEN_HEIGHT));
 #else 
-	shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_identity.glsl")),
+	Shader shader = Shader::load(DATA_PATH("Shaders/vertex.glsl"), DATA_PATH("Shaders/fragment_identity.glsl"));
 	
 	shader.bind();
 	glUniform1i(shader.get_uniform("screen"), 0);
@@ -99,10 +81,9 @@ void Window::update() {
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
 	
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),                          0 ); // position
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void *>(8)); // uv
-
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	// Draws a single Triangle, without any buffers
+	// The Vertex Shader makes sure positions + uvs work out
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	SDL_GL_SwapWindow(window);
 

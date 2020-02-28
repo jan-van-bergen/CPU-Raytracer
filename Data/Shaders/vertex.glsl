@@ -1,12 +1,14 @@
 #version 420
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_uv;
+layout (location = 0) out vec2 uv;
 
-layout (location = 0) out vec2 out_uv;
-
+// Based on: https://rauwendaal.net/2014/06/14/rendering-a-screen-covering-triangle-in-opengl/
 void main() {
-	out_uv = in_uv;
+	float x = float((gl_VertexID & 1) << 2) - 1.0f;
+	float y = float((gl_VertexID & 2) << 1) - 1.0f;
+
+	uv.x =        (x + 1.0f) * 0.5f;
+	uv.y = 1.0f - (y + 1.0f) * 0.5f;
 	
-	gl_Position = vec4(in_position, 0.0f, 1.0f);
+	gl_Position = vec4(x, y, 0.0f, 1.0f);
 }

@@ -22,11 +22,6 @@ private:
 	SDL_GLContext context;
 	
 	unsigned * frame_buffer;
-	GLuint     frame_buffer_handle;
-
-	GLuint vbo;
-	GLuint ibo;
-	Shader shader;
 
 public:
 	const int width;
