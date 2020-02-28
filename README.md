@@ -32,9 +32,9 @@ Each logical core gets assigned a Worker Thread and uses work stealing (among th
 - The MipMap LOD is determined using Ray Differentials, as described in Igehy 99 and Ray Tracing Gems chapter 20.
 - Mipmapping works correctly for reflected and refracted rays.
 - Three filtering modes are supported for mipmaps: Trilinear, Anisotropic and Elliptical Weighted Average. You can switch between them by changing the ```MIPMAP_FILTER``` define in Config.h. 
-Trilinear filtering is isotropic and can look blurry at oblique viewing angles. 
-Anisotropic filtering is based on the OpenGL specification of an anisotropic filter. (see [the extension specification](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt) for more details.
-Elliptical Weighted Average filtering is also an anisotropic filter, but provides better quality at the cost of being more expensive.
+  - Trilinear filtering is isotropic and looks blurry at oblique viewing angles. 
+  - Anisotropic filtering is based on the OpenGL specification of an anisotropic filter. (see [the extension specification](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt) for more details.
+  - Elliptical Weighted Average filtering is also an anisotropic filter, but provides better quality at the cost of being more expensive.
 
 *Note: For now only Textures with a width and height that are both powers of two support Mipmapping! The width and height do not have to be equal, allowing non-square Textures.*
 
