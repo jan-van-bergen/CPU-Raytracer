@@ -55,9 +55,9 @@ namespace Debug {
 	
 	// Writes an Triangle to the given FILE in obj format
 	inline void obj_write_triangle(const Triangle & triangle, FILE * file, int & index) {
-		fprintf(file, "v %f %f %f\n", triangle.position0.x, triangle.position0.y, triangle.position0.z);
-		fprintf(file, "v %f %f %f\n", triangle.position1.x, triangle.position1.y, triangle.position1.z);
-		fprintf(file, "v %f %f %f\n", triangle.position2.x, triangle.position2.y, triangle.position2.z);
+		fprintf(file, "v %f %f %f\n", triangle.position_0.x, triangle.position_0.y, triangle.position_0.z);
+		fprintf(file, "v %f %f %f\n", triangle.position_1.x, triangle.position_1.y, triangle.position_1.z);
+		fprintf(file, "v %f %f %f\n", triangle.position_2.x, triangle.position_2.y, triangle.position_2.z);
 
 		fprintf(file, "f %i %i %i\n", index, index + 1, index + 2);
 

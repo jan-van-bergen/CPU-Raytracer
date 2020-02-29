@@ -146,47 +146,47 @@ Vector3 Texture::fetch_texel(int x, int y, int level) const {
 	return data[offset + x + y * level_width];
 }
 
-Vector3 Texture::sample_nearest(float u, float v) const {
-	int x = Util::float_to_int(u * width_f);
-	int y = Util::float_to_int(v * height_f);
+Vector3 Texture::sample_nearest(float s, float t) const {
+	int x = Util::float_to_int(s * width_f);
+	int y = Util::float_to_int(t * height_f);
 
 	return fetch_texel(x, y);
 }
 
-Vector3 Texture::sample_bilinear(float u, float v, int level) const {
+Vector3 Texture::sample_bilinear(float s, float t, int level) const {
 	int level_width  = width  >> level;
 	int level_height = height >> level;
 
 	// Convert normalized (u,v) to pixel space
-	u = u * level_width  - 0.5f;
-	v = v * level_height - 0.5f;
+	s = s * level_width  - 0.5f;
+	t = t * level_height - 0.5f;
 
 	// Calculate bilinear weights
-	float fractional_u = u - floor(u);
-	float fractional_v = v - floor(v);
+	float fractional_s = s - floor(s);
+	float fractional_t = t - floor(t);
 
-	float one_minus_fractional_u = 1.0f - fractional_u;
-	float one_minus_fractional_v = 1.0f - fractional_v;
+	float one_minus_fractional_s = 1.0f - fractional_s;
+	float one_minus_fractional_t = 1.0f - fractional_t;
 
-	float w0 = one_minus_fractional_u * one_minus_fractional_v;
-	float w1 =           fractional_u * one_minus_fractional_v;
-	float w2 = one_minus_fractional_u *           fractional_v;
+	float w0 = one_minus_fractional_s * one_minus_fractional_t;
+	float w1 =           fractional_s * one_minus_fractional_t;
+	float w2 = one_minus_fractional_s *           fractional_t;
 	float w3 = 1.0f - w0 - w1 - w2;
 	
 	// Convert pixel coordinates to integers
-	int u0_i = Util::float_to_int(u - 0.5f);
-	int v0_i = Util::float_to_int(v - 0.5f);
+	int int_s = Util::float_to_int(s - 0.5f);
+	int int_t = Util::float_to_int(t - 0.5f);
 	
 	// Blend everything together using the weights
 	return 
-		w0 * fetch_texel(u0_i,     v0_i,     level) +
-		w1 * fetch_texel(u0_i + 1, v0_i,     level) +
-		w2 * fetch_texel(u0_i,     v0_i + 1, level) +
-		w3 * fetch_texel(u0_i + 1, v0_i + 1, level);
+		w0 * fetch_texel(int_s,     int_t,     level) +
+		w1 * fetch_texel(int_s + 1, int_t,     level) +
+		w2 * fetch_texel(int_s,     int_t + 1, level) +
+		w3 * fetch_texel(int_s + 1, int_t + 1, level);
 }
 
 // Based on: PBRT chapter 10.4
-Vector3 Texture::sample_mipmap_trilinear(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+Vector3 Texture::sample_mipmap_trilinear(float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	float width = 2.0f * std::max(
 		std::max(std::abs(ds_dx), std::abs(ds_dy)),
 		std::max(std::abs(dt_dx), std::abs(dt_dy))
@@ -195,16 +195,16 @@ Vector3 Texture::sample_mipmap_trilinear(float u, float v, float ds_dx, float ds
 	float lambda = mip_levels_f - 1.0f + log2f(std::max(width, 1e-8f));
 	int   level  = Util::float_to_int(lambda - 0.5f);
 
-	if (level < 0)               return sample_bilinear(u, v);
+	if (level < 0)               return sample_bilinear(s, t);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 
-	float t = lambda - floorf(lambda);
+	float f = lambda - floorf(lambda);
 
-	return (1.0f - t) * sample_bilinear(u, v, level) + t * sample_bilinear(u, v, level + 1);
+	return (1.0f - f) * sample_bilinear(s, t, level) + f * sample_bilinear(s, t, level + 1);
 }
 
 // Based on: https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt
-Vector3 Texture::sample_mipmap_anisotropic(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+Vector3 Texture::sample_mipmap_anisotropic(float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	float p_x = std::max(std::abs(ds_dx), std::abs(dt_dx));
 	float p_y = std::max(std::abs(ds_dy), std::abs(dt_dy));
 
@@ -217,20 +217,20 @@ Vector3 Texture::sample_mipmap_anisotropic(float u, float v, float ds_dx, float 
 	float lambda = mip_levels_f - 1.0f + log2f(p_max * one_over_N);
 	int   level  = Util::float_to_int(lambda);
 	
-	if (level < 0)               return sample_bilinear(u, v);
+	if (level < 0)               return sample_bilinear(s, t);
 	if (level >= mip_levels - 1) return fetch_texel(0, 0, mip_levels - 1);
 	
 	bool  x_major = p_x > p_y;
-	float step_u = x_major ? ds_dx : ds_dy;
-	float step_v = x_major ? dt_dx : dt_dy;
+	float step_s = x_major ? ds_dx : ds_dy;
+	float step_t = x_major ? dt_dx : dt_dy;
 
 	float one_over_N_plus_1 = 1.0f / (N + 1.0f);
 
 	Vector3 sum(0.0f);
 
 	for (float i = 1.0f; i <= N + 0.001f; i += 1.0f) {
-		float x = u + step_u * (i * one_over_N_plus_1 - 0.5f);
-		float y = v + step_v * (i * one_over_N_plus_1 - 0.5f);
+		float x = s + step_s * (i * one_over_N_plus_1 - 0.5f);
+		float y = t + step_t * (i * one_over_N_plus_1 - 0.5f);
 
 		sum += sample_bilinear(x, y, level);
 	}
@@ -239,7 +239,7 @@ Vector3 Texture::sample_mipmap_anisotropic(float u, float v, float ds_dx, float 
 }
 
 // Based on: PBRT chapter 10.4
-Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+Vector3 Texture::sample_mipmap_ewa(float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 	Vector2 major_axis(ds_dx, dt_dx);
 	Vector2 minor_axis(ds_dy, dt_dy);
 	
@@ -251,7 +251,7 @@ Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, f
 		std::swap(minor_length, major_length);
 	}
 
-	if (minor_length < 0.00001f) return sample_bilinear(u, v);
+	if (minor_length < 0.00001f) return sample_bilinear(s, t);
 	if (major_length > width_f)  return fetch_texel(0, 0, mip_levels - 1);
 
 	// Clamp ellipse eccentricity when it is too large
@@ -271,8 +271,8 @@ Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, f
 	float level_height = float(height >> level);
 
 	// Convert EWA coordinates to appropriate scale for level
-	u = u * level_width  - 0.5f;
-	v = v * level_height - 0.5f;
+	s = s * level_width  - 0.5f;
+	t = t * level_height - 0.5f;
 
 	Vector2 size(level_width, level_height);
 	Vector2 major_axis_scaled = major_axis * size;
@@ -299,10 +299,10 @@ Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, f
 	float two_inv_det_sqrt_u = two_inv_det * sqrt_u;
 	float two_inv_det_sqrt_v = two_inv_det * sqrt_v;
 
-	int s0 = Util::float_to_int(u - two_inv_det_sqrt_u + 0.5f);
-	int s1 = Util::float_to_int(u + two_inv_det_sqrt_u - 0.5f);
-	int t0 = Util::float_to_int(v - two_inv_det_sqrt_v + 0.5f);
-	int t1 = Util::float_to_int(v + two_inv_det_sqrt_v - 0.5f);
+	int s0 = Util::float_to_int(s - two_inv_det_sqrt_u + 0.5f);
+	int s1 = Util::float_to_int(s + two_inv_det_sqrt_u - 0.5f);
+	int t0 = Util::float_to_int(t - two_inv_det_sqrt_v + 0.5f);
+	int t1 = Util::float_to_int(t + two_inv_det_sqrt_v - 0.5f);
 
 	// Scan over ellipse bound and compute quadratic equation
 	Vector3 sum(0.0f);
@@ -314,12 +314,12 @@ Vector3 Texture::sample_mipmap_ewa(float u, float v, float ds_dx, float ds_dy, f
 	float tf = t0f;
 	
 	for (int ti = t0; ti <= t1; ti++, tf += 1.0f) {
-		float tt = tf - v;
+		float tt = tf - t;
 
 		float sf = s0f;
 
 		for (int si = s0; si <= s1; si++, sf += 1.0f) {
-			float ss = sf - u;
+			float ss = sf - s;
 
 			// Compute squared radius and filter texel if inside ellipse
 			float r2 = a * ss * ss + b * ss * tt + c * tt * tt;

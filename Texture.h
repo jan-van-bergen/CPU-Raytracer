@@ -22,28 +22,28 @@ private:
 
 	Vector3 fetch_texel(int x, int y, int level = 0) const;
 
-	Vector3 sample_nearest (float u, float v)                const;
-	Vector3 sample_bilinear(float u, float v, int level = 0) const;
+	Vector3 sample_nearest (float s, float t)                const;
+	Vector3 sample_bilinear(float s, float t, int level = 0) const;
 	
-	Vector3 sample_mipmap_trilinear  (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
-	Vector3 sample_mipmap_anisotropic(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
-	Vector3 sample_mipmap_ewa        (float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
+	Vector3 sample_mipmap_trilinear  (float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
+	Vector3 sample_mipmap_anisotropic(float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
+	Vector3 sample_mipmap_ewa        (float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const;
 
 public:
-	inline Vector3 sample(float u, float v, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
+	inline Vector3 sample(float s, float t, float ds_dx, float ds_dy, float dt_dx, float dt_dy) const {
 #if TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_NEAREST
-		return sample_nearest(u, v);
+		return sample_nearest(s, t);
 #elif TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_BILINEAR
-		return sample_bilinear(u, v);
+		return sample_bilinear(s, t);
 #elif TEXTURE_SAMPLE_MODE == TEXTURE_SAMPLE_MODE_MIPMAP
-		if (!mipmapped) return sample_bilinear(u, v);
+		if (!mipmapped) return sample_bilinear(s, t);
 
 	#if MIPMAP_FILTER == MIPMAP_FILTER_TRILINEAR
-		return sample_mipmap_trilinear(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+		return sample_mipmap_trilinear(s, t, ds_dx, ds_dy, dt_dx, dt_dy);
 	#elif MIPMAP_FILTER == MIPMAP_FILTER_ANISOTROPIC
-		return sample_mipmap_anisotropic(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+		return sample_mipmap_anisotropic(s, t, ds_dx, ds_dy, dt_dx, dt_dy);
 	#elif MIPMAP_FILTER == MIPMAP_FILTER_EWA
-		return sample_mipmap_ewa(u, v, ds_dx, ds_dy, dt_dx, dt_dy);
+		return sample_mipmap_ewa(s, t, ds_dx, ds_dy, dt_dx, dt_dy);
 	#endif
 #endif
 	}

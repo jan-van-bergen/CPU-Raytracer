@@ -213,14 +213,14 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 	
-	SIMD_Vector3 edge1(triangles_hot[index].position_edge1);
-	SIMD_Vector3 edge2(triangles_hot[index].position_edge2);
+	SIMD_Vector3 edge_1(triangles_hot[index].position_edge_1);
+	SIMD_Vector3 edge_2(triangles_hot[index].position_edge_2);
 
-	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge2);
-	SIMD_float   a = SIMD_Vector3::dot(edge1, h);
+	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge_2);
+	SIMD_float   a = SIMD_Vector3::dot(edge_1, h);
 
 	SIMD_float   f = SIMD_float::rcp(a);
-	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position0);
+	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position_0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
@@ -228,7 +228,7 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	SIMD_float mask = (u > zero) & (u < one);
 	if (SIMD_float::all_false(mask)) return;
 
-	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge1);
+	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge_1);
 	SIMD_float   v = f * SIMD_Vector3::dot(ray.direction, q);
 
 	// If the barycentric coordinate on the edge between vertices i and i+2 
@@ -237,7 +237,7 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	mask = mask & ((u + v) < one);
 	if (SIMD_float::all_false(mask)) return;
 
-	SIMD_float t = f * SIMD_Vector3::dot(edge2, q);
+	SIMD_float t = f * SIMD_Vector3::dot(edge_2, q);
 
 	// Check if we are in the right distance range
 	mask = mask & (t > Ray::EPSILON);
@@ -249,10 +249,10 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	ray_hit.hit      = ray_hit.hit | mask;
 	ray_hit.distance = SIMD_float::blend(ray_hit.distance, t, mask);
 
-	SIMD_Vector3 n_edge1 = SIMD_Vector3(triangles_cold[index].normal_edge1);
-	SIMD_Vector3 n_edge2 = SIMD_Vector3(triangles_cold[index].normal_edge2);
+	SIMD_Vector3 n_edge_1 = SIMD_Vector3(triangles_cold[index].normal_edge_1);
+	SIMD_Vector3 n_edge_2 = SIMD_Vector3(triangles_cold[index].normal_edge_2);
 
-	SIMD_Vector3 n = Math::barycentric(SIMD_Vector3(triangles_cold[index].normal0), n_edge1, n_edge2, u, v);
+	SIMD_Vector3 n = Math::barycentric(SIMD_Vector3(triangles_cold[index].normal_0), n_edge_1, n_edge_2, u, v);
 
 	SIMD_Vector3 point  = Matrix4::transform_position(world, ray.origin + ray.direction * t);
 	SIMD_Vector3 normal = Matrix4::transform_direction(world, SIMD_Vector3::normalize(n));
@@ -263,34 +263,34 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	ray_hit.material_id = SIMD_int::blend(ray_hit.material_id, SIMD_int(material_offset + triangles_cold[index].material_id), SIMD_float_as_int(mask));
 
 	// Obtain u,v by barycentric interpolation of the texture coordinates of the three current vertices
-	SIMD_Vector2 t_edge1(triangles_cold[index].tex_coord_edge1);
-	SIMD_Vector2 t_edge2(triangles_cold[index].tex_coord_edge2);
+	SIMD_Vector2 t_edge_1(triangles_cold[index].tex_coord_edge_1);
+	SIMD_Vector2 t_edge_2(triangles_cold[index].tex_coord_edge_2);
 
-	SIMD_Vector2 tex_coords = Math::barycentric(SIMD_Vector2(triangles_cold[index].tex_coord0), t_edge1, t_edge2, u, v);
+	SIMD_Vector2 tex_coords = Math::barycentric(SIMD_Vector2(triangles_cold[index].tex_coord_0), t_edge_1, t_edge_2, u, v);
 	ray_hit.u = SIMD_float::blend(ray_hit.u, tex_coords.x, mask);
 	ray_hit.v = SIMD_float::blend(ray_hit.v, tex_coords.y, mask);
 	
 #if RAY_DIFFERENTIALS_ENABLED
 	// Formulae from Chapter 20 of Ray Tracing Gems "Texture Level of Detail Strategies for Real-Time Ray Tracing"
-	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge1, edge2), ray.direction); 
+	SIMD_float one_over_k = SIMD_float(1.0f) / SIMD_Vector3::dot(SIMD_Vector3::cross(edge_1, edge_2), ray.direction); 
 
 	SIMD_Vector3 _q = SIMD_Vector3::madd(ray.dD_dx, t, ray.dO_dx);
 	SIMD_Vector3 _r = SIMD_Vector3::madd(ray.dD_dy, t, ray.dO_dy);
 
-	SIMD_Vector3 c_u = SIMD_Vector3::cross(edge2, ray.direction);
-	SIMD_Vector3 c_v = SIMD_Vector3::cross(ray.direction, edge1);
+	SIMD_Vector3 c_u = SIMD_Vector3::cross(edge_2, ray.direction);
+	SIMD_Vector3 c_v = SIMD_Vector3::cross(ray.direction, edge_1);
 
 	SIMD_float du_dx = one_over_k * SIMD_Vector3::dot(c_u, _q);
 	SIMD_float du_dy = one_over_k * SIMD_Vector3::dot(c_u, _r);
 	SIMD_float dv_dx = one_over_k * SIMD_Vector3::dot(c_v, _q);
 	SIMD_float dv_dy = one_over_k * SIMD_Vector3::dot(c_v, _r);
 	
-	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, du_dx * edge1 + dv_dx * edge2, mask);
-	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, du_dy * edge1 + dv_dy * edge2, mask);
+	ray_hit.dO_dx = SIMD_Vector3::blend(ray_hit.dO_dx, du_dx * edge_1 + dv_dx * edge_2, mask);
+	ray_hit.dO_dy = SIMD_Vector3::blend(ray_hit.dO_dy, du_dy * edge_1 + dv_dy * edge_2, mask);
 
 	// Calculate derivative of the non-normalized vector n
-	SIMD_Vector3 dn_dx = du_dx * n_edge1 + dv_dx * n_edge2;
-	SIMD_Vector3 dn_dy = du_dy * n_edge1 + dv_dy * n_edge2;
+	SIMD_Vector3 dn_dx = du_dx * n_edge_1 + dv_dx * n_edge_2;
+	SIMD_Vector3 dn_dy = du_dy * n_edge_1 + dv_dy * n_edge_2;
 
 	// Calculate derivative of the normalized vector N
 	SIMD_float n_dot_n = SIMD_Vector3::dot(n, n);
@@ -299,10 +299,10 @@ void BottomLevelBVH::triangle_trace(int index, const Ray & ray, RayHit & ray_hit
 	ray_hit.dN_dx = SIMD_Vector3::blend(ray_hit.dN_dx, (n_dot_n * dn_dx - SIMD_Vector3::dot(n, dn_dx) * n) * N_denom, mask);
 	ray_hit.dN_dy = SIMD_Vector3::blend(ray_hit.dN_dy, (n_dot_n * dn_dy - SIMD_Vector3::dot(n, dn_dy) * n) * N_denom, mask);
 
-	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, du_dx * t_edge1.x + dv_dx * t_edge2.x, mask);
-	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * t_edge1.x + dv_dy * t_edge2.x, mask);
-	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * t_edge1.y + dv_dx * t_edge2.y, mask);
-	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * t_edge1.y + dv_dy * t_edge2.y, mask);
+	ray_hit.ds_dx = SIMD_float::blend(ray_hit.ds_dx, du_dx * t_edge_1.x + dv_dx * t_edge_2.x, mask);
+	ray_hit.ds_dy = SIMD_float::blend(ray_hit.ds_dy, du_dy * t_edge_1.x + dv_dy * t_edge_2.x, mask);
+	ray_hit.dt_dx = SIMD_float::blend(ray_hit.dt_dx, du_dx * t_edge_1.y + dv_dx * t_edge_2.y, mask);
+	ray_hit.dt_dy = SIMD_float::blend(ray_hit.dt_dy, du_dy * t_edge_1.y + dv_dy * t_edge_2.y, mask);
 #endif
 }
 
@@ -310,14 +310,14 @@ SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_f
 	const SIMD_float zero(0.0f);
 	const SIMD_float one (1.0f);
 
-	SIMD_Vector3 edge0(triangles_hot[index].position_edge1);
-	SIMD_Vector3 edge1(triangles_hot[index].position_edge2);
+	SIMD_Vector3 edge_0(triangles_hot[index].position_edge_1);
+	SIMD_Vector3 edge_1(triangles_hot[index].position_edge_2);
 
-	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge1);
-	SIMD_float   a = SIMD_Vector3::dot(edge0, h);
+	SIMD_Vector3 h = SIMD_Vector3::cross(ray.direction, edge_1);
+	SIMD_float   a = SIMD_Vector3::dot(edge_0, h);
 
 	SIMD_float   f = SIMD_float::rcp(a);
-	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position0);
+	SIMD_Vector3 s = ray.origin - SIMD_Vector3(triangles_hot[index].position_0);
 	SIMD_float   u = f * SIMD_Vector3::dot(s, h);
 
 	// If the barycentric coordinate on the edge between vertices i and i+1 
@@ -325,7 +325,7 @@ SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_f
 	SIMD_float mask = (u > zero) & (u < one);
 	if (SIMD_float::all_false(mask)) return mask;
 
-	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge0);
+	SIMD_Vector3 q = SIMD_Vector3::cross(s, edge_0);
 	SIMD_float   v = f * SIMD_Vector3::dot(ray.direction, q);
 
 	// If the barycentric coordinate on the edge between vertices i and i+2 
@@ -334,7 +334,7 @@ SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_f
 	mask = mask & ((u + v) < one);
 	if (SIMD_float::all_false(mask)) return mask;
 
-	SIMD_float t = f * SIMD_Vector3::dot(edge1, q);
+	SIMD_float t = f * SIMD_Vector3::dot(edge_1, q);
 
 	// Check if we are in the right distance range
 	mask = mask & (t > Ray::EPSILON);

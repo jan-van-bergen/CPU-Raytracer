@@ -114,53 +114,57 @@ const Triangle * OBJLoader::load_obj(BottomLevelBVH * bvh, const char * filename
 
 		// Iterate over faces
 		for (int f = 0; f < vertex_count / 3; f++) {
-			int index_triangle = triangle_offset + f;
+			int index_0 = 3*f;
+			int index_1 = 3*f + 1;
+			int index_2 = 3*f + 2;
 
 			// Get indices for the positions, texcoords, and normals for the current Triangle face
-			int index_position0 = 3 * shapes[s].mesh.indices[3*f    ].vertex_index;
-			int index_position1 = 3 * shapes[s].mesh.indices[3*f + 1].vertex_index;
-			int index_position2 = 3 * shapes[s].mesh.indices[3*f + 2].vertex_index;
+			int index_position_0 = 3 * shapes[s].mesh.indices[index_0].vertex_index;
+			int index_position_1 = 3 * shapes[s].mesh.indices[index_1].vertex_index;
+			int index_position_2 = 3 * shapes[s].mesh.indices[index_2].vertex_index;
 
-			int index_tex_coord0 = 2 * shapes[s].mesh.indices[3*f    ].texcoord_index;
-			int index_tex_coord1 = 2 * shapes[s].mesh.indices[3*f + 1].texcoord_index;
-			int index_tex_coord2 = 2 * shapes[s].mesh.indices[3*f + 2].texcoord_index;
+			int index_tex_coord_0 = 2 * shapes[s].mesh.indices[index_0].texcoord_index;
+			int index_tex_coord_1 = 2 * shapes[s].mesh.indices[index_1].texcoord_index;
+			int index_tex_coord_2 = 2 * shapes[s].mesh.indices[index_2].texcoord_index;
 
-			int index_normal0 = 3 * shapes[s].mesh.indices[3*f    ].normal_index;
-			int index_normal1 = 3 * shapes[s].mesh.indices[3*f + 1].normal_index;
-			int index_normal2 = 3 * shapes[s].mesh.indices[3*f + 2].normal_index;
+			int index_normal_0 = 3 * shapes[s].mesh.indices[index_0].normal_index;
+			int index_normal_1 = 3 * shapes[s].mesh.indices[index_1].normal_index;
+			int index_normal_2 = 3 * shapes[s].mesh.indices[index_2].normal_index;
 
 			// Obtain positions, texcoords, and normals by indexing the buffers
-			Vector3 position0 = Vector3(attrib.vertices[index_position0], attrib.vertices[index_position0 + 1], attrib.vertices[index_position0 + 2]);
-			Vector3 position1 = Vector3(attrib.vertices[index_position1], attrib.vertices[index_position1 + 1], attrib.vertices[index_position1 + 2]);
-			Vector3 position2 = Vector3(attrib.vertices[index_position2], attrib.vertices[index_position2 + 1], attrib.vertices[index_position2 + 2]);
+			Vector3 position_0 = Vector3(attrib.vertices[index_position_0], attrib.vertices[index_position_0 + 1], attrib.vertices[index_position_0 + 2]);
+			Vector3 position_1 = Vector3(attrib.vertices[index_position_1], attrib.vertices[index_position_1 + 1], attrib.vertices[index_position_1 + 2]);
+			Vector3 position_2 = Vector3(attrib.vertices[index_position_2], attrib.vertices[index_position_2 + 1], attrib.vertices[index_position_2 + 2]);
 				
-			Vector2 tex_coord0 = index_tex_coord0 >= 0 ? Vector2(attrib.texcoords[index_tex_coord0], 1.0f - attrib.texcoords[index_tex_coord0 + 1]) : Vector2(0.0f, 0.0f);
-			Vector2 tex_coord1 = index_tex_coord1 >= 0 ? Vector2(attrib.texcoords[index_tex_coord1], 1.0f - attrib.texcoords[index_tex_coord1 + 1]) : Vector2(0.0f, 0.0f);
-			Vector2 tex_coord2 = index_tex_coord2 >= 0 ? Vector2(attrib.texcoords[index_tex_coord2], 1.0f - attrib.texcoords[index_tex_coord2 + 1]) : Vector2(0.0f, 0.0f);
+			Vector2 tex_coord_0 = index_tex_coord_0 >= 0 ? Vector2(attrib.texcoords[index_tex_coord_0], 1.0f - attrib.texcoords[index_tex_coord_0 + 1]) : Vector2(0.0f, 0.0f);
+			Vector2 tex_coord_1 = index_tex_coord_1 >= 0 ? Vector2(attrib.texcoords[index_tex_coord_1], 1.0f - attrib.texcoords[index_tex_coord_1 + 1]) : Vector2(0.0f, 0.0f);
+			Vector2 tex_coord_2 = index_tex_coord_2 >= 0 ? Vector2(attrib.texcoords[index_tex_coord_2], 1.0f - attrib.texcoords[index_tex_coord_2 + 1]) : Vector2(0.0f, 0.0f);
 
-			Vector3 normal0 = Vector3(attrib.normals[index_normal0], attrib.normals[index_normal0 + 1], attrib.normals[index_normal0 + 2]);
-			Vector3 normal1 = Vector3(attrib.normals[index_normal1], attrib.normals[index_normal1 + 1], attrib.normals[index_normal1 + 2]);
-			Vector3 normal2 = Vector3(attrib.normals[index_normal2], attrib.normals[index_normal2 + 1], attrib.normals[index_normal2 + 2]);
+			Vector3 normal_0 = Vector3(attrib.normals[index_normal_0], attrib.normals[index_normal_0 + 1], attrib.normals[index_normal_0 + 2]);
+			Vector3 normal_1 = Vector3(attrib.normals[index_normal_1], attrib.normals[index_normal_1 + 1], attrib.normals[index_normal_1 + 2]);
+			Vector3 normal_2 = Vector3(attrib.normals[index_normal_2], attrib.normals[index_normal_2 + 1], attrib.normals[index_normal_2 + 2]);
+			
+			int index_triangle = triangle_offset + f;
 
 			// Store positions in the AoS buffer used for BVH construction
-			triangles[index_triangle].position0 = position0;
-			triangles[index_triangle].position1 = position1;
-			triangles[index_triangle].position2 = position2;
+			triangles[index_triangle].position_0 = position_0;
+			triangles[index_triangle].position_1 = position_1;
+			triangles[index_triangle].position_2 = position_2;
 
 			triangles[index_triangle].calc_aabb();
 
 			// Store positions, texcoords, and normals in SoA layout in the BVH itself
-			bvh->triangles_hot[index_triangle].position0      = position0;
-			bvh->triangles_hot[index_triangle].position_edge1 = position1 - position0;
-			bvh->triangles_hot[index_triangle].position_edge2 = position2 - position0;
+			bvh->triangles_hot[index_triangle].position_0      = position_0;
+			bvh->triangles_hot[index_triangle].position_edge_1 = position_1 - position_0;
+			bvh->triangles_hot[index_triangle].position_edge_2 = position_2 - position_0;
 
-			bvh->triangles_cold[index_triangle].tex_coord0      = tex_coord0;
-			bvh->triangles_cold[index_triangle].tex_coord_edge1 = tex_coord1 - tex_coord0;
-			bvh->triangles_cold[index_triangle].tex_coord_edge2 = tex_coord2 - tex_coord0;
+			bvh->triangles_cold[index_triangle].tex_coord_0      = tex_coord_0;
+			bvh->triangles_cold[index_triangle].tex_coord_edge_1 = tex_coord_1 - tex_coord_0;
+			bvh->triangles_cold[index_triangle].tex_coord_edge_2 = tex_coord_2 - tex_coord_0;
 
-			bvh->triangles_cold[index_triangle].normal0      = normal0;
-			bvh->triangles_cold[index_triangle].normal_edge1 = normal1 - normal0;
-			bvh->triangles_cold[index_triangle].normal_edge2 = normal2 - normal0;
+			bvh->triangles_cold[index_triangle].normal_0      = normal_0;
+			bvh->triangles_cold[index_triangle].normal_edge_1 = normal_1 - normal_0;
+			bvh->triangles_cold[index_triangle].normal_edge_2 = normal_2 - normal_0;
 
 			// Lookup and store material id
 			int material_id = shapes[s].mesh.material_ids[f];

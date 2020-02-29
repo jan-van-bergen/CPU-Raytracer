@@ -2,11 +2,6 @@
 
 #include <cstring>
 
-struct Vertex {
-	Vector2 position;
-	Vector2 uv;
-};
-
 Window::Window(int width, int height, const char * title) : 
 	width(width), height(height), 
 	tile_count_x((width  + tile_width  - 1) / tile_width), 
@@ -65,7 +60,7 @@ Window::Window(int width, int height, const char * title) :
 }
 
 Window::~Window() {
-	delete[] frame_buffer;
+	delete [] frame_buffer;
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
