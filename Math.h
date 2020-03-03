@@ -10,7 +10,7 @@
 namespace Math {
 	// Clamps the value between a smallest and largest allowed value
 	template<typename T>
-	inline T clamp(T value, T min, T max) {
+	inline FORCEINLINE T clamp(T value, T min, T max) {
 		if (value < min) return min;
 		if (value > max) return max;
 
@@ -19,31 +19,31 @@ namespace Math {
 
 	// Interpolate between a,b,c given barycentric coordinates u,v
 	template<typename T, typename Real>
-	inline T barycentric(const T & base, const T & edge1, const T & edge2, Real u, Real v) {
+	inline FORCEINLINE T barycentric(const T & base, const T & edge1, const T & edge2, Real u, Real v) {
 		return base + u * edge1 + v * edge2;
 	}
 
 	// Reflects the vector in the normal
 	// The sign of the normal is irrelevant, but it should be normalized
-	inline SIMD_Vector3 reflect(const SIMD_Vector3 & vector, const SIMD_Vector3 & normal) {
+	inline FORCEINLINE SIMD_Vector3 reflect(const SIMD_Vector3 & vector, const SIMD_Vector3 & normal) {
 		return vector - (SIMD_float(2.0f) * SIMD_Vector3::dot(vector, normal)) * normal;
 	}
 
 	// Refracts the vector in the normal, according to Snell's Law
 	// The normal should be oriented such that it makes the smallest angle possible with the vector
-	inline SIMD_Vector3 refract(const SIMD_Vector3 & vector, const SIMD_Vector3 & normal, SIMD_float eta, SIMD_float cos_theta, SIMD_float k) {
+	inline FORCEINLINE SIMD_Vector3 refract(const SIMD_Vector3 & vector, const SIMD_Vector3 & normal, SIMD_float eta, SIMD_float cos_theta, SIMD_float k) {
 		return eta * vector + ((eta * cos_theta) - SIMD_float::sqrt(k)) * normal;
 	}
 	
 	// Checks if n is a power of two
-	inline constexpr bool is_power_of_two(int n) {
+	inline FORCEINLINE constexpr bool is_power_of_two(int n) {
 		if (n == 0) return false;
 
 		return (n & (n - 1)) == 0;
 	}
 	
 	// Computes positive modulo of given value
-	inline unsigned mod(int value, int modulus) {
+	inline FORCEINLINE unsigned mod(int value, int modulus) {
 		int result = value % modulus;
 		if (result < 0) {
 			result += modulus;

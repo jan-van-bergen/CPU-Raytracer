@@ -343,6 +343,13 @@ SIMD_float BottomLevelBVH::triangle_intersect(int index, const Ray & ray, SIMD_f
 	return mask;
 }
 
+// Possible hints:
+// _MM_HINT_NTA - non-temporal
+// _MM_HINT_T0  - L1, L2, and L3 cache
+// _MM_HINT_T1  -     L2, and L3 cache
+// _MM_HINT_T2  -             L3 cache
+#define PREFETCH_HINT _MM_HINT_T0
+
 void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const {
 	int stack[BVH_TRAVERSAL_STACK_SIZE];
 	int stack_size = 1;
@@ -366,6 +373,9 @@ void BottomLevelBVH::trace(const Ray & ray, RayHit & ray_hit, const Matrix4 & wo
 				triangle_trace(i, ray, ray_hit, world);
 			}
 		} else {
+			// Prefetch the cacheline containing the children of the current Node
+			_mm_prefetch(reinterpret_cast<const char *>(nodes + node.left), PREFETCH_HINT);
+
 			if (node.should_visit_left_first(ray)) {
 				stack[stack_size++] = node.left + 1;
 				stack[stack_size++] = node.left;
@@ -408,6 +418,9 @@ SIMD_float BottomLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) c
 				if (SIMD_float::all_true(hit)) return hit;
 			}
 		} else {
+			// Prefetch the cacheline containing the children of the current Node
+			_mm_prefetch(reinterpret_cast<const char *>(nodes + node.left), PREFETCH_HINT);
+
 			if (node.should_visit_left_first(ray)) {
 				stack[stack_size++] = node.left + 1;
 				stack[stack_size++] = node.left;

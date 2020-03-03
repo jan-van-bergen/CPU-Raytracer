@@ -47,6 +47,6 @@ private:
 	
 	void flatten();
 
-	void       triangle_trace    (int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
-	SIMD_float triangle_intersect(int index, const Ray & ray, SIMD_float max_distance) const;
+	FORCEINLINE void       triangle_trace    (int index, const Ray & ray, RayHit & ray_hit, const Matrix4 & world) const;
+	FORCEINLINE SIMD_float triangle_intersect(int index, const Ray & ray, SIMD_float max_distance) const;
 };

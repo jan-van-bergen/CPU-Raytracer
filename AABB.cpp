@@ -35,7 +35,7 @@ AABB AABB::overlap(const AABB & b1, const AABB & b2) {
 }
 
 // Ray-AABB intersection code based on: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
-SIMD_float AABB::intersect(const Ray & ray, const SIMD_Vector3 & inv_direction, SIMD_float max_distance) const {
+SIMD_float AABB::intersect(const Ray & ray, const SIMD_Vector3 & inv_direction, const SIMD_float & max_distance) const {
 	SIMD_Vector3 aabb_min(min);
 	SIMD_Vector3 aabb_max(max);
 
