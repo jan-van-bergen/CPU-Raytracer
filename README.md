@@ -53,6 +53,8 @@ The camera can be moved using the WASD keys and oriented using the arrow keys. V
 
 Various options and settings are available in Config.h.
 
+When running for the first time the SBVH needs to be constructed, this may take around 10 seconds for the Sponza scene. The BVH is stored to disk so that on later runs the program loads fast.
+
 ## Dependencies
 
 The project uses SDL and GLEW. Their dll's for both x86 and x64 targets are included in the repositories, as well as all required headers.
