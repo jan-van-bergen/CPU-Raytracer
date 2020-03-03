@@ -34,13 +34,15 @@ const BottomLevelBVH * BottomLevelBVH::load(const char * filename) {
 	} else {
 		const Triangle * triangles = OBJLoader::load_obj(bvh, filename);
 
-#if MESH_ACCELERATOR == MESH_USE_BVH
+#if MESH_ACCELERATOR == MESH_ACCELERATOR_BVH
 		{
 			ScopeTimer timer("Mesh BVH Construction");
 			bvh->build_bvh(triangles);
 		}
-#elif MESH_ACCELERATOR == MESH_USE_SBVH
+#elif MESH_ACCELERATOR == MESH_ACCELERATOR_SBVH
 		{
+			printf("Constructing SBVH for %s. This may take a while for large Meshes...\n", filename);
+
 			ScopeTimer timer("Mesh SBVH Construction");
 			bvh->build_sbvh(triangles);
 		}

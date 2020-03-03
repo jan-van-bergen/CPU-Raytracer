@@ -51,7 +51,7 @@ void TopLevelBVH::update() const {
 }
 
 void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit) const {
-	int stack[128];
+	int stack[BVH_TRAVERSAL_STACK_SIZE];
 	int stack_size = 1;
 
 	// Push root on stack
@@ -87,7 +87,7 @@ void TopLevelBVH::trace(const Ray & ray, RayHit & ray_hit) const {
 }
 
 SIMD_float TopLevelBVH::intersect(const Ray & ray, SIMD_float max_distance) const {
-	int stack[128];
+	int stack[BVH_TRAVERSAL_STACK_SIZE];
 	int stack_size = 1;
 
 	// Push root on stack

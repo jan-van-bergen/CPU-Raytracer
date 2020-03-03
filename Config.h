@@ -29,10 +29,10 @@
 
 #define BVH_TRAVERSAL_STRATEGY BVH_TRAVERSE_TREE_ORDERED
 
-#define MESH_USE_BVH  0 // Regular SAH based BVH construction
-#define MESH_USE_SBVH 1 // Spatial BVH. Able to split Triangles (see https://www.nvidia.in/docs/IO/77714/sbvh.pdf)
+#define MESH_ACCELERATOR_BVH  0 // Regular SAH based BVH construction
+#define MESH_ACCELERATOR_SBVH 1 // Spatial BVH. Able to split Triangles (see https://www.nvidia.in/docs/IO/77714/sbvh.pdf)
 
-#define MESH_ACCELERATOR MESH_USE_SBVH // Bottom Level (object space) acceleration structure
+#define MESH_ACCELERATOR MESH_ACCELERATOR_SBVH // Bottom Level (object space) acceleration structure
 
 // Texture settings
 #define TEXTURE_SAMPLE_MODE_NEAREST  0 // No filtering
