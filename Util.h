@@ -39,4 +39,13 @@ namespace Util {
 	inline int float_to_int(float x) {
 		return _mm_cvtss_si32(_mm_load_ss(&x));
 	}
+
+	template<typename T>
+	inline T * aligned_malloc(int count, int align) {
+		return reinterpret_cast<T *>(ALIGNED_MALLOC(count * sizeof(T), align));
+	}
+
+	inline void aligned_free(void * ptr) {
+		ALIGNED_FREE(ptr);
+	}
 }

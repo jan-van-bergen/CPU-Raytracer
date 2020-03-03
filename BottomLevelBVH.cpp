@@ -61,12 +61,12 @@ void BottomLevelBVH::init(int count) {
 	assert(count > 0);
 
 	triangle_count = count; 
-	triangles_hot  = reinterpret_cast<TriangleHot  *>(ALIGNED_MALLOC(triangle_count * sizeof(TriangleHot),  CACHE_LINE_WIDTH));
-	triangles_cold = reinterpret_cast<TriangleCold *>(ALIGNED_MALLOC(triangle_count * sizeof(TriangleCold), CACHE_LINE_WIDTH));
+	triangles_hot  = Util::aligned_malloc<TriangleHot> (triangle_count, CACHE_LINE_WIDTH);
+	triangles_cold = Util::aligned_malloc<TriangleCold>(triangle_count, CACHE_LINE_WIDTH);
 
 	indices = nullptr;
 
-	nodes = reinterpret_cast<BVHNode *>(ALIGNED_MALLOC(2 * triangle_count * sizeof(BVHNode), CACHE_LINE_WIDTH));
+	nodes = Util::aligned_malloc<BVHNode>(2 * triangle_count, CACHE_LINE_WIDTH);
 }
 
 void BottomLevelBVH::build_bvh(const Triangle * triangles) {
@@ -204,8 +204,8 @@ void BottomLevelBVH::flatten() {
 
 	delete [] indices;
 
-	ALIGNED_FREE(triangles_hot);
-	ALIGNED_FREE(triangles_cold);
+	Util::aligned_free(triangles_hot);
+	Util::aligned_free(triangles_cold);
 
 	triangles_hot  = flat_triangles_hot;
 	triangles_cold = flat_triangles_cold;

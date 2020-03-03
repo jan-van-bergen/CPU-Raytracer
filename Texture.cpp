@@ -55,9 +55,9 @@ const Texture * Texture::load(const char * file_path) {
 	texture->mipmapped = use_mipmapping;
 
 	if (use_mipmapping) {
-		texture->data = reinterpret_cast<Vector3 *>(ALIGNED_MALLOC((texture->width * texture->height + (texture->width * texture->height) / 3)* sizeof(Vector3), CACHE_LINE_WIDTH));
+		texture->data = Util::aligned_malloc<Vector3>(texture->width * texture->height + (texture->width * texture->height) / 3, CACHE_LINE_WIDTH);
 	} else {
-		texture->data = reinterpret_cast<Vector3 *>(ALIGNED_MALLOC(texture->width * texture->height * sizeof(Vector3), CACHE_LINE_WIDTH));
+		texture->data = Util::aligned_malloc<Vector3>(texture->width * texture->height, CACHE_LINE_WIDTH);
 	}
 
 	// Copy the data over into Mipmap level 0, and convert it to linear colour space

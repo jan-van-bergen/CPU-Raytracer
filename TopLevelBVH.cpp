@@ -10,7 +10,7 @@ void TopLevelBVH::init(int count) {
 
 	indices = nullptr;
 
-	nodes = reinterpret_cast<BVHNode *>(ALIGNED_MALLOC(2 * primitive_count * sizeof(BVHNode), CACHE_LINE_WIDTH));
+	nodes = Util::aligned_malloc<BVHNode>(2 * primitive_count, CACHE_LINE_WIDTH);
 	
 	// Used for rebuilding, allocated once so we don't have to heap allocate/destroy every frame
 	indices_x = new int[primitive_count];

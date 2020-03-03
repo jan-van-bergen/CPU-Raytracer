@@ -15,7 +15,7 @@ private:
 
 	int   mip_levels   = 0;
 	float mip_levels_f = 0.0f;
-	int * mip_offsets;
+	int * mip_offsets  = nullptr;
 
 	inline static const int ewa_weight_table_size = 128;
 	inline static float     ewa_weight_table[ewa_weight_table_size];
