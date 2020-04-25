@@ -343,3 +343,6 @@ healthchecksdb
 
 # Bounding Volume Hierarchy binary
 *.bvh
+
+# Dear ImGui configuration
+imgui.ini
