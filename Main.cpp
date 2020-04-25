@@ -87,10 +87,10 @@ int main(int argument_count, char ** arguments) {
 		PerformanceStats performance_stats = WorkerThreads::sum_performance_stats();
 
 		// Convert to MegaRays / Second
-		float num_primary_rays    = float(performance_stats.num_primary_rays    * fps) * 1e-6;
-		float num_shadow_rays     = float(performance_stats.num_shadow_rays     * fps) * 1e-6;
-		float num_reflection_rays = float(performance_stats.num_reflection_rays * fps) * 1e-6;
-		float num_refraction_rays = float(performance_stats.num_refraction_rays * fps) * 1e-6;
+		float num_primary_rays    = float(performance_stats.num_primary_rays    * fps) * 1e-6f;
+		float num_shadow_rays     = float(performance_stats.num_shadow_rays     * fps) * 1e-6f;
+		float num_reflection_rays = float(performance_stats.num_reflection_rays * fps) * 1e-6f;
+		float num_refraction_rays = float(performance_stats.num_refraction_rays * fps) * 1e-6f;
 
 		float num_total_rays = num_primary_rays + num_shadow_rays + num_reflection_rays + num_refraction_rays;
 		
