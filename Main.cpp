@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <Imgui/imgui.h>
+
 #include "Raytracer.h"
 
 #include "WorkerThread.h"
@@ -54,7 +56,7 @@ int main(int argument_count, char ** arguments) {
 		WorkerThreads::wake_up_worker_threads(window.tile_count_x * window.tile_count_y);
 		WorkerThreads::wait_on_worker_threads();
 
-		window.update();
+		window.draw_quad();
 
 		// Perform frame timing
 		now = SDL_GetPerformanceCounter();
@@ -91,19 +93,28 @@ int main(int argument_count, char ** arguments) {
 		float num_refraction_rays = float(performance_stats.num_refraction_rays * fps) * 1e-6;
 
 		float num_total_rays = num_primary_rays + num_shadow_rays + num_reflection_rays + num_refraction_rays;
+		
+		window.gui_begin();
 
-		// Report timings and performance stats
-		printf("%d - Delta=%.2f ms, Avg=%.2f ms, FPS=%d, Total=%.2f MRays/s, Primary=%.2f MRays/s, Shadow=%.2f MRays/s, Reflection=%.2f MRays/s, Refraction=%.2f MRays/s\n", 
-			current_frame, 
-			delta_time * 1000.0f, 
-			avg        * 1000.0f, 
-			fps,
-			num_total_rays,
-			num_primary_rays, 
-			num_shadow_rays, 
-			num_reflection_rays, 
-			num_refraction_rays
-		);
+		ImGui::Begin("Raytracer");
+		ImGui::Text("Frame: %i", current_frame);
+		ImGui::Text("FPS: %i", fps);
+		ImGui::Text("Delta: %.2f ms", delta_time * 1000.0f);
+		ImGui::Text("Avg:   %.2f ms", avg        * 1000.0f);
+		
+		if (ImGui::CollapsingHeader("Ray Counters", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::Text("Total:      %.2f MRays/s", num_total_rays);
+			ImGui::Text("Primary:    %.2f MRays/s", num_primary_rays);
+			ImGui::Text("Shadow:     %.2f MRays/s", num_shadow_rays);
+			ImGui::Text("Reflection: %.2f MRays/s", num_reflection_rays);
+			ImGui::Text("Refraction: %.2f MRays/s", num_refraction_rays);
+		}
+
+		ImGui::End();
+
+		window.gui_end();
+
+		window.swap();
 	}
 
 	return EXIT_SUCCESS;

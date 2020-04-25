@@ -39,8 +39,13 @@ public:
 	~Window();
 
 	void clear();
+	
+	void draw_quad() const;
 
-	void update();
+	void gui_begin() const;
+	void gui_end()   const;
+
+	void swap();
 
 	inline void plot(int x, int y, unsigned colour) const {
 		frame_buffer[x + width * y] = colour;

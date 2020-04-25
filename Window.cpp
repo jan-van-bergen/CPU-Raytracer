@@ -2,6 +2,10 @@
 
 #include <cstring>
 
+#include <Imgui/imgui.h>
+#include <Imgui/imgui_impl_sdl.h>
+#include <Imgui/imgui_impl_opengl3.h>
+
 Window::Window(int width, int height, const char * title) : 
 	width(width), height(height), 
 	tile_count_x((width  + tile_width  - 1) / tile_width), 
@@ -57,6 +61,15 @@ Window::Window(int width, int height, const char * title) :
 	shader.bind();
 	glUniform1i(shader.get_uniform("screen"), 0);
 #endif
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplSDL2_InitForOpenGL(window, context);
+	ImGui_ImplOpenGL3_Init("#version 450");
+
+	ImGui::StyleColorsDark();
 }
 
 Window::~Window() {
@@ -71,7 +84,7 @@ void Window::clear() {
 	memset(frame_buffer, 0, width * height * sizeof(unsigned));
 }
 
-void Window::update() {
+void Window::draw_quad() const {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame_buffer);
@@ -79,12 +92,27 @@ void Window::update() {
 	// Draws a single Triangle, without any buffers
 	// The Vertex Shader makes sure positions + uvs work out
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
 
+void Window::gui_begin() const {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame(window);
+	ImGui::NewFrame();
+}
+
+void Window::gui_end() const {
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Window::swap() {
 	SDL_GL_SwapWindow(window);
 
-	SDL_Event e;
-	while (SDL_PollEvent(&e)) {
-		if (e.type == SDL_QUIT) {
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		ImGui_ImplSDL2_ProcessEvent(&event);
+
+		if (event.type == SDL_QUIT) {
 			is_closed = true;
 		}
 	}
