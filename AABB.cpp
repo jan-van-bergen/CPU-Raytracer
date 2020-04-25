@@ -63,7 +63,7 @@ AABB AABB::transform(const AABB & aabb, const Matrix4 & transformation) {
 	}
 
 	Vector3 new_center = Matrix4::transform_position (    transformation, center);
-    Vector3 new_extent = Matrix4::transform_direction(abs_transformation, extent);
+	Vector3 new_extent = Matrix4::transform_direction(abs_transformation, extent);
 
 	AABB result;
 	result.min = new_center - new_extent;
