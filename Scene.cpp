@@ -51,15 +51,18 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(2), planes(1), sky(DATA_PAT
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
-	point_lights = new PointLight[point_light_count = 1] {
+	point_light_count = 1;
+	point_lights = new PointLight[1] {
 		PointLight(Vector3(0.0f, 5.0f, 10.0f), Vector3(0.0f, 0.0f, 6.0f))
 	};
 
-	spot_lights = new SpotLight[spot_light_count = 1] {
+	spot_light_count = 1;
+	spot_lights = new SpotLight[1] {
 		SpotLight(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 10.0f), Quaternion::axis_angle(Vector3(1.0f, 0.0f, 0.0f), DEG_TO_RAD(70.0f)) * Vector3(0.0f, 0.0f, 1.0f), 70.0f, 80.0f)
 	};
 
-	directional_lights = new DirectionalLight[directional_light_count = 1] {
+	directional_light_count = 1;
+	directional_lights = new DirectionalLight[1] {
 		DirectionalLight(Vector3(0.5f), Vector3::normalize(Vector3(0.0f, -1.0f, 0.0f)))
 	};
 
@@ -83,7 +86,8 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	}
 	printf("Scene contains %i triangles.\n", triangle_count);
 
-	spline_path.keyframes = new CatmullRomSpline::KeyFrame[spline_path.keyframe_count = 27] {
+	spline_path.keyframe_count = 27;
+	spline_path.keyframes = new CatmullRomSpline::KeyFrame[27] {
 		{  0.0f, Vector3(   0.000000f,  2.000000f,   0.000000f) },
 		{  2.0f, Vector3( -60.612534f, 17.238392f,  15.523449f) },
 		{  4.0f, Vector3(-108.123993f, 17.238392f,  -1.894550f) },
@@ -116,7 +120,8 @@ Scene::Scene() : camera(DEG_TO_RAD(110.0f)), spheres(0), planes(0), sky(DATA_PAT
 	point_light_count = 0;
 	spot_light_count  = 0;
 
-	directional_lights = new DirectionalLight[directional_light_count = 1] {
+	directional_light_count = 1;
+	directional_lights = new DirectionalLight[1] {
 		DirectionalLight(Vector3(0.9f), Vector3::normalize(Vector3(0.1f, -1.0f, 0.1f)))
 	};
 	
