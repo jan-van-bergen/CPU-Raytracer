@@ -13,20 +13,22 @@
 inline void GLAPIENTRY glMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, const void * userParam) {
 	printf("GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "", type, severity, message);
 
-	__debugbreak();
+	if (type == GL_DEBUG_TYPE_ERROR) {
+		__debugbreak();
+	}
 }
 
 struct Window {
 private:
 	SDL_Window *  window;
 	SDL_GLContext context;
-	
+
 	unsigned * frame_buffer;
 
 public:
 	const int width;
 	const int height;
-	
+
 	const int tile_width  = 32;
 	const int tile_height = 32;
 
@@ -39,7 +41,7 @@ public:
 	~Window();
 
 	void clear();
-	
+
 	void draw_quad() const;
 
 	void gui_begin() const;
